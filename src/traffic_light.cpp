@@ -1,17 +1,15 @@
 #include "../include/entities/traffic_light.h"
-#include "../include/world/lane.h" //full definition needed in .cpp
+#include "../include/world/lane.h" 
 
 #pragma region PROTECTED
 void Traffic::adjustSprite() 
 {
-  float currentWidth = sprite.getLocalBounds().size.x;
-  float currentHeight = sprite.getLocalBounds().size.y;
-  if (currentWidth == 0.f || currentHeight == 0.f)
+  if (getWidthSprite() == 0.f || getHeightSprite() == 0.f)
     return;
-  if (currentWidth > Constants::TRAFFIC_WIDTH || currentHeight > Constants::TRAFFIC_HEIGHT) 
+  if (getWidthSprite() > Constants::TRAFFIC_WIDTH || getHeightSprite() > Constants::TRAFFIC_HEIGHT)
   {
-    float scaleX = Constants::TRAFFIC_WIDTH / currentWidth;
-    float scaleY = Constants::TRAFFIC_HEIGHT / currentHeight;
+    float scaleX = Constants::TRAFFIC_WIDTH / getWidthSprite();
+    float scaleY = Constants::TRAFFIC_HEIGHT / getHeightSprite();
     float finalScale = std::min(scaleX, scaleY);
     sprite.setScale({finalScale, finalScale});
   }
@@ -116,6 +114,16 @@ void Traffic::setRedDuration(const float &duration)
     red_duration = duration; 
 }
 
+float Traffic::getWidthSprite() const
+{
+    return sprite.getGlobalBounds().size.x;
+}
+
+float Traffic::getHeightSprite() const
+{
+    return sprite.getGlobalBounds().size.y;
+}
+
 void Traffic::updateState(float delta_time) 
 {
   if (color == Constants::TrafficLightColor::Green && timer >= green_duration) 
@@ -126,19 +134,38 @@ void Traffic::updateState(float delta_time)
   if (color == Constants::TrafficLightColor::Yellow && timer >= Constants::YELLOW_DURATION) 
   {
     setColor(Constants::TrafficLightColor::Red);
+    setRedDuration(randomDuration(Constants::TrafficLightColor::Red));
     return;
   }
   if (color == Constants::TrafficLightColor::Red && timer >= red_duration) 
   {
     setColor(Constants::TrafficLightColor::Green);
+    setGreenDuration(randomDuration(Constants::TrafficLightColor::Green));
     return;
   }
   timer += delta_time;
 }
 
-void Traffic::render(sf::RenderWindow &window) const 
-{ 
-    window.draw(sprite); 
+void Traffic::render(sf::RenderWindow &window) const
+{
+    window.draw(sprite);
+
+    // draw the active light as a filled circle whose colour follows 'color'
+    sf::Color light_color;
+    switch (color)
+    {
+    case Constants::TrafficLightColor::Red:    light_color = sf::Color(230, 40, 40);  break;
+    case Constants::TrafficLightColor::Yellow: light_color = sf::Color(240, 200, 20);  break;
+    default:                                   light_color = sf::Color(40, 210, 80);  break;
+    }
+
+    float radius = std::min(Constants::TRAFFIC_WIDTH, Constants::TRAFFIC_HEIGHT) * 0.38f;
+    sf::CircleShape dot(radius);
+    dot.setFillColor(light_color);
+    dot.setOrigin(sf::Vector2f(radius, radius));
+    dot.setPosition(sf::Vector2f(position.x + Constants::TRAFFIC_WIDTH * 0.5f,
+                                 position.y + Constants::TRAFFIC_HEIGHT * 0.5f));
+    window.draw(dot);
 }
 
 #pragma endregion

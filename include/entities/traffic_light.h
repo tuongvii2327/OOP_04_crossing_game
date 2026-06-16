@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <random>
+#include <algorithm>              
 
 #include <SFML/Graphics.hpp>
 
@@ -49,6 +50,9 @@ public:
 
   float getRedDuration() const;
   void setRedDuration(const float &duration);
+
+  float getWidthSprite() const;
+  float getHeightSprite() const;
 
   void updateState(float delta_time);
   void render(sf::RenderWindow &window) const;

@@ -20,6 +20,7 @@ class Lane {
   int direction;
   std::vector<DynamicObject *> list_obj;
   std::vector<Traffic *> list_traffic;
+  bool is_add_new_obj;
 
 protected:
   void adjustSprite();
@@ -43,11 +44,16 @@ public:
   int getDirection() const;
   void setDirection(const int &direct);
 
+  float getWidthSprite() const;
+  float getHeightSprite() const;
+
   void addObject(DynamicObject *obj);
+  void removeObject(DynamicObject *obj);
   void addTraffic(Traffic *t);
 
   Traffic *getNearestTrafficAhead(const Vehicle &vehicle);
   Vehicle *getNearestVehicleAhead(const Vehicle &vehicle);
 
+  void updateState(float delta_time);
   void render(sf::RenderWindow &window) const;
 };

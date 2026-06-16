@@ -1,8 +1,12 @@
 #include <SFML/Graphics.hpp>
-#include <cassert>
+#include <algorithm>
 #include <cmath>
-#include <iostream>
-#include <string>
+#include <random>
+#include <vector>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #include "../include/entities/car.h"
 #include "../include/entities/dynamic_object.h"
@@ -12,495 +16,864 @@
 #include "../include/utils/constants.h"
 #include "../include/world/lane.h"
 
-// ── helpers ──────────────────────────────────────────────────────────────────
+// ── RNG ────────────────────────────────────────────────────────────────────
 
-static int g_pass = 0, g_fail = 0;
+static std::mt19937 g_rng{std::random_device{}()};
 
-static void check(bool cond, const std::string &name) {
-  if (cond) {
-    std::cout << "  [PASS] " << name << "\n";
-    ++g_pass;
-  } else {
-    std::cout << "  [FAIL] " << name << "\n";
-    ++g_fail;
-  }
+// ── Procedural textures ────────────────────────────────────────────────────
+
+static sf::Texture makeRoadTexture(sf::Color asphalt, int direction) {
+    sf::RenderTexture rt;
+    (void)rt.resize({Constants::LANE_WIDTH, Constants::LANE_HEIGHT});
+    rt.clear(asphalt);
+
+    // edge highlight
+    sf::RectangleShape top({(float)Constants::LANE_WIDTH, 3.f});
+    top.setFillColor({255, 255, 255, 18});
+    rt.draw(top);
+    sf::RectangleShape bot({(float)Constants::LANE_WIDTH, 3.f});
+    bot.setFillColor({0, 0, 0, 40});
+    bot.setPosition({0.f, (float)Constants::LANE_HEIGHT - 3.f});
+    rt.draw(bot);
+
+    // centre dashes
+    sf::RectangleShape dash({34.f, 4.f});
+    dash.setFillColor({200, 200, 160, 90});
+    float y = Constants::LANE_HEIGHT * 0.5f - 2.f;
+    for (unsigned x = 10; x + 34 < Constants::LANE_WIDTH; x += 70)
+    {
+        dash.setPosition({(float)x, y});
+        rt.draw(dash);
+    }
+
+    // small direction arrow painted on the road
+    float midY = Constants::LANE_HEIGHT * 0.5f;
+    float midX = Constants::LANE_WIDTH  * 0.5f;
+    sf::ConvexShape arr(3);
+    if (direction == 1) {
+        arr.setPoint(0, {midX - 18.f, midY - 9.f});
+        arr.setPoint(1, {midX + 18.f, midY});
+        arr.setPoint(2, {midX - 18.f, midY + 9.f});
+    } else {
+        arr.setPoint(0, {midX + 18.f, midY - 9.f});
+        arr.setPoint(1, {midX - 18.f, midY});
+        arr.setPoint(2, {midX + 18.f, midY + 9.f});
+    }
+    arr.setFillColor({255, 255, 255, 22});
+    rt.draw(arr);
+
+    rt.display();
+    return rt.getTexture();
 }
 
-static bool nearlyEqual(float a, float b, float eps = 0.5f) {
-  return std::abs(a - b) <= eps;
+static sf::Texture makeGrassTexture(sf::Color base) {
+    sf::RenderTexture rt;
+    (void)rt.resize({Constants::LANE_WIDTH, Constants::LANE_HEIGHT});
+    rt.clear(base);
+
+    // subtle stripe
+    sf::RectangleShape stripe({(float)Constants::LANE_WIDTH, 3.f});
+    stripe.setFillColor({0, 0, 0, 30});
+    stripe.setPosition({0.f, Constants::LANE_HEIGHT * 0.5f - 1.5f});
+    rt.draw(stripe);
+
+    // random blades
+    std::mt19937 rng2(reinterpret_cast<size_t>(&base));
+    for (int i = 0; i < 90; ++i) {
+        float gx = (float)(rng2() % Constants::LANE_WIDTH);
+        float gy = (float)(rng2() % (Constants::LANE_HEIGHT - 8));
+        sf::RectangleShape blade({2.f, 6.f});
+        blade.setFillColor({
+            (uint8_t)std::clamp((int)base.r - 20, 0, 255),
+            (uint8_t)std::clamp((int)base.g - 20, 0, 255),
+            (uint8_t)std::clamp((int)base.b - 20, 0, 255),
+            130});
+        blade.setPosition({gx, gy});
+        rt.draw(blade);
+    }
+
+    rt.display();
+    return rt.getTexture();
 }
 
-// ── texture factories (no external image files needed) ───────────────────────
+static sf::Texture makeVehicleTexture(unsigned w, unsigned h,
+                                      sf::Color body, bool isTruck) {
+    sf::RenderTexture rt;
+    (void)rt.resize({w, h});
+    rt.clear(sf::Color::Transparent);
 
-static sf::Texture makeLaneTexture(unsigned w = Constants::LANE_WIDTH,
-                                   unsigned h = Constants::LANE_HEIGHT) {
-  sf::RenderTexture rt;
-  (void)rt.resize(sf::Vector2u{w, h});
-  rt.clear(sf::Color{60, 60, 60});
-  sf::RectangleShape dash(sf::Vector2f{40.f, 4.f});
-  dash.setFillColor(sf::Color{220, 220, 180});
-  float yMid = h / 2.f - 2.f;
-  for (unsigned x = 20; x + 40 < w; x += 80) {
-    dash.setPosition(sf::Vector2f{(float)x, yMid});
-    rt.draw(dash);
-  }
-  rt.display();
-  return rt.getTexture();
+    auto darker = [](sf::Color c, int d) -> sf::Color {
+        return {(uint8_t)std::clamp((int)c.r-d,0,255),
+                (uint8_t)std::clamp((int)c.g-d,0,255),
+                (uint8_t)std::clamp((int)c.b-d,0,255)};
+    };
+
+    if (isTruck) {
+        // cargo
+        sf::RectangleShape cargo({(float)w * 0.65f, (float)h});
+        cargo.setFillColor(darker(body, 35));
+        rt.draw(cargo);
+        // cab
+        sf::RectangleShape cab({(float)w * 0.35f, (float)h});
+        cab.setFillColor(body);
+        cab.setPosition({(float)w * 0.65f, 0.f});
+        rt.draw(cab);
+        // cab window
+        sf::RectangleShape win({(float)w * 0.14f, (float)h * 0.42f});
+        win.setFillColor({160, 215, 245, 210});
+        win.setPosition({(float)w * 0.68f, (float)h * 0.10f});
+        rt.draw(win);
+        // cargo detail lines
+        for (int i = 1; i <= 2; ++i) {
+            sf::RectangleShape line({1.5f, (float)h * 0.7f});
+            line.setFillColor({0,0,0,60});
+            line.setPosition({(float)w * 0.65f * i / 3.f, (float)h * 0.15f});
+            rt.draw(line);
+        }
+    } else {
+        // body
+        sf::RectangleShape b({(float)w, (float)h});
+        b.setFillColor(body);
+        rt.draw(b);
+        // roof highlight
+        sf::RectangleShape roof({(float)w * 0.55f, (float)h * 0.38f});
+        roof.setFillColor(darker(body, 20));
+        roof.setPosition({(float)w * 0.22f, (float)h * 0.12f});
+        rt.draw(roof);
+        // front window
+        sf::RectangleShape win({(float)w * 0.22f, (float)h * 0.36f});
+        win.setFillColor({160, 215, 245, 210});
+        win.setPosition({(float)w * 0.08f, (float)h * 0.13f});
+        rt.draw(win);
+        // rear window
+        win.setPosition({(float)w * 0.70f, (float)h * 0.13f});
+        rt.draw(win);
+        // bottom shadow
+        sf::RectangleShape shadow({(float)w, 5.f});
+        shadow.setFillColor({0,0,0,70});
+        shadow.setPosition({0.f, (float)h - 5.f});
+        rt.draw(shadow);
+    }
+    rt.display();
+    return rt.getTexture();
 }
 
-static sf::Texture makeCarTexture(unsigned w = 60, unsigned h = 40,
-                                  sf::Color body = sf::Color{220, 60, 60}) {
-  sf::RenderTexture rt;
-  (void)rt.resize(sf::Vector2u{w, h});
-  rt.clear(sf::Color::Transparent);
-  sf::RectangleShape rect(sf::Vector2f{(float)w, (float)h});
-  rect.setFillColor(body);
-  rt.draw(rect);
-  rt.display();
-  return rt.getTexture();
+static sf::Texture makeTrafficTexture() {
+    sf::RenderTexture rt;
+    (void)rt.resize({Constants::TRAFFIC_WIDTH, Constants::TRAFFIC_HEIGHT});
+    rt.clear({22, 22, 22});
+    sf::RectangleShape box({
+        Constants::TRAFFIC_WIDTH  * 0.76f,
+        Constants::TRAFFIC_HEIGHT * 0.76f});
+    box.setFillColor({48, 48, 48});
+    box.setPosition({
+        Constants::TRAFFIC_WIDTH  * 0.12f,
+        Constants::TRAFFIC_HEIGHT * 0.12f});
+    rt.draw(box);
+    rt.display();
+    return rt.getTexture();
 }
 
-static sf::Texture makeTruckTexture(unsigned w = 90, unsigned h = 44,
-                                    sf::Color body = sf::Color{60, 120, 200}) {
-  sf::RenderTexture rt;
-  (void)rt.resize(sf::Vector2u{w, h});
-  rt.clear(sf::Color::Transparent);
-  sf::RectangleShape rect(sf::Vector2f{(float)w, (float)h});
-  rect.setFillColor(body);
-  rt.draw(rect);
-  rt.display();
-  return rt.getTexture();
+// ── Lane configuration ─────────────────────────────────────────────────────
+
+enum class LaneKind { StartGrass, SafeGrass, FinishGrass, Road };
+
+struct LaneConfig {
+    LaneKind kind;
+    int      direction; // 1 or -1, ignored for grass
+    bool     hasTraffic;
+    bool     usesTrucks;
+    sf::Color grassColor;
+};
+
+// 10 rows, index 0 = bottom (start), index 9 = top (finish)
+static const LaneConfig LANE_CFG[10] = {
+    { LaneKind::StartGrass,  1, false, false, {55, 140, 50}  }, // 0 start
+    { LaneKind::Road,        1, true, true, {}              }, // 1
+    { LaneKind::Road,        1, true,  false, {}              }, // 2 (traffic lights)
+    { LaneKind::SafeGrass,   1, false, false, {45, 125, 42}  }, // 3 safe
+    { LaneKind::Road,        1, false, true, {}              }, // 4
+    { LaneKind::Road,       -1, true,  true,  {}              }, // 5 (trucks + traffic)
+    { LaneKind::SafeGrass,   1, false, false, {45, 125, 42}  }, // 6 safe
+    { LaneKind::Road,        1, false, true,  {}              }, // 7 (trucks)
+    { LaneKind::Road,       -1, true,  false, {}              }, // 8 (traffic lights)
+    { LaneKind::FinishGrass, 1, false, false, {35, 160, 55}  }, // 9 finish
+};
+
+// speed level per road lane (higher = harder)
+static const int ROAD_LEVEL[10] = { 0, 1, 1, 0, 2, 2, 0, 3, 3, 0 };
+
+// ── Lane simulation data ────────────────────────────────────────────────────
+// Holds texture ownership and spawn timing.
+// Vehicle/Traffic object ownership is managed by Lane (Lane destructor deletes them).
+// A lightweight collisionVehicles list is kept per road lane for hit-testing,
+// because Lane::list_obj is private.
+
+struct LaneSim {
+    sf::Texture             laneTex;
+    sf::Texture             vehicleTex;
+    Lane*                   lane           = nullptr;
+    std::vector<Vehicle*>   collisionList; // for player collision only; Lane owns the ptrs
+    std::vector<float>      spawnTimes;    // history of spawn times for rate limiting
+    LaneKind                kind           = LaneKind::Road;
+    float                   spawnCooldown  = 0.f;
+    float                   spawnInterval  = 3.f;
+    bool                    usesTrucks     = false;
+};
+
+static const sf::Color VEHICLE_COLORS[] = {
+    {210, 55,  55},   // red
+    {50,  120, 215},  // blue
+    {230, 195, 25},   // yellow
+    {55,  175, 70},   // green
+    {175, 55,  175},  // purple
+    {215, 115, 35},   // orange
+    {20,  180, 180},  // teal
+};
+static constexpr int NUM_COLORS = 7;
+
+// Spawn a new Car or Truck, add it to Lane, and record in collisionList.
+static Vehicle* spawnVehicle(LaneSim& sim) {
+    Vehicle* v;
+    if (sim.usesTrucks)
+        v = new Truck(sim.vehicleTex,
+                      static_cast<Constants::TruckType>(g_rng() % 3), sim.lane);
+    else
+        v = new Car(sim.vehicleTex,
+                    static_cast<Constants::CarType>(g_rng() % 3), sim.lane);
+
+    sim.lane->addObject(v);   // Lane takes ownership
+
+    // calcSpawnPosition places dir=-1 vehicles right at WINDOW_WIDTH,
+    // which isOutOfMap() considers out of bounds – nudge one pixel inside.
+    if (sim.lane->getDirection() == -1) {
+        auto p = v->getPosition();
+        p.x = (float)Constants::WINDOW_WIDTH - 1.f;
+        v->setPosition(p);
+    }
+
+    sim.collisionList.push_back(v);  // track for collision
+    return v;
 }
 
-static sf::Texture makeTrafficTexture(
-    unsigned w = Constants::TRAFFIC_WIDTH,
-    unsigned h = Constants::TRAFFIC_HEIGHT,
-    Constants::TrafficLightColor color = Constants::TrafficLightColor::Green) {
-  sf::RenderTexture rt;
-  (void)rt.resize(sf::Vector2u{w, h});
-  rt.clear(sf::Color{30, 30, 30});
-  sf::Color c;
-  switch (color) {
-  case Constants::TrafficLightColor::Red:    c = sf::Color{230, 40,  40};  break;
-  case Constants::TrafficLightColor::Yellow: c = sf::Color{240, 200, 20};  break;
-  default:                                   c = sf::Color{40,  210, 80};  break;
-  }
-  float r = std::min(w, h) / 2.f - 2.f;
-  sf::CircleShape circle(r);
-  circle.setFillColor(c);
-  circle.setPosition(sf::Vector2f{(w - r * 2.f) / 2.f, (h - r * 2.f) / 2.f});
-  rt.draw(circle);
-  rt.display();
-  return rt.getTexture();
+// ── Player ─────────────────────────────────────────────────────────────────
+
+struct Player {
+    sf::Vector2f   pos;
+    sf::FloatRect  hitbox;
+    int            laneIdx      = 0;
+    bool           alive        = true;
+    float          deathTimer   = 0.f;
+    float          moveCooldown = 0.f;
+    int            score        = 0;
+    int            bestScore    = 0;
+};
+
+constexpr float PLAYER_SIZE   = 62.f;
+constexpr float PLAYER_MARGIN = 9.f;
+
+static sf::FloatRect calcPlayerHitbox(sf::Vector2f pos) {
+    return sf::FloatRect(
+        {pos.x + PLAYER_MARGIN, pos.y + PLAYER_MARGIN},
+        {PLAYER_SIZE - 2*PLAYER_MARGIN, PLAYER_SIZE - 2*PLAYER_MARGIN});
 }
 
-// ── Group 1: DynamicObject basics ────────────────────────────────────────────
-// DynamicObject is abstract; Car (the simplest concrete subclass) is used here.
-static void testDynamicObject() {
-  std::cout << "\n=== DynamicObject ===\n";
-
-  sf::Texture laneT = makeLaneTexture();
-  sf::Texture carT  = makeCarTexture();
-
-  // ── 1a. No-lane construction ──────────────────────────────────────────────
-  // When no lane is supplied calcDirection() returns 1.
-  // calcSpawnPosition() returns (0,0) when current_lane==nullptr.
-  Car noLaneCar(carT, Constants::CarType::RedCar, nullptr);
-  check(noLaneCar.getDirection() == 1,      "no-lane: direction defaults to 1");
-  check(nearlyEqual(noLaneCar.getPosition().x, 0.f),
-                                             "no-lane: position.x == 0");
-  check(noLaneCar.isActive(),                "no-lane: isActive() == true");
-  check(noLaneCar.getLane() == nullptr,      "no-lane: getLane() == nullptr");
-
-  // ── 1b. Lane-bound construction ───────────────────────────────────────────
-  Lane laneRight(laneT, sf::Vector2f{140.f, 200.f}, 1, 1);
-  Car carRight(carT, Constants::CarType::RedCar, &laneRight);
-  check(carRight.getDirection() == 1,        "right lane: direction == 1");
-  check(carRight.getLane() == &laneRight,    "right lane: getLane() correct");
-
-  Lane laneLeft(laneT, sf::Vector2f{140.f, 300.f}, 1, -1);
-  Car carLeft(carT, Constants::CarType::BlueCar, &laneLeft);
-  check(carLeft.getDirection() == -1,        "left lane: direction == -1");
-
-  // ── 1c. setDirection guards ───────────────────────────────────────────────
-  carRight.setDirection(0);
-  check(carRight.getDirection() == 1,        "setDirection(0) is ignored");
-  carRight.setDirection(2);
-  check(carRight.getDirection() == 1,        "setDirection(2) is ignored");
-  carRight.setDirection(-1);
-  check(carRight.getDirection() == -1,       "setDirection(-1) accepted");
-  carRight.setDirection(1);
-  check(carRight.getDirection() == 1,        "setDirection(1) accepted");
-
-  // ── 1d. setPosition syncs hitbox ─────────────────────────────────────────
-  sf::Vector2f newPos{300.f, 250.f};
-  carRight.setPosition(newPos);
-  sf::FloatRect hb = carRight.getHitBox();
-  check(nearlyEqual(carRight.getPosition().x, 300.f),
-                                             "setPosition: position.x updated");
-  check(hb.position.x >= newPos.x,          "setPosition: hitbox.x >= new position.x");
-
-  // ── 1e. isOutOfMap ────────────────────────────────────────────────────────
-  carRight.setActiveState(true);
-  carRight.setPosition(sf::Vector2f{-500.f, 200.f}); // far left
-  check(carRight.isOutOfMap(),               "isOutOfMap: true when far left");
-
-  carRight.setActiveState(true);
-  carRight.setPosition(sf::Vector2f{Constants::WINDOW_WIDTH + 10.f, 200.f}); // far right
-  check(carRight.isOutOfMap(),               "isOutOfMap: true when far right");
-
-  // ── 1f. Hitbox size ratio ─────────────────────────────────────────────────
-  // Reset to sensible position
-  Lane laneFresh(laneT, sf::Vector2f{140.f, 400.f}, 1, 1);
-  Car carFresh(carT, Constants::CarType::RedCar, &laneFresh);
-  sf::FloatRect hbFresh = carFresh.getHitBox();
-  float spriteW = carFresh.getSprite().getLocalBounds().size.x;
-  check(nearlyEqual(hbFresh.size.x, spriteW * Constants::HITBOX_SIZE_RATIO, 1.f),
-                                             "hitbox width == sprite_w * HITBOX_SIZE_RATIO");
-  check(hbFresh.size.x > 0.f && hbFresh.size.y > 0.f,
-                                             "hitbox has positive size");
+static sf::Vector2f laneCenter(int idx, float laneX) {
+    // lane idx 0 is at bottom of screen
+    float laneY = (float)(9 - idx) * Constants::LANE_HEIGHT;
+    return {
+        laneX + Constants::LANE_WIDTH * 0.5f - PLAYER_SIZE * 0.5f,
+        laneY + (Constants::LANE_HEIGHT - PLAYER_SIZE) * 0.5f
+    };
 }
 
-// ── Group 2: Lane ─────────────────────────────────────────────────────────────
-static void testLane() {
-  std::cout << "\n=== Lane ===\n";
+// ── Draw player ────────────────────────────────────────────────────────────
 
-  sf::Texture laneT = makeLaneTexture();
-  Lane lane(laneT, sf::Vector2f{140.f, 200.f}, 2, 1);
+static void drawPlayer(sf::RenderWindow& window, const Player& p,
+                       float laneX, float totalTime) {
+    if (!p.alive && p.deathTimer <= 0.f) return;
 
-  check(lane.getLevel() == 2,                          "getLevel() == 2");
-  check(lane.getDirection() == 1,                      "getDirection() == 1");
-  check(nearlyEqual(lane.getPosition().x, 140.f),      "getPosition().x == 140");
-  check(nearlyEqual(lane.getPosition().y, 200.f),      "getPosition().y == 200");
+    sf::Color bodyCol = p.alive ? sf::Color{60, 200, 70} : sf::Color{220, 70, 70};
 
-  // setLevel
-  lane.setLevel(5);
-  check(lane.getLevel() == 5,                          "setLevel(5)");
+    // subtle bounce when alive
+    float bobY = p.alive ? std::sin(totalTime * 6.f) * 2.5f : 0.f;
+    sf::Vector2f base = {p.pos.x, p.pos.y + bobY};
 
-  // setDirection only accepts 1 or -1
-  lane.setDirection(0);
-  check(lane.getDirection() == 1,                      "setDirection(0) ignored");
-  lane.setDirection(-1);
-  check(lane.getDirection() == -1,                     "setDirection(-1)");
-  lane.setDirection(99);
-  check(lane.getDirection() == -1,                     "setDirection(99) ignored");
+    // drop shadow
+    sf::RectangleShape shadow({PLAYER_SIZE - 12.f, 8.f});
+    shadow.setFillColor({0, 0, 0, 80});
+    shadow.setPosition({base.x + 6.f, base.y + PLAYER_SIZE - 6.f});
+    window.draw(shadow);
+
+    // body
+    sf::RectangleShape body({PLAYER_SIZE - 10.f, PLAYER_SIZE - 12.f});
+    body.setFillColor(bodyCol);
+    body.setPosition({base.x + 5.f, base.y + 6.f});
+    window.draw(body);
+
+    // belly
+    sf::RectangleShape belly({PLAYER_SIZE - 24.f, PLAYER_SIZE - 28.f});
+    belly.setFillColor({
+        (uint8_t)std::min(255, bodyCol.r + 55),
+        (uint8_t)std::min(255, bodyCol.g + 35),
+        (uint8_t)std::min(255, bodyCol.b + 20)});
+    belly.setPosition({base.x + 12.f, base.y + 14.f});
+    window.draw(belly);
+
+    if (p.alive) {
+        // eyes
+        auto drawEye = [&](float ox, float oy) {
+            sf::CircleShape white(6.f);
+            white.setFillColor({245, 245, 245});
+            white.setPosition({base.x + ox, base.y + oy});
+            window.draw(white);
+            sf::CircleShape pupil(3.f);
+            pupil.setFillColor({20, 20, 20});
+            pupil.setPosition({base.x + ox + 3.f, base.y + oy + 3.f});
+            window.draw(pupil);
+        };
+        drawEye(12.f, 9.f);
+        drawEye(PLAYER_SIZE - 28.f, 9.f);
+    } else {
+        // X eyes
+        auto drawX = [&](float cx, float cy) {
+            for (int d : {-1, 1}) {
+                sf::RectangleShape line({14.f, 3.f});
+                line.setFillColor({240, 240, 240});
+                line.setOrigin({7.f, 1.5f});
+                line.setRotation(sf::degrees(45.f * d));
+                line.setPosition({base.x + cx, base.y + cy});
+                window.draw(line);
+            }
+        };
+        drawX(18.f, 15.f);
+        drawX(PLAYER_SIZE - 18.f, 15.f);
+
+        // expanding death ring
+        if (p.deathTimer > 0.f) {
+            float frac = 1.f - p.deathTimer / 1.8f;
+            float radius = PLAYER_SIZE * 0.5f + frac * PLAYER_SIZE * 1.2f;
+            sf::CircleShape ring(radius);
+            ring.setFillColor(sf::Color::Transparent);
+            ring.setOutlineColor({220, 70, 70, (uint8_t)(200 * p.deathTimer / 1.8f)});
+            ring.setOutlineThickness(3.f);
+            ring.setOrigin({radius, radius});
+            ring.setPosition({base.x + PLAYER_SIZE * 0.5f,
+                              base.y + PLAYER_SIZE * 0.5f});
+            window.draw(ring);
+        }
+    }
 }
 
-// ── Group 3: Traffic light ────────────────────────────────────────────────────
-static void testTrafficLight() {
-  std::cout << "\n=== TrafficLight (Traffic) ===\n";
+// ── Sidebar ────────────────────────────────────────────────────────────────
 
-  sf::Texture laneT = makeLaneTexture();
-  sf::Texture trafT = makeTrafficTexture(
-      Constants::TRAFFIC_WIDTH, Constants::TRAFFIC_HEIGHT,
-      Constants::TrafficLightColor::Green);
+static void drawSidebar(sf::RenderWindow& window, const std::vector<LaneSim>& sims,
+                        const Player& player, float fps, bool paused,
+                        float laneX, int numRows) {
+    // background
+    sf::RectangleShape bg({laneX, (float)Constants::WINDOW_HEIGHT});
+    bg.setFillColor({14, 14, 20});
+    window.draw(bg);
 
-  Lane lane(laneT, sf::Vector2f{140.f, 0.f}, 1, 1);
+    // per-lane strip + arrow
+    for (int i = 0; i < numRows; ++i) {
+        float rowY = (float)(numRows - 1 - i) * Constants::LANE_HEIGHT;
+        float cy   = rowY + Constants::LANE_HEIGHT * 0.5f;
+        const LaneSim& s = sims[i];
 
-  // ── 3a. Initial state ─────────────────────────────────────────────────────
-  Traffic traf(trafT, &lane, sf::Vector2f{400.f, 0.f},
-               Constants::TrafficLightColor::Green, 0.f);
-  check(traf.getColor() == Constants::TrafficLightColor::Green,
-        "initial color Green");
-  check(nearlyEqual(traf.getTimer(), 0.f, 0.01f),
-        "initial timer == 0 when init_timer=0");
-  check(traf.getGreenDuration() > 0.f,   "green_duration > 0");
-  check(traf.getRedDuration() > 0.f,     "red_duration > 0");
+        sf::Color stripCol;
+        if (s.kind == LaneKind::StartGrass || s.kind == LaneKind::FinishGrass)
+            stripCol = {55, 160, 50, 220};
+        else if (s.kind == LaneKind::SafeGrass)
+            stripCol = {45, 130, 42, 180};
+        else
+            stripCol = (sims[i].lane->getDirection() == 1)
+                ? sf::Color{40, 90, 210, 210}
+                : sf::Color{200, 50, 50, 210};
 
-  // ── 3b. init_timer propagation ────────────────────────────────────────────
-  Traffic traf2(trafT, &lane, sf::Vector2f{500.f, 0.f},
-                Constants::TrafficLightColor::Green, 2.5f);
-  check(nearlyEqual(traf2.getTimer(), 2.5f, 0.01f),
-        "init_timer=2.5 is preserved after construction");
+        sf::RectangleShape strip({5.f, (float)Constants::LANE_HEIGHT - 6.f});
+        strip.setFillColor(stripCol);
+        strip.setPosition({3.f, rowY + 3.f});
+        window.draw(strip);
 
-  // ── 3c. Green → Yellow ────────────────────────────────────────────────────
-  float green = traf.getGreenDuration();
-  traf.updateState(green + 0.1f);
-  check(traf.getColor() == Constants::TrafficLightColor::Yellow,
-        "Green → Yellow after green_duration");
+        // highlight current player lane
+        if (i == player.laneIdx) {
+            sf::RectangleShape hl({laneX - 2.f, (float)Constants::LANE_HEIGHT - 2.f});
+            hl.setFillColor({255, 255, 255, 12});
+            hl.setPosition({1.f, rowY + 1.f});
+            window.draw(hl);
+        }
 
-  // ── 3d. Yellow → Red ──────────────────────────────────────────────────────
-  traf.updateState(Constants::YELLOW_DURATION + 0.1f);
-  check(traf.getColor() == Constants::TrafficLightColor::Red,
-        "Yellow → Red after YELLOW_DURATION");
+        if (s.kind == LaneKind::Road) {
+            int dir = s.lane->getDirection();
+            sf::ConvexShape arr(3);
+            if (dir == 1) {
+                arr.setPoint(0, {20.f, cy - 6.f});
+                arr.setPoint(1, {34.f, cy});
+                arr.setPoint(2, {20.f, cy + 6.f});
+            } else {
+                arr.setPoint(0, {34.f, cy - 6.f});
+                arr.setPoint(1, {20.f, cy});
+                arr.setPoint(2, {34.f, cy + 6.f});
+            }
+            arr.setFillColor({210, 210, 210, 150});
+            window.draw(arr);
+        }
+    }
 
-  // ── 3e. Red → Green ───────────────────────────────────────────────────────
-  float red = traf.getRedDuration();
-  traf.updateState(red + 0.1f);
-  check(traf.getColor() == Constants::TrafficLightColor::Green,
-        "Red → Green after red_duration");
+    // score bar (right edge of sidebar)
+    float barH = (float)Constants::WINDOW_HEIGHT - 30.f;
+    sf::RectangleShape scoreBg({10.f, barH});
+    scoreBg.setFillColor({30, 30, 40});
+    scoreBg.setPosition({laneX - 16.f, 15.f});
+    window.draw(scoreBg);
 
-  // ── 3f. Timer resets on color transition ─────────────────────────────────
-  check(nearlyEqual(traf.getTimer(), 0.f, 0.01f),
-        "timer resets to 0 on color change");
+    float fillH = std::clamp(
+        (float)player.score / (float)(numRows - 1) * barH,
+        0.f, barH);
+    sf::RectangleShape fill({10.f, fillH});
+    fill.setFillColor({70, 210, 80});
+    fill.setPosition({laneX - 16.f, 15.f + barH - fillH});
+    window.draw(fill);
 
-  // ── 3g. setColor / setTimer independence ─────────────────────────────────
-  traf.setTimer(99.f);
-  check(nearlyEqual(traf.getTimer(), 99.f, 0.01f),
-        "setTimer(99) sets timer directly");
+    // best score line
+    float bestY = 15.f + barH - std::clamp(
+        (float)player.bestScore / (float)(numRows - 1) * barH, 0.f, barH);
+    sf::RectangleShape bestLine({10.f, 2.f});
+    bestLine.setFillColor({240, 190, 30, 180});
+    bestLine.setPosition({laneX - 16.f, bestY});
+    window.draw(bestLine);
+
+    // fps bar
+    float fpsW = std::clamp(fps / 60.f, 0.f, 1.f) * (laneX - 26.f);
+    sf::RectangleShape fpsBar({fpsW, 4.f});
+    fpsBar.setFillColor(fps >= 50.f ? sf::Color{50, 220, 80} : sf::Color{220, 60, 50});
+    fpsBar.setPosition({4.f, 4.f});
+    window.draw(fpsBar);
+
+    // pause dot
+    if (paused) {
+        sf::RectangleShape dot({8.f, 8.f});
+        dot.setFillColor({240, 190, 30});
+        dot.setPosition({4.f, 12.f});
+        window.draw(dot);
+    }
 }
 
-// ── Group 4: Car ──────────────────────────────────────────────────────────────
-static void testCar() {
-  std::cout << "\n=== Car ===\n";
+// ── Pause overlay ──────────────────────────────────────────────────────────
 
-  sf::Texture laneT = makeLaneTexture();
-  sf::Texture carT  = makeCarTexture(60, 40, sf::Color{40, 100, 220}); // blue
+static void drawPauseOverlay(sf::RenderWindow& window) {
+    sf::RectangleShape dim({(float)Constants::WINDOW_WIDTH, (float)Constants::WINDOW_HEIGHT});
+    dim.setFillColor({0, 0, 0, 115});
+    window.draw(dim);
 
-  Lane lane(laneT, sf::Vector2f{140.f, 200.f}, 1, 1);
-  Car car(carT, Constants::CarType::BlueCar, &lane);
-
-  check(car.getType() == Constants::DynamicObjectType::Car,
-        "getType() == Car");
-  check(car.getCarType() == Constants::CarType::BlueCar,
-        "getCarType() == BlueCar");
-  check(car.getDirection() == 1,                "direction follows lane (dir==1)");
-  check(car.isActive(),                         "isActive() == true");
-
-  // Speed in range [20, 35] for level 1
-  float spd = car.getBaseSpeed();
-  check(spd >= 20.f && spd <= 35.f,            "base_speed in [20, 35] at level 1");
-
-  // safe_distance == base_speed * SAFE_DISTANCE_FACTOR
-  check(nearlyEqual(car.getSafeDistance(),
-                    spd * Constants::SAFE_DISTANCE_FACTOR, 0.1f),
-        "safe_distance == base_speed * SAFE_DISTANCE_FACTOR");
-
-  // Velocity: vx == base_speed, vy == 0 (direction==1)
-  check(nearlyEqual(car.getVelocity().x, spd, 0.1f),
-        "velocity.x == base_speed (direction==1)");
-  check(nearlyEqual(car.getVelocity().y, 0.f), "velocity.y == 0");
-
-  // Hitbox
-  sf::FloatRect hb = car.getHitBox();
-  check(hb.size.x > 0.f && hb.size.y > 0.f,   "hitbox has positive size");
-  check(nearlyEqual(hb.size.x,
-                    car.getSprite().getLocalBounds().size.x * Constants::HITBOX_SIZE_RATIO, 1.f),
-        "hitbox width ≈ sprite_width * HITBOX_SIZE_RATIO");
-
-  // Direction -1: velocity.x must be negative
-  sf::Texture carTR = makeCarTexture(60, 40, sf::Color{220, 50, 50});
-  Lane laneL(laneT, sf::Vector2f{140.f, 300.f}, 1, -1);
-  Car carLeft(carTR, Constants::CarType::RedCar, &laneL);
-  check(carLeft.getDirection() == -1,           "left-lane car: direction == -1");
-  check(carLeft.getVelocity().x < 0.f,          "left-lane car: velocity.x < 0");
-
-  // setCarType
-  car.setCarType(Constants::CarType::YellowCar);
-  check(car.getCarType() == Constants::CarType::YellowCar,
-        "setCarType(YellowCar)");
-
-  // Motion state defaults to Cruising
-  check(car.getMotionState() == Constants::MotionState::Cruising,
-        "motion_state defaults to Cruising");
-  check(car.getLightDecision() == Constants::LightDecision::None,
-        "light_decision defaults to None");
+    float cx = Constants::WINDOW_WIDTH  * 0.5f;
+    float cy = Constants::WINDOW_HEIGHT * 0.5f;
+    for (float ox : {-14.f, 6.f}) {
+        sf::RectangleShape bar({10.f, 48.f});
+        bar.setFillColor({240, 240, 240, 220});
+        bar.setPosition({cx + ox, cy - 24.f});
+        window.draw(bar);
+    }
 }
 
-// ── Group 5: Truck ────────────────────────────────────────────────────────────
-static void testTruck() {
-  std::cout << "\n=== Truck ===\n";
+// ── Death screen ───────────────────────────────────────────────────────────
 
-  sf::Texture laneT  = makeLaneTexture();
-  sf::Texture truckT = makeTruckTexture(90, 44, sf::Color{60, 120, 200});
+static void drawDeathOverlay(sf::RenderWindow& window, float deathTimer) {
+    if (deathTimer > 0.f) return; // still animating
 
-  Lane lane(laneT, sf::Vector2f{140.f, 400.f}, 1, 1);
-  Truck truck(truckT, Constants::TruckType::BlueTruck, &lane);
+    // dim
+    sf::RectangleShape dim({(float)Constants::WINDOW_WIDTH, (float)Constants::WINDOW_HEIGHT});
+    dim.setFillColor({0, 0, 0, 140});
+    window.draw(dim);
 
-  check(truck.getType() == Constants::DynamicObjectType::Truck,
-        "getType() == Truck");
-  check(truck.getTruckType() == Constants::TruckType::BlueTruck,
-        "getTruckType() == BlueTruck");
+    float cx = Constants::WINDOW_WIDTH  * 0.5f;
+    float cy = Constants::WINDOW_HEIGHT * 0.5f;
 
-  // Speed in range [9, 11] for level 1
-  float spd = truck.getBaseSpeed();
-  check(spd >= 9.f && spd <= 11.f,             "base_speed in [9, 11] at level 1");
+    // skull X
+    for (int d : {-1, 1}) {
+        sf::RectangleShape line({60.f, 8.f});
+        line.setFillColor({220, 60, 60, 230});
+        line.setOrigin({30.f, 4.f});
+        line.setRotation(sf::degrees(45.f * d));
+        line.setPosition({cx, cy - 20.f});
+        window.draw(line);
+    }
 
-  // Direction inherits from lane
-  check(truck.getDirection() == 1,             "direction follows lane");
-  check(truck.getVelocity().x > 0.f,           "velocity.x > 0 for direction==1");
-
-  // Truck with direction -1
-  Lane laneLeft(laneT, sf::Vector2f{140.f, 500.f}, 1, -1);
-  Truck truckLeft(truckT, Constants::TruckType::RedTruck, &laneLeft);
-  check(truckLeft.getDirection() == -1,        "left-lane truck: direction == -1");
-  check(truckLeft.getVelocity().x < 0.f,       "left-lane truck: velocity.x < 0");
-
-  // setTruckType
-  truck.setTruckType(Constants::TruckType::YellowTruck);
-  check(truck.getTruckType() == Constants::TruckType::YellowTruck,
-        "setTruckType(YellowTruck)");
+    // "press R" dots (3 dots below = R indicator)
+    for (int i = 0; i < 3; ++i) {
+        sf::CircleShape dot(5.f);
+        dot.setFillColor({200, 200, 200, 200});
+        dot.setPosition({cx - 15.f + i * 15.f, cy + 30.f});
+        window.draw(dot);
+    }
 }
 
-// ── Group 6: Vehicle::updateState – no obstacle ──────────────────────────────
-// NOTE: objects passed to lane.addObject() must be heap-allocated because
-//       Lane::~Lane() calls delete on every pointer in its list.
-static void testVehicleUpdateNoObstacle() {
-  std::cout << "\n=== Vehicle::updateState – no obstacle ===\n";
+// ── Main ───────────────────────────────────────────────────────────────────
 
-  sf::Texture laneT = makeLaneTexture();
-  sf::Texture carT  = makeCarTexture(60, 40, sf::Color{220, 80, 80});
+int main() {
+#ifdef _WIN32
+    SetProcessDPIAware();
+#endif
 
-  Lane lane(laneT, sf::Vector2f{140.f, 500.f}, 1, 1);
+    sf::RenderWindow window(
+        sf::VideoMode({Constants::WINDOW_WIDTH, Constants::WINDOW_HEIGHT}),
+        Constants::GAME_TITLE,
+        sf::Style::Titlebar | sf::Style::Close);
+    window.setFramerateLimit(60);
 
-  // Heap-allocate so Lane::~Lane() can safely delete it
-  Car *car = new Car(carT, Constants::CarType::RedCar, &lane);
-  lane.addObject(car); // lane takes ownership
+    constexpr int   NUM_ROWS = 10;
+    constexpr float LANE_X   = (float)Constants::GAME_PLAY_BAR_WIDTH;
 
-  float startX = car->getPosition().x;
-  float speed  = car->getBaseSpeed();
-  float dt     = 0.016f;
+    // ── Build lanes ────────────────────────────────────────────────────────
+    // Textures must outlive the lanes — stored inside LaneSim.
+    // All Vehicle/Traffic pointers are owned by Lane (its destructor deletes them).
+    // LaneSim.collisionList holds raw pointers to the same Vehicles for
+    // player collision testing (Lane::list_obj is private).
 
-  car->updateState(dt);
+    std::vector<LaneSim> sims(NUM_ROWS);
+    sf::Texture trafficTex = makeTrafficTexture();
 
-  float expectedX = startX + speed * dt;
-  check(nearlyEqual(car->getPosition().x, expectedX, 1.f),
-        "car moves by speed*dt per frame with no obstacle");
+    for (int i = 0; i < NUM_ROWS; ++i) {
+        LaneSim&          s   = sims[i];
+        const LaneConfig& cfg = LANE_CFG[i];
+        float laneY = (float)(NUM_ROWS - 1 - i) * Constants::LANE_HEIGHT;
+        int   level = ROAD_LEVEL[i];
 
-  // Multiple frames: car keeps cruising at base_speed
-  float x0 = car->getPosition().x;
-  for (int i = 0; i < 5; ++i)
-    car->updateState(dt);
-  float xN = car->getPosition().x;
-  check(xN > x0, "car continues moving right over multiple frames");
-}
+        s.kind       = cfg.kind;
+        s.usesTrucks = cfg.usesTrucks;
 
-// ── Group 7: Vehicle brakes at red light ─────────────────────────────────────
-static void testVehicleBrakesAtRedLight() {
-  std::cout << "\n=== Vehicle::updateState – brakes at red light ===\n";
+        // ── Grass lanes ────────────────────────────────────────────────────
+        if (cfg.kind != LaneKind::Road) {
+            s.laneTex = makeGrassTexture(cfg.grassColor);
+            s.lane    = new Lane(s.laneTex, {LANE_X, laneY}, 1, 1);
+            continue;
+        }
 
-  sf::Texture laneT = makeLaneTexture();
-  sf::Texture carT  = makeCarTexture(60, 40, sf::Color{220, 80, 80});
-  sf::Texture trafT = makeTrafficTexture(
-      Constants::TRAFFIC_WIDTH, Constants::TRAFFIC_HEIGHT,
-      Constants::TrafficLightColor::Red);
+        // ── Road lanes ─────────────────────────────────────────────────────
+        s.laneTex = makeRoadTexture(
+            cfg.direction == 1 ? sf::Color{44, 50, 56} : sf::Color{38, 46, 42},
+            cfg.direction);
 
-  Lane lane(laneT, sf::Vector2f{140.f, 600.f}, 1, 1);
+        sf::Color body = VEHICLE_COLORS[i % NUM_COLORS];
+        s.vehicleTex = s.usesTrucks
+            ? makeVehicleTexture(88, 42, body, true)
+            : makeVehicleTexture(60, 36, body, false);
 
-  // Heap-allocate; lane takes ownership of both
-  Car *car = new Car(carT, Constants::CarType::RedCar, &lane);
-  lane.addObject(car);
+        s.spawnInterval = s.usesTrucks ? 4.8f : 2.8f;
+        s.spawnCooldown = (float)(g_rng() % 280) / 100.f; // stagger spawns
 
-  // Place car at a known position inside the play area
-  car->setPosition(sf::Vector2f{200.f, 600.f});
+        s.lane = new Lane(s.laneTex, {LANE_X, laneY}, level, cfg.direction);
 
-  float safeDist = car->getSafeDistance();
-  float carRight = car->getPosition().x + car->getSprite().getLocalBounds().size.x;
-  float lightX   = carRight + Constants::VISUAL_DISTANCE + safeDist * 0.5f;
+        // ── Traffic lights (tests Traffic class) ───────────────────────────
+        // Traffic objects are created and given to Lane via addTraffic().
+        // Lane owns the pointers; Traffic::updateState() cycles Green→Yellow→Red.
+        if (cfg.hasTraffic) {
+            float lightY = laneY + (Constants::LANE_HEIGHT - Constants::TRAFFIC_HEIGHT) * 0.5f;
+            int num_lights = g_rng() % 3 + 1; // 0 to 3
+            float min_x = LANE_X + 0.15f * Constants::LANE_WIDTH;
+            float max_x = LANE_X + 0.85f * Constants::LANE_WIDTH;
+            float min_dist = 0.25f * Constants::LANE_WIDTH;
+            
+            std::vector<float> light_positions;
+            for (int ti = 0; ti < num_lights; ++ti) {
+                for (int attempt = 0; attempt < 15; ++attempt) {
+                    float lx = min_x + (float)(g_rng() % (int)(max_x - min_x));
+                    bool valid = true;
+                    for (float p : light_positions) {
+                        if (std::abs(p - lx) < min_dist) {
+                            valid = false;
+                            break;
+                        }
+                    }
+                    if (valid) {
+                        light_positions.push_back(lx);
+                        break;
+                    }
+                }
+            }
+            
+            for (float lx : light_positions) {
+                float t = (float)(g_rng() % 500) / 100.f;
+                auto col = (g_rng() % 2 == 0) ? Constants::TrafficLightColor::Green : Constants::TrafficLightColor::Red;
+                auto* traf = new Traffic(trafficTex, s.lane, {lx, lightY}, col, t);
+                s.lane->addTraffic(traf);
+            }
+        }
 
-  Traffic *red = new Traffic(trafT, &lane,
-                              sf::Vector2f{lightX, 600.f},
-                              Constants::TrafficLightColor::Red, 0.f);
-  lane.addTraffic(red);
+        // ── Seed initial vehicles (tests Car, Truck, Vehicle, DynamicObject) ──
+        // Each spawnVehicle() creates a Car or Truck via the full constructor
+        // chain:  Car/Truck → Vehicle → DynamicObject.
+        // The constructor exercises: calcDirection, calcSpawnPosition,
+        // setHitbox, calcBaseSpeed, updateVelocity, applyFacing.
+        int seed = 2 + (int)(g_rng() % 2);
+        for (int j = 0; j < seed; ++j) {
+            Vehicle* v = spawnVehicle(s);
+            // Spread the seeded vehicle to a random position within the lane
+            float sw     = v->getSprite().getLocalBounds().size.x;
+            float usable = Constants::LANE_WIDTH - sw - 40.f;
+            if (usable > 0.f) {
+                float rx = LANE_X + 20.f + (float)(g_rng() % (int)usable);
+                auto  p  = v->getPosition(); p.x = rx;
+                v->setPosition(p);
+            }
+        }
+    }
 
-  float speedBefore = std::abs(car->getVelocity().x);
+    // ── Player setup ───────────────────────────────────────────────────────
 
-  for (int i = 0; i < 10; ++i)
-    car->updateState(0.016f);
+    Player player;
+    player.laneIdx = 0;
+    player.pos     = laneCenter(0, LANE_X);
+    player.hitbox  = calcPlayerHitbox(player.pos);
 
-  float speedAfter = std::abs(car->getVelocity().x);
-  check(speedAfter < speedBefore,
-        "car decelerates when red light is within safe_distance");
+    // ── Clock / counters ───────────────────────────────────────────────────
 
-  // After enough frames the car should be nearly stopped (or stopped)
-  for (int i = 0; i < 60; ++i)
-    car->updateState(0.016f);
-  float speedFinal = std::abs(car->getVelocity().x);
-  check(speedFinal < speedBefore * 0.5f,
-        "car is significantly slowed after sustained red-light exposure");
-}
+    sf::Clock gameClock;
+    sf::Clock fpsClock;
+    float totalTime = 0.f;
+    float fps       = 60.f;
+    int   fpsCount  = 0;
+    bool  paused    = false;
 
-// ── Group 8: Vehicle follows slower leader ────────────────────────────────────
-static void testVehicleFollowsLeader() {
-  std::cout << "\n=== Vehicle::updateState – follows slower leader ===\n";
+    // ── Game loop ──────────────────────────────────────────────────────────
 
-  sf::Texture laneT    = makeLaneTexture();
-  sf::Texture carTRed  = makeCarTexture(60, 40, sf::Color{220, 50, 50});
-  sf::Texture carTBlue = makeCarTexture(60, 40, sf::Color{40, 100, 220});
+    while (window.isOpen()) {
 
-  Lane lane(laneT, sf::Vector2f{140.f, 700.f}, 1, 1);
+        // ── Events ─────────────────────────────────────────────────────────
+        while (auto ev = window.pollEvent()) {
+            if (ev->is<sf::Event::Closed>()) window.close();
 
-  // Heap-allocate; lane takes ownership
-  Car *leader = new Car(carTRed, Constants::CarType::RedCar, &lane);
-  lane.addObject(leader);
-  leader->setPosition(sf::Vector2f{400.f, 700.f});
+            if (const auto* k = ev->getIf<sf::Event::KeyPressed>()) {
+                switch (k->code) {
 
-  Car *follower = new Car(carTBlue, Constants::CarType::BlueCar, &lane);
-  lane.addObject(follower);
+                case sf::Keyboard::Key::Escape:
+                    window.close();
+                    break;
 
-  // Place follower inside safe_distance behind the leader
-  float safeDist   = follower->getSafeDistance();
-  float followerX  = leader->getPosition().x
-                   - follower->getSprite().getLocalBounds().size.x
-                   - Constants::VISUAL_DISTANCE
-                   - safeDist * 0.4f;
-  follower->setPosition(sf::Vector2f{followerX, 700.f});
+                case sf::Keyboard::Key::Space:
+                    paused = !paused;
+                    break;
 
-  // Force leader to move slower than follower
-  leader->setVelocity(sf::Vector2f{10.f, 0.f});
+                case sf::Keyboard::Key::Up:
+                case sf::Keyboard::Key::W:
+                    if (player.alive && player.moveCooldown <= 0.f) {
+                        if (player.laneIdx < NUM_ROWS - 1) {
+                            player.laneIdx++;
+                            player.score = std::max(player.score, player.laneIdx);
+                            player.bestScore = std::max(player.bestScore, player.score);
+                        }
+                        player.pos         = laneCenter(player.laneIdx, LANE_X);
+                        player.hitbox      = calcPlayerHitbox(player.pos);
+                        player.moveCooldown = 0.16f;
+                    }
+                    break;
 
-  float speedBefore = follower->getVelocity().x;
-  follower->updateState(0.016f);
-  float speedAfter  = follower->getVelocity().x;
+                case sf::Keyboard::Key::Down:
+                case sf::Keyboard::Key::S:
+                    if (player.alive && player.moveCooldown <= 0.f) {
+                        if (player.laneIdx > 0) player.laneIdx--;
+                        player.pos         = laneCenter(player.laneIdx, LANE_X);
+                        player.hitbox      = calcPlayerHitbox(player.pos);
+                        player.moveCooldown = 0.16f;
+                    }
+                    break;
 
-  check(speedAfter < speedBefore,
-        "follower reduces speed when slower leader is ahead");
-}
+                case sf::Keyboard::Key::Left:
+                case sf::Keyboard::Key::A:
+                    if (player.alive && player.moveCooldown <= 0.f) {
+                        player.pos.x = std::max(LANE_X,
+                            player.pos.x - Constants::CELL_SIZE);
+                        player.hitbox      = calcPlayerHitbox(player.pos);
+                        player.moveCooldown = 0.16f;
+                    }
+                    break;
 
-// ── Group 9: Lane addObject / addTraffic count via render (smoke) ─────────────
-// Lane has no size() accessor, so we smoke-test by creating a window and
-// verifying no crash occurs when rendering a lane that holds objects.
-static void testLaneHoldsObjects() {
-  std::cout << "\n=== Lane holds objects (smoke) ===\n";
+                case sf::Keyboard::Key::Right:
+                case sf::Keyboard::Key::D:
+                    if (player.alive && player.moveCooldown <= 0.f) {
+                        player.pos.x = std::min(
+                            player.pos.x + Constants::CELL_SIZE,
+                            LANE_X + Constants::LANE_WIDTH - PLAYER_SIZE);
+                        player.hitbox      = calcPlayerHitbox(player.pos);
+                        player.moveCooldown = 0.16f;
+                    }
+                    break;
 
-  sf::Texture laneT  = makeLaneTexture();
-  sf::Texture carT   = makeCarTexture();
-  sf::Texture trafT  = makeTrafficTexture();
+                case sf::Keyboard::Key::R:
+                    if (!player.alive) {
+                        player.alive        = true;
+                        player.deathTimer   = 0.f;
+                        player.score        = 0;
+                        player.laneIdx      = 0;
+                        player.pos          = laneCenter(0, LANE_X);
+                        player.hitbox       = calcPlayerHitbox(player.pos);
+                    }
+                    break;
 
-  Lane lane(laneT, sf::Vector2f{140.f, 0.f}, 1, 1);
+                default: break;
+                }
+            }
+        }
 
-  Car     *car  = new Car(carT, Constants::CarType::RedCar, &lane);
-  Traffic *traf = new Traffic(trafT, &lane, sf::Vector2f{600.f, 0.f},
-                               Constants::TrafficLightColor::Green, 0.f);
-  lane.addObject(car);
-  lane.addTraffic(traf);
+        float dt = gameClock.restart().asSeconds();
+        dt = std::min(dt, 0.05f) * (paused ? 0.f : 1.f);
+        totalTime += dt;
 
-  // addTraffic and addObject should not crash, and getNearestTrafficAhead
-  // should return nullptr when the light is green and out of safe_distance
-  Traffic *found = lane.getNearestTrafficAhead(*car);
-  check(found == nullptr,
-        "getNearestTrafficAhead returns nullptr for a green light");
+        ++fpsCount;
+        if (float e = fpsClock.getElapsedTime().asSeconds(); e >= 0.5f) {
+            fps = (float)fpsCount / e;
+            fpsCount = 0;
+            fpsClock.restart();
+        }
 
-  // Change to red – now it should be found if within safe_distance
-  traf->setColor(Constants::TrafficLightColor::Red);
-  float safeDist = car->getSafeDistance();
-  float carRight = car->getPosition().x + car->getSprite().getLocalBounds().size.x;
-  // Place traf just inside safe_distance from the car
-  traf->setPosition(sf::Vector2f{carRight + Constants::VISUAL_DISTANCE + safeDist * 0.5f, 0.f});
-  found = lane.getNearestTrafficAhead(*car);
-  check(found != nullptr,
-        "getNearestTrafficAhead finds a red light within safe_distance");
-}
+        // ── Update ─────────────────────────────────────────────────────────
 
-// ── main ─────────────────────────────────────────────────────────────────────
-int main(int /*argc*/, char * /*argv*/[]) {
-  std::cout << "========================================\n";
-  std::cout << "  CrossyRoad – Logic Unit Tests\n";
-  std::cout << "========================================\n";
+        if (!paused) {
+            for (auto& s : sims) {
+                if (s.kind != LaneKind::Road) continue;
 
-  testDynamicObject();
-  testLane();
-  testTrafficLight();
-  testCar();
-  testTruck();
-  testVehicleUpdateNoObstacle();
-  testVehicleBrakesAtRedLight();
-  testVehicleFollowsLeader();
-  testLaneHoldsObjects();
+                // Lane::updateState() is the single entry point that:
+                //  1. Sorts list_obj and list_traffic when new objects were added
+                //  2. Calls Vehicle::updateState(dt) on every DynamicObject
+                //     → exercises the full hierarchy:
+                //       DynamicObject::isOutOfMap()
+                //       DynamicObject::moveBy()
+                //       DynamicObject::gapToObstacle()
+                //       Vehicle::updateState() velocity logic
+                //       Lane::getNearestTrafficAhead() / getNearestVehicleAhead()
+                //  3. Calls Traffic::updateState(dt) on every Traffic
+                //     → exercises the Green→Yellow→Red state machine
+                s.lane->updateState(dt);
 
-  std::cout << "\n========================================\n";
-  std::cout << "  Results: " << g_pass << " passed, " << g_fail << " failed\n";
-  std::cout << "========================================\n";
+                // Remove inactive (out-of-map) vehicles from collision list and delete them.
+                // DynamicObject::isOutOfMap() already set is_active = false.
+                auto& cl = s.collisionList;
+                for (auto it = cl.begin(); it != cl.end(); ) {
+                    if (!(*it)->isActive()) {
+                        s.lane->removeObject(*it);
+                        delete *it;
+                        it = cl.erase(it);
+                    } else {
+                        ++it;
+                    }
+                }
 
-  return (g_fail == 0) ? 0 : 1;
+                // CHỈNH SỬA Ở ĐÂY: Điều kiện gen tối đa 2 xe trong vòng 10 * delta_time
+                float spawn_delta_time = 1.0f; // Bạn có thể thay đổi delta_time tại đây
+                float window_duration = 20.0f * spawn_delta_time;
+                int max_vehicles_in_window = 3;
+
+                // Xóa các mốc thời gian đã cũ
+                while (!s.spawnTimes.empty() && totalTime - s.spawnTimes.front() > window_duration) {
+                    s.spawnTimes.erase(s.spawnTimes.begin());
+                }
+
+                bool can_spawn = false;
+                if (s.spawnTimes.size() < max_vehicles_in_window) {
+                    can_spawn = true;
+                    int dir = s.lane->getDirection();
+                    if (dir == 1) {
+                        for (auto* v : s.collisionList) {
+                            if (v->getPosition().x < LANE_X + Constants::VISUAL_DISTANCE) {
+                                can_spawn = false; break;
+                            }
+                        }
+                    } else {
+                        for (auto* v : s.collisionList) {
+                            if (v->getPosition().x + v->getSprite().getLocalBounds().size.x > Constants::WINDOW_WIDTH - Constants::VISUAL_DISTANCE) {
+                                can_spawn = false; break;
+                            }
+                        }
+                    }
+                }
+
+                if (can_spawn) {
+                    Vehicle* v = spawnVehicle(s);
+                    s.spawnTimes.push_back(totalTime);
+                }
+            }
+
+            // player timers
+            if (player.moveCooldown > 0.f) player.moveCooldown -= dt;
+            if (!player.alive && player.deathTimer > 0.f) player.deathTimer -= dt;
+
+            // Collision: test player hitbox against Vehicle hitboxes
+            // Uses DynamicObject::getHitBox() and Vehicle::isActive()
+            if (player.alive && LANE_CFG[player.laneIdx].kind == LaneKind::Road) {
+                for (auto* v : sims[player.laneIdx].collisionList) {
+                    if (!v->isActive()) continue;
+                    if (player.hitbox.findIntersection(v->getHitBox()).has_value()) {
+                        player.alive      = false;
+                        player.deathTimer = 1.8f;
+                        break;
+                    }
+                }
+            }
+
+            // win condition: reached finish grass
+            if (player.alive && player.laneIdx == NUM_ROWS - 1) {
+                // bounce back to start for continuous play
+                player.score   = std::max(player.score, player.laneIdx);
+                player.bestScore = std::max(player.bestScore, player.score);
+                player.laneIdx = 0;
+                player.score   = 0;
+                player.pos     = laneCenter(0, LANE_X);
+                player.hitbox  = calcPlayerHitbox(player.pos);
+            }
+        }
+
+        // ── Render ─────────────────────────────────────────────────────────
+
+        window.clear({20, 22, 28});
+
+        // Lane::render() draws the lane sprite + all DynamicObjects + all Traffics
+        // This exercises DynamicObject::render() and Traffic::render()
+        for (auto& s : sims)
+            s.lane->render(window);
+
+        // lane separators
+        for (int i = 0; i < NUM_ROWS - 1; ++i) {
+            sf::RectangleShape sep({(float)Constants::WINDOW_WIDTH, 1.f});
+            sep.setFillColor({60, 60, 70, 80});
+            sep.setPosition({0.f, (float)(i + 1) * Constants::LANE_HEIGHT});
+            window.draw(sep);
+        }
+
+        // finish line dashes on row 9
+        {
+            float finY = 0.f; // laneIdx 9 → screen Y = 0
+            for (int x = 0; x < (int)Constants::LANE_WIDTH; x += 22) {
+                sf::RectangleShape checker({10.f, 10.f});
+                checker.setFillColor((x / 22) % 2 == 0
+                    ? sf::Color{240, 240, 240, 90}
+                    : sf::Color{20, 20, 20, 60});
+                checker.setPosition({LANE_X + (float)x, finY});
+                window.draw(checker);
+                checker.setPosition({LANE_X + (float)x, finY + Constants::LANE_HEIGHT - 10.f});
+                window.draw(checker);
+            }
+        }
+
+        // player
+        drawPlayer(window, player, LANE_X, totalTime);
+
+        // sidebar (drawn on top to mask vehicles that slide under it)
+        drawSidebar(window, sims, player, fps, paused, LANE_X, NUM_ROWS);
+
+        // overlays
+        if (paused)
+            drawPauseOverlay(window);
+
+        if (!player.alive)
+            drawDeathOverlay(window, player.deathTimer);
+
+        window.display();
+    }
+
+    // Lane destructor deletes every owned DynamicObject and Traffic pointer
+    for (auto& s : sims)
+        delete s.lane;
+
+    return 0;
 }

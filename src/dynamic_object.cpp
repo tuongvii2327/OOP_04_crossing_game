@@ -15,7 +15,7 @@ void DynamicObject::applyFacing()
 {
   if (direction == -1) {
     sprite.setScale({-1.f, 1.f});
-    sprite.setOrigin({sprite.getLocalBounds().size.x, 0.f});
+    sprite.setOrigin({getWidthSprite(), 0.f});
   } else {
     sprite.setScale({1.f, 1.f});
     sprite.setOrigin({0.f, 0.f});
@@ -25,11 +25,22 @@ void DynamicObject::applyFacing()
 
 #pragma region PROTECTED
 // set offset, size and recalculate hitbox
-void DynamicObject::setHitbox(sf::Vector2f offset, sf::Vector2f size) 
+void DynamicObject::setHitbox()
 {
-  setHitBoxOffset(offset);
-  hitbox.size = size;
-  updateHitbox();
+    setHitboxSize();
+    setHitboxOffset();
+    updateHitbox();
+}
+
+// HITBOX_SIZE_RATIO * sprite size (same for every dynamic object)
+void DynamicObject::setHitboxSize()
+{
+    hitbox.size = sprite.getGlobalBounds().size * Constants::HITBOX_SIZE_RATIO;
+}
+
+void DynamicObject::setHitboxOffset()
+{
+    hitbox_offset = (sprite.getGlobalBounds().size - hitbox.size) / 2.f;
 }
 
 // move by a relative offset, then sync sprite and hitbox
@@ -61,26 +72,15 @@ int DynamicObject::calcDirection() const
   return (current_lane != nullptr) ? current_lane->getDirection() : 1;
 }
 
-// HITBOX_SIZE_RATIO * sprite size (same for every dynamic object)
-sf::Vector2f DynamicObject::calcHitboxSize() const {
-  return sprite.getLocalBounds().size * Constants::HITBOX_SIZE_RATIO;
-}
-
-sf::Vector2f DynamicObject::calcHitboxOffset() const 
-{
-  return (sprite.getLocalBounds().size - hitbox.size) / 2.f;
-}
-
 // calculate object position when spawn
 sf::Vector2f DynamicObject::calcSpawnPosition() const 
 {
   if (current_lane == nullptr)
     return sf::Vector2f(0.f, 0.f);
   sf::Vector2f lane_position = current_lane->getPosition();
-  sf::Vector2f sprite_size = sprite.getLocalBounds().size;
-  float spawn_y = lane_position.y + (Constants::LANE_HEIGHT - sprite_size.y) / 2.f;
+  float spawn_y = lane_position.y + (Constants::LANE_HEIGHT - getHeightSprite()) / 2.f;
   float spawn_x = (direction == 1) 
-      ? lane_position.x - sprite_size.x
+      ? lane_position.x - getWidthSprite()
       : lane_position.x + Constants::LANE_WIDTH;
   return sf::Vector2f(spawn_x, spawn_y);
 }
@@ -94,13 +94,11 @@ sf::Vector2f DynamicObject::updateVelocity(const float &speed) const
 // scale size of sprite if its size is larger than CELL_SIZE
 void DynamicObject::adjustSprite() 
 {
-  float currentWidth = sprite.getLocalBounds().size.x;
-  float currentHeight = sprite.getLocalBounds().size.y;
-  if (currentWidth == 0.f || currentHeight == 0.f)
+  if (getWidthSprite() == 0.f || getHeightSprite() == 0.f)
     return;
-  if (currentWidth > Constants::LANE_WIDTH || currentHeight > Constants::LANE_HEIGHT) {
-    float scaleX = (Constants::LANE_WIDTH - Constants::VISUAL_DISTANCE) / currentWidth;
-    float scaleY = (Constants::LANE_HEIGHT - Constants::VISUAL_DISTANCE) / currentHeight;
+  if (getWidthSprite() > Constants::LANE_WIDTH || getHeightSprite() > Constants::LANE_HEIGHT) {
+    float scaleX = (Constants::LANE_WIDTH - Constants::VISUAL_DISTANCE) / getWidthSprite();
+    float scaleY = (Constants::LANE_HEIGHT - Constants::VISUAL_DISTANCE) / getHeightSprite();
     float finalScale = std::min(scaleX, scaleY);
     sprite.setScale({finalScale, finalScale});
   }
@@ -119,8 +117,8 @@ DynamicObject::DynamicObject(const sf::Texture &texture,
   adjustSprite();
   setLane(init_lane);
   setDirection(calcDirection()); // direction from lane, then flips the sprite when moving left
-  setHitbox(calcHitboxOffset(), calcHitboxSize()); // set hitbox_offset automatically here
   setPosition(calcSpawnPosition());
+  setHitbox(); // set hitbox_offset automatically here
   setVelocity(sf::Vector2f(0.f, 0.f)); // subclasses set the real velocity once they know their speed
   setActiveState(true);
 }
@@ -173,11 +171,6 @@ sf::Vector2f DynamicObject::getHitBoxOffset() const
     return hitbox_offset; 
 }
 
-void DynamicObject::setHitBoxOffset(const sf::Vector2f &offset) 
-{
-  hitbox_offset = offset;
-}
-
 bool DynamicObject::isActive() const 
 { 
     return is_active; 
@@ -212,6 +205,15 @@ void DynamicObject::setDirection(const int &direct)
   applyFacing();
 }
 
+float DynamicObject::getWidthSprite() const
+{
+    return sprite.getGlobalBounds().size.x;
+}
+
+float DynamicObject::getHeightSprite() const
+{
+    return sprite.getGlobalBounds().size.y;
+}
 #pragma endregion
 
 #pragma region SAVE/LOAD
@@ -249,16 +251,27 @@ void DynamicObject::setDirection(const int &direct)
 // }
 
 bool DynamicObject::isOutOfMap() {
-  if (position.x <= (Constants::GAME_PLAY_BAR_WIDTH - sprite.getLocalBounds().size.x) ||
-      position.x >= Constants::WINDOW_WIDTH ||
-      position.y <= -sprite.getLocalBounds().size.y ||
-      position.y >= Constants::WINDOW_HEIGHT) 
+  if (position.x < (Constants::GAME_PLAY_BAR_WIDTH - getWidthSprite()) ||
+      position.x > Constants::WINDOW_WIDTH ||
+      position.y < - getHeightSprite() ||
+      position.y > Constants::WINDOW_HEIGHT) 
   {
     if (isActive())
       setActiveState(false);
     return true;
   }
   return false;
+}
+
+float DynamicObject::gapToObstacle(const float& obstacle_position_x, const float& obstacle_width) const
+{
+    float curr_front_x = (direction == 1)
+        ? (position.x + getWidthSprite())
+        : (position.x);
+    float near_edge = (direction == 1)
+        ? (obstacle_position_x)
+        : (obstacle_position_x + obstacle_width);
+    return direction * (near_edge - curr_front_x) - Constants::VISUAL_DISTANCE;
 }
 
 // draw sprite to screen when active

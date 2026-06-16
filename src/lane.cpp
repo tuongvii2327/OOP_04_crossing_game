@@ -10,14 +10,12 @@
 #pragma region PROTECTED
 void Lane::adjustSprite() 
 {
-  float currentWidth = sprite.getLocalBounds().size.x;
-  float currentHeight = sprite.getLocalBounds().size.y;
-  if (currentWidth == 0.f || currentHeight == 0.f)
+  if (getWidthSprite() == 0.f || getHeightSprite() == 0.f)
     return;
-  if (currentWidth > Constants::LANE_WIDTH || currentHeight > Constants::LANE_HEIGHT) 
+  if (getWidthSprite() > Constants::LANE_WIDTH || getHeightSprite() > Constants::LANE_HEIGHT)
   {
-    float scaleX = Constants::LANE_WIDTH / currentWidth;
-    float scaleY = Constants::LANE_HEIGHT / currentHeight;
+    float scaleX = Constants::LANE_WIDTH / getWidthSprite();
+    float scaleY = Constants::LANE_HEIGHT / getHeightSprite();
     sprite.setScale({scaleX, scaleY});
   }
 }
@@ -34,6 +32,7 @@ Lane::Lane(const sf::Texture &texture,
   setPosition(init_position);
   setLevel(init_level);
   setDirection(init_direction);
+  is_add_new_obj = 1;
 }
 
 Lane::~Lane() 
@@ -93,137 +92,122 @@ void Lane::setDirection(const int &direct)
     direction = direct;
 }
 
+float Lane::getWidthSprite() const
+{
+    return sprite.getGlobalBounds().size.x;
+}
+
+float Lane::getHeightSprite() const
+{
+    return sprite.getGlobalBounds().size.y;
+}
+
 void Lane::addObject(DynamicObject *obj) 
 { 
     list_obj.push_back(obj); 
+    is_add_new_obj = 1;
+}
+
+void Lane::removeObject(DynamicObject *obj)
+{
+    auto it = std::find(list_obj.begin(), list_obj.end(), obj);
+    if (it != list_obj.end()) {
+        list_obj.erase(it);
+    }
 }
 
 void Lane::addTraffic(Traffic *t) 
 { 
     list_traffic.push_back(t); 
+    is_add_new_obj = 1;
 }
 
 Traffic *Lane::getNearestTrafficAhead(const Vehicle &vehicle) 
 {
-  std::sort(list_traffic.begin(), list_traffic.end(),
-            [](const Traffic *a, const Traffic *b) 
+  float min_distance = (direction == 1)
+      ? (vehicle.getPosition().x + vehicle.getWidthSprite() + Constants::VISUAL_DISTANCE)
+      : (vehicle.getPosition().x - Constants::TRAFFIC_WIDTH - Constants::VISUAL_DISTANCE);
+  auto it = std::lower_bound(list_traffic.begin(), list_traffic.end(), min_distance,
+      [this](const Traffic* t, float val)
       {
-          return a->getPosition().x < b->getPosition().x;
+          return t->getPosition().x * direction < val * direction;
       });
-  float vehicle_width = vehicle.getSprite().getLocalBounds().size.x;
-  if (direction == 1) 
+  while (it != list_traffic.end())
   {
-    float relative_position = vehicle.getPosition().x + vehicle_width + Constants::VISUAL_DISTANCE;
-    std::pair<float, float> range = { relative_position, relative_position + vehicle.getSafeDistance()};
-
-    auto it = std::lower_bound(list_traffic.begin(), list_traffic.end(), range.first,
-        [](const Traffic *t, float val)
-        { 
-            return t->getPosition().x < val; 
-        });
-
-    while (it != list_traffic.end() && (*it)->getPosition().x <= range.second) 
-    {
-      Traffic *current = *it;
-      if (current->getColor() == Constants::TrafficLightColor::Red) 
+      if ((*it)->getColor() == Constants::TrafficLightColor::Red)
       {
-        return current;
+          return *it;
       }
-      if (current->getColor() == Constants::TrafficLightColor::Yellow) 
+      if ((*it)->getColor() == Constants::TrafficLightColor::Yellow)
       {
-        float position_after_yellow = (Constants::YELLOW_DURATION - current->getTimer()) * vehicle.getVelocity().x + vehicle.getPosition().x;
-        float target_position = current->getPosition().x + Constants::TRAFFIC_WIDTH + Constants::VISUAL_DISTANCE;
-        if (position_after_yellow < target_position)
-          return current;
+          float position_after_yellow = (Constants::YELLOW_DURATION - (*it)->getTimer()) * vehicle.getVelocity().x + vehicle.getPosition().x;
+          float target_position = (direction == 1)
+              ? ((*it)->getPosition().x + Constants::TRAFFIC_WIDTH + (*it)->getWidthSprite())
+              : ((*it)->getPosition().x + Constants::TRAFFIC_WIDTH);
+          if(position_after_yellow * direction < target_position * direction)
+            return *it;
       }
       ++it;
-    }
-  } 
-  else 
-  {
-    float relative_position = vehicle.getPosition().x - Constants::VISUAL_DISTANCE - Constants::TRAFFIC_WIDTH;
-    std::pair<float, float> range = {relative_position - vehicle.getSafeDistance(), relative_position};
-
-    auto it = std::lower_bound(list_traffic.rbegin(), list_traffic.rend(), range.second,
-        [](const Traffic *t, float val) 
-        { 
-            return t->getPosition().x > val; 
-        });
-
-    while (it != list_traffic.rend() && (*it)->getPosition().x >= range.first) 
-    {
-      Traffic *current = *it;
-
-      if (current->getColor() == Constants::TrafficLightColor::Red) 
-      {
-        return current;
-      }
-      if (current->getColor() == Constants::TrafficLightColor::Yellow) 
-      {
-        float position_after_yellow = (Constants::YELLOW_DURATION - current->getTimer()) * vehicle.getVelocity().x + vehicle.getPosition().x;
-        float target_position = current->getPosition().x - Constants::VISUAL_DISTANCE;
-        if (position_after_yellow > target_position)
-          return current;
-      }
-      ++it;
-    }
   }
   return nullptr;
 }
 
 Vehicle *Lane::getNearestVehicleAhead(const Vehicle &vehicle) 
 {
-  std::sort(list_obj.begin(), list_obj.end(),
-      [](const DynamicObject *a, const DynamicObject *b) 
-      {
-          return a->getPosition().x < b->getPosition().x;
-      });
-  float vehicle_width = vehicle.getSprite().getLocalBounds().size.x;
-  if (direction == 1) 
-  {
-    float relative_position = vehicle.getPosition().x + vehicle_width + Constants::VISUAL_DISTANCE;
-    std::pair<float, float> range = {relative_position, relative_position + vehicle.getSafeDistance()};
-
-    auto it = std::lower_bound(list_obj.begin(), list_obj.end(), range.first,
-        [](const DynamicObject *v, float val) 
+    auto it = std::upper_bound(list_obj.begin(), list_obj.end(), vehicle.getPosition().x,
+        [this](float val, const DynamicObject* v)
         {
-            return v->getPosition().x < val;
+            return val * direction < v->getPosition().x * direction;
         });
-
-    while (it != list_obj.end() && (*it)->getPosition().x <= range.second) 
+    while (it != list_obj.end())
     {
-      Vehicle *current = dynamic_cast<Vehicle *>(*it);
-      if (current->getVelocity().x < vehicle.getVelocity().x)
-        return current;
-      ++it;
+        if ((*it)->isActive() &&
+            (*it)->getVelocity().x * direction < vehicle.getVelocity().x * direction)
+            return dynamic_cast<Vehicle*>(*it);
+        ++it;
     }
-  } 
-  else 
-  {
-    float relative_position = vehicle.getPosition().x - Constants::VISUAL_DISTANCE;
-    std::pair<float, float> range = {relative_position - vehicle.getSafeDistance(), relative_position};
-
-    auto it = std::lower_bound(list_obj.rbegin(), list_obj.rend(), range.second,
-        [](const DynamicObject *v, float val) 
-        {
-            return v->getPosition().x > val;
-        });
-
-    while (it != list_obj.rend() && 
-        (*it)->getPosition().x >= (range.first - (*it)->getSprite().getLocalBounds().size.x)) 
-    {
-      Vehicle *current = dynamic_cast<Vehicle *>(*it);
-      if (current->getVelocity().x > vehicle.getVelocity().x)
-        return current;
-      ++it;
-    }
-  }
   return nullptr;
+}
+
+void Lane::updateState(float delta_time)
+{
+    if (is_add_new_obj)
+    {
+        is_add_new_obj = 0;
+        if(!list_obj.empty())
+            std::sort(list_obj.begin(), list_obj.end(),
+                [this](const DynamicObject* a, const DynamicObject* b)
+                {
+                    return a->getPosition().x * direction < b->getPosition().x * direction;
+                });
+        if(!list_traffic.empty())
+            std::sort(list_traffic.begin(), list_traffic.end(),
+                [this](const Traffic* a, const Traffic* b)
+                {
+                    return a->getPosition().x * direction < b->getPosition().x * direction;
+                });
+    }
+    for (auto v : list_obj)
+    {
+        v->updateState(delta_time);
+    }
+    for (auto t : list_traffic)
+    {
+        t->updateState(delta_time);
+    }
 }
 
 void Lane::render(sf::RenderWindow &window) const 
 { 
     window.draw(sprite); 
+    for (auto v : list_obj)
+    {
+        v->render(window);
+    }
+    for (auto t : list_traffic)
+    {
+        t->render(window);
+    }
 }
 
 #pragma endregion
