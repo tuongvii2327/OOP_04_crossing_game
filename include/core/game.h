@@ -4,22 +4,22 @@
 #include "state_machine.h"
 #include "../utils/constants.h"
 
-class CGame 
+class Game
 {
 private:
-    sf::RenderWindow mWindow;
-    StateMachine mStateMachine;
-    sf::Clock mClock;
-    
-    // ResourceManager mResourceManager; 
+    sf::RenderWindow window;
+    StateMachine state_machine;
+    sf::Clock clock;
+
+    // ResourceManager resource_manager;
 
     void handleEvent();
     void update(float dt);
     void render();
 
 public:
-    CGame();
-    ~CGame() = default;
+    Game();
+    ~Game() = default;
 
-    void run(); 
+    void run();
 };
