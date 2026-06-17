@@ -7,22 +7,17 @@
 class Vehicle : public DynamicObject
 {
 protected:
-#pragma region VARIABLES
 	//sf::Sound horn_sound;
 
-	float base_speed; //fixed for the object's lifetime (px/s)
-	float safe_distance; //braking & following distance (px)
-	Constants::MotionState motion_state;
-	Constants::LightDecision light_decision; //latched decision for the current light phase
-#pragma endregion
+	float base_speed; //max speed of this vehicle
+	float safe_distance; //distance to brake or accelerate
 
-	float calcBaseSpeed(Constants::DynamicObjectType type) const; //randomSpeed for type, scaled by lane level
-	float calcSafeDistance() const; //safe_distance = base_speed * SAFETY_FACTOR
-
+	float calcSafeDistance() const; //safe_distance = base_speed * SAFE_DISTANCE_FACTOR
 
 
 public:
 	//contructor, destructor
+	// base_speed, safe_distance, velocity are calculated & set automactically
 	Vehicle(const sf::Texture& texture,
 		Constants::DynamicObjectType obj_type,
 		Lane* init_lane = nullptr);
@@ -30,21 +25,10 @@ public:
 
 	//get, set 
 	float getBaseSpeed() const;
-	void setBaseSpeed(const float& newSpeed);
+	void setBaseSpeed(const float& new_speed);
 
 	float getSafeDistance() const;
 	//set safe_distance automatically when set base_speed
-
-	Constants::MotionState getMotionState() const;
-	void setMotionState(const Constants::MotionState& state);
-
-	Constants::LightDecision getLightDecision() const;
-	void setLightDecision(const Constants::LightDecision& decision);
-
-
-	//Save/Load
-	//void serialize(std::ostream& outDev) const override;  //write state of object to binary file
-	//void deserialize(std::istream& inDev) override; //read state of object from binary file
 
 
 	//Other

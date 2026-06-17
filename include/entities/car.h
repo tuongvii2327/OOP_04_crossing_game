@@ -17,9 +17,5 @@ public:
 	Constants::CarType getCarType() const;
 	void setCarType(const Constants::CarType& type);
 
-	Constants::DynamicObjectType getType() const override; //returns DynamicObjectType::Car
-
-	//Save/Load
-	//void serialize(std::ostream& outDev) const override;  //write state of object to binary file
-	//void deserialize(std::istream& inDev) override; //read state of object from binary file
+	Constants::DynamicObjectType getType() const override;
 };
