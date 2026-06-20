@@ -4,6 +4,8 @@
 #include <memory>
 #include <stack>
 
+class State;
+
 class StateMachine
 {
 private:

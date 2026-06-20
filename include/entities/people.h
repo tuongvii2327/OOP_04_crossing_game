@@ -1,16 +1,22 @@
 #pragma once
-#include <SFML/Graphics.hpp>
 #include "../include/utils/constants.h"
+#include <SFML/Graphics.hpp>
+
+class Vehicle;
+class Animal;
+class Coin;
+class Obstacle;
 
 class People
 {
 private:
     sf::Vector2f position;
-    float width,height;
-    bool is_dead; //check if the player is dead
-    int score; //the current score of the player
+    float width, height;
+    float step_size;
+    bool is_dead; // check if the player is dead
+    int score;    // the current score of the player
 
-    sf::RectangleShape shape; //temporarily a shape for test
+    sf::RectangleShape shape; // temporarily a shape for test
 
     // sf::Sprite sprite;          // The actual visual representation
     // sf::Texture texture;        // Holds the image data
@@ -19,32 +25,34 @@ private:
     // float animation_timer = 0.0f;
 
 public:
-
     People();
 
-    //move
+    // move
     void move(float dx, float dy);
 
-    //collision
+    // collision
     sf::FloatRect getBounds() const;
-    bool isImpact(const Vehicle* vehicle) const;
-    bool isImpact(const Animal* animal) const;
-    bool isImpact(const Coin* coin) const;
-    bool isImpact(const Obstacle* obstacle) const;
+    bool isImpact(const Vehicle *vehicle) const;
+    bool isImpact(const Animal *animal) const;
+    bool isImpact(const Coin *coin) const;
+    bool isImpact(const Obstacle *obstacle) const;
 
-    void addScore(); //increase the score by 1
+    void addScore(); // increase the score by 1
 
-    //getter
+    // getter
     sf::Vector2f getPosition() const;
+    float getX() const;
+    float getY() const;
     float getWidth() const;
     float getHeight() const;
     int getScore() const;
-    
-    //set player state to dead
+
+    // set player state to dead
     void die();
     void resetPosition();
 
-    //render
-    void render(sf::RenderWindow& window);
+    // render
+    void render(sf::RenderWindow &window);
     void update(float delta_time);
+    bool tryToMove(float dx, float dy);
 };

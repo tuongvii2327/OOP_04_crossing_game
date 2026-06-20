@@ -16,8 +16,8 @@ StateMachine::~StateMachine() = default;
 void StateMachine::addState(std::unique_ptr<State> new_state, bool is_replacing)
 {
     is_adding = true;
-    is_replacing = is_replacing;
-    new_state = std::move(new_state);
+    this->is_replacing = is_replacing;
+    this->new_state = std::move(new_state);
 }
 
 // Queue removal of the top state

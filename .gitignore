@@ -71,3 +71,7 @@ Testing/
 
 # visual studio
 .vs/
+
+# Repomix outputs
+repomix-output.*
+repomix.config.json
