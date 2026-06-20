@@ -1,6 +1,5 @@
 #include "../include/entities/people.h"
 
-
 #include <SFML/Graphics.hpp>
 const int TILE_SIZE = 105;
 
@@ -10,6 +9,7 @@ People::People(){
 
     //setting game's state
     is_dead = false;
+    score = 0;
 
     shape.setSize(sf::Vector2f(50.0f, 50.0f)); 
     step_size = 50.0f;
@@ -29,6 +29,7 @@ People::People(float x, float y)
     position = sf::Vector2f (x, y);
     
     is_dead = false;
+    score = 0;
     shape.setSize(sf::Vector2f(50.0f, 50.0f));
     shape.setFillColor(sf::Color::Green);
     shape.setPosition(position);
@@ -161,21 +162,35 @@ void People::render(sf::RenderWindow& window) {
 //     window.draw(sprite);
 // }
 
-// void People::update(float delta_time){
-//     if(is_dead)
-//     {
-//         return;
-//     }
+void People::update(float delta_time){
+    if(is_dead)
+    {
+        return;
+    }
 
-//     if(animation_clock.getElapsedTime().asSeconds() > 0.15f) // Check if it's time to cycle the animation frame
-//     {
-//         current_frame.left += 50;
-//         if(current_frame.left >= 200) // Loop back to the start if we've passed the last frame
-//         {
-//             current_frame.left = 0;
-//         }
+    // if(animation_clock.getElapsedTime().asSeconds() > 0.15f) // Check if it's time to cycle the animation frame
+    // {
+    //     current_frame.left += 50;
+    //     if(current_frame.left >= 200) // Loop back to the start if we've passed the last frame
+    //     {
+    //         current_frame.left = 0;
+    //     }
 
-//         animation_clock.restart();
-//     }
-// }
+    //     animation_clock.restart();
+    // }
+}
 
+sf::Vector2f People::getPosition() const
+{
+    return position;
+}
+
+int People::getScore() const
+{
+    return score;
+}
+
+void People::addScore()
+{
+    score++;
+}

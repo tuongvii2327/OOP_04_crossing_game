@@ -26,6 +26,7 @@ private:
 
 public:
     People();
+    People(float x, float y);
 
     // move
     void move(float dx, float dy);
