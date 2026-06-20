@@ -1,3 +1,0 @@
-"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\CrossyRoad.dir/objects.a
-C:\msys64\ucrt64\bin\ar.exe qc CMakeFiles\CrossyRoad.dir/objects.a @CMakeFiles\CrossyRoad.dir\objects1.rsp
-C:\msys64\ucrt64\bin\g++.exe -g -Wl,--whole-archive CMakeFiles\CrossyRoad.dir/objects.a -Wl,--no-whole-archive -o CrossyRoad.exe -Wl,--out-implib,libCrossyRoad.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\CrossyRoad.dir\linkLibs.rsp

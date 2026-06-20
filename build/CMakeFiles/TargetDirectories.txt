@@ -1,3 +1,0 @@
-C:/Users/ASUS Vivobook/Desktop/oop-crossy-road/build/CMakeFiles/CrossyRoad.dir
-C:/Users/ASUS Vivobook/Desktop/oop-crossy-road/build/CMakeFiles/edit_cache.dir
-C:/Users/ASUS Vivobook/Desktop/oop-crossy-road/build/CMakeFiles/rebuild_cache.dir

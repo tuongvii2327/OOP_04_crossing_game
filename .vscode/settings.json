@@ -1,5 +1,0 @@
-{
-    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-    "editor.formatOnSave": true,
-    "clang-format.executable": "C:/Users/ASUS Vivobook/.vscode/extensions/ms-vscode.cpptools-1.32.2-win32-x64/LLVM/bin/clang-format.exe"
-}
