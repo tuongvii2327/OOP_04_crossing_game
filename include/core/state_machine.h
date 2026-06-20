@@ -4,23 +4,23 @@
 #include <stack>
 #include "../states/state.h"
 
-class StateMachine 
+class StateMachine
 {
 private:
-    std::stack<std::unique_ptr<State>> mStates;
-    std::unique_ptr<State> mNewState;
+    std::stack<std::unique_ptr<State>> states;
+    std::unique_ptr<State> new_state;
 
-    bool mIsRemoving;
-    bool mIsAdding;
-    bool mIsReplacing;
+    bool is_removing;
+    bool is_adding;
+    bool is_replacing;
 
 public:
     StateMachine();
     ~StateMachine() = default;
 
-    void addState(std::unique_ptr<State> newState, bool isReplacing = true);
+    void addState(std::unique_ptr<State> new_state, bool is_replacing = true);
     void removeState();
-    
+
     void processStateChanges();
 
     State& getActiveState();

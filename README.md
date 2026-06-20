@@ -1,3 +1,5 @@
+### STRUCTURE
+```text
 OOP-CROSSY-ROAD
 ├───assets/                        <-- Tài nguyên thô của game (Tải vào RAM khi chạy)
 │   ├───audio/                     <-- Âm thanh (Nhạc nền, tiếng bước nhảy, va chạm)
@@ -24,8 +26,9 @@ OOP-CROSSY-ROAD
     ├───utils/                     
     ├───world/                     
     └───main.cpp                   <-- Điểm khởi đầu của chương trình (Hàm main)
-
-
+```
+### CONVENTION
+```text
 variable:	snake_case
 function:	camelCase
 class/struct:	PascalCase
@@ -33,3 +36,4 @@ namespace:	PascalCase
 const/constexpr:	UPPER_SNAKE_CASE 
 file:	snake_case
 enum:	PascalCase
+```
