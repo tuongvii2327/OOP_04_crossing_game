@@ -1,8 +1,8 @@
+// include/core/state_machine.h
 #pragma once
 
 #include <memory>
 #include <stack>
-#include "../states/state.h"
 
 class StateMachine
 {
@@ -16,12 +16,14 @@ private:
 
 public:
     StateMachine();
-    ~StateMachine() = default;
+    ~StateMachine();
 
     void addState(std::unique_ptr<State> new_state, bool is_replacing = true);
     void removeState();
 
     void processStateChanges();
 
-    State& getActiveState();
+    // Get a reference to the active (top) state
+    State &getActiveState();
+    bool isEmpty() const { return states.empty(); }
 };

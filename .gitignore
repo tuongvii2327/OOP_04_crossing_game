@@ -15,7 +15,7 @@
 *.ilk
 
 # Debugger Files
-*.pdb
+
 
 # Compiled Dynamic libraries
 *.so
@@ -31,7 +31,6 @@
 *.lai
 *.la
 *.a
-*.lib
 
 # Executables
 *.exe
