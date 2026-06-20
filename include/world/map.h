@@ -1,0 +1,37 @@
+#pragma once
+
+#include <algorithm>
+#include <iostream>
+#include <utility>
+#include <deque>
+#include <random>
+
+#include <SFML/Graphics.hpp>
+
+#include "../utils/constants.h"
+
+#include "lane.h"
+
+class Map {
+	//one lane is Lane, many Lanes is Map.=))
+	std::deque<Lane*> lanes;
+	//Manage coordinates to know when to create/delete lanes.
+	float highest_y;
+	float lane_height;
+	//current level
+	int current_level;
+	
+	sf::Texture grass_texture;
+	sf::Texture road_texture;
+
+	void spawnLane(); //Generate random one lane in the top of map
+	void popLane(); //Delete the oldest lane in the map
+public:
+	Map();
+	~Map();
+
+	void initMap(float start_y);
+	void update(float camera_top_y, float camera_bottom_y);
+	void render(sf::RenderWindow& window) const;
+
+};
