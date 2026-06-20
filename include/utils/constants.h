@@ -5,6 +5,10 @@ const unsigned int WINDOW_WIDTH = 1400;
 const unsigned int WINDOW_HEIGHT = 1050;
 const char *const GAME_TITLE = "Crossy Road";
 
+//number of cell
+const unsigned int NUMBER_OF_LANES = 10;
+const unsigned int NUMBER_OF_CELLS = 12;
+
 const unsigned int GAME_PLAY_BAR_HEIGHT = 1050;
 const unsigned int GAME_PLAY_BAR_WIDTH = 140;
 const unsigned int CELL_SIZE = 105;
@@ -19,6 +23,7 @@ constexpr float HITBOX_SIZE_RATIO = 0.9f;
 const float YELLOW_DURATION = 4; // second
 const unsigned int TRAFFIC_HEIGHT = 30;
 const unsigned int TRAFFIC_WIDTH = 30;
+
 
 enum class TrafficLightColor
 {

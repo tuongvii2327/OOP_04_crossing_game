@@ -13,9 +13,15 @@ class Vehicle;
 class Animal;
 class Traffic;
 
+enum class lane_type {
+	GRASS,
+	ROAD
+};
+
 class Lane
 {
 private:
+	lane_type type;
 	sf::Sprite sprite;
 	sf::Vector2f position; // top left point of sprite
 	int level; // level of game in current frame
@@ -28,10 +34,10 @@ protected:
 	void adjustSprite();
 
 public:
-	Lane(const sf::Texture &texture,
-		const sf::Vector2f &init_position = {0, 0},
-		const int &init_level = 1,
-		const int &init_direction = 1);
+	Lane(const lane_type& curr_type, const sf::Texture& texture,
+		const sf::Vector2f& init_position = { 0, 0 },
+		const int& init_level = 1,
+		const int& init_direction = 1);
 	~Lane();
 
 	sf::Sprite getSprite() const;
