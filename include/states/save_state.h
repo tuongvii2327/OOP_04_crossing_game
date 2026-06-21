@@ -15,6 +15,8 @@ private:
     sf::Text title_text_;
     std::vector<sf::Text> save_slot_texts_;
     int selected_index_;
+    bool is_saved_ = false;
+    float save_timer_ = 0.0f;
 
     // Setup save slot UI
     void setupUI();

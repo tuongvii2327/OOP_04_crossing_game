@@ -1,5 +1,6 @@
 // src/states/load_state.cpp
 #include "states/load_state.h"
+#include "states/playing_state.h"
 #include "utils/constants.h"
 #include <iostream>
 
@@ -139,6 +140,7 @@ void LoadState::moveDown()
 // Load game data from save file
 void LoadState::loadGameData(int slot_index)
 {
-    std::cout << "Attempting to load data from Save Slot: " << slot_index
-              << std::endl;
+    // std::cout << "Attempting to load data from Save Slot: " << slot_index
+    //   << std::endl;
+    state_machine_.replaceRootState(std::make_unique<PlayingState>(state_machine_));
 }

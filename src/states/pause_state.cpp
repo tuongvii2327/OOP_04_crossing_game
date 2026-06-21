@@ -1,5 +1,7 @@
 #include "states/pause_state.h"
-#include "states/menu_state.h"
+#include "states/home_state.h"
+#include "states/save_state.h"
+#include "states/setting_state.h"
 #include "utils/constants.h"
 #include <iostream>
 
@@ -23,7 +25,7 @@ void PauseState::init()
 void PauseState::setupUI()
 {
     background_overlay_.setSize({static_cast<float>(Constants::WINDOW_WIDTH),
-                                static_cast<float>(Constants::WINDOW_HEIGHT)});
+                                 static_cast<float>(Constants::WINDOW_HEIGHT)});
     background_overlay_.setFillColor(sf::Color(0, 0, 0, 150));
 
     title_text_.setString("PAUSED");
@@ -34,7 +36,7 @@ void PauseState::setupUI()
     float title_x = (Constants::WINDOW_WIDTH - title_bounds.size.x) / 2.0f;
     title_text_.setPosition({title_x, 200.0f});
 
-    std::vector<std::string> options = {"RESUME", "MAIN MENU"};
+    std::vector<std::string> options = {"RESUME", "SAVE GAME", "SETTINGS", "HOME"};
     float initial_y = 450.0f;
     float spacing = 80.0f;
 
@@ -79,12 +81,22 @@ void PauseState::handleEvent(const sf::Event &event)
         {
             if (selected_index_ == 0)
             {
-                state_machine_.removeState();
+                state_machine_.removeState(); // nhánh 'select continue'
             }
             else if (selected_index_ == 1)
             {
-                state_machine_.removeState();
-                state_machine_.addState(std::make_unique<MenuState>(state_machine_), true);
+                // 'select save'
+                state_machine_.addState(std::make_unique<SaveState>(state_machine_), false);
+            }
+            else if (selected_index_ == 2)
+            {
+                // 'select setting'
+                state_machine_.addState(std::make_unique<SettingState>(state_machine_), false);
+            }
+            else if (selected_index_ == 3)
+            {
+                // 'select home'
+                state_machine_.replaceRootState(std::make_unique<HomeState>(state_machine_));
             }
         }
         else if (key_pressed->code == sf::Keyboard::Key::Escape)

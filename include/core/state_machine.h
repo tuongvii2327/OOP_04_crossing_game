@@ -28,4 +28,5 @@ public:
     // Get a reference to the active (top) state
     State &getActiveState();
     bool isEmpty() const { return states.empty(); }
+    void replaceRootState(std::unique_ptr<State> new_state);
 };

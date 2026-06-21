@@ -68,3 +68,13 @@ State &StateMachine::getActiveState()
     }
     return *states.top();
 }
+
+void StateMachine::replaceRootState(std::unique_ptr<State> new_state)
+{
+    while (!states.empty())
+    {
+        states.pop();
+    }
+    states.push(std::move(new_state));
+    states.top()->init();
+}

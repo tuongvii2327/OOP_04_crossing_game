@@ -99,6 +99,14 @@ void SaveState::handleEvent(const sf::Event &event)
 // Update save state (static)
 void SaveState::update(float delta_time)
 {
+    if (is_saved_)
+    {
+        save_timer_ += delta_time;
+        if (save_timer_ >= 1.0f) // wait for 1 second before returning to PauseState
+        {
+            state_machine_.removeState();
+        }
+    }
 }
 
 // Render save menu
@@ -139,7 +147,7 @@ void SaveState::moveDown()
 // Save game data to save file
 void SaveState::saveGameData(int slot_index)
 {
-    std::cout << "Successfully saved game to Slot " << slot_index << "!" << std::endl;
+    // std::cout << "Successfully saved game to Slot " << slot_index << "!" << std::endl;
 
     save_slot_texts_[slot_index - 1].setString("SAVE SLOT " + std::to_string(slot_index) + " - SAVED!");
 
@@ -147,4 +155,6 @@ void SaveState::saveGameData(int slot_index)
     float x_position = (Constants::WINDOW_WIDTH - text_bounds.size.x) / 2.0f;
     float y_position = save_slot_texts_[slot_index - 1].getPosition().y;
     save_slot_texts_[slot_index - 1].setPosition({x_position, y_position});
+    is_saved_ = true;
+    save_timer_ = 0.0f;
 }
