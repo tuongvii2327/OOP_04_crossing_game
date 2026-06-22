@@ -16,7 +16,7 @@
 class Map
 {
     // one lane is Lane, many Lanes is Map.=))
-    std::deque<Lane *> lanes;
+    std::deque<std::unique_ptr<Lane>> lanes;
     // Manage coordinates to know when to create/delete lanes.
     float highest_y;
     float lane_height;

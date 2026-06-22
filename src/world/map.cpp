@@ -14,10 +14,6 @@ Map::Map() : lane_height(Constants::LANE_HEIGHT), highest_y(0), current_level(1)
 
 Map::~Map()
 {
-    for (Lane *x : lanes)
-    {
-        delete x;
-    }
     lanes.clear();
 }
 
@@ -46,9 +42,9 @@ void Map::spawnLane()
 
     sf::Vector2f spawn_position(0.f, highest_y);
 
-    Lane *new_lane = new Lane(spawn_position, current_level, direction, type);
+    std::unique_ptr <Lane> new_lane = std::make_unique<Lane>(spawn_position, current_level, direction, type);
 
-    lanes.push_front(new_lane);
+    lanes.push_front(std::move(new_lane));
     highest_y -= lane_height;
 }
 
@@ -60,9 +56,9 @@ void Map::spawnLaneAsRequire(Constants::LaneType type)
     int direction = (Rand(gen) == 0) ? 1 : -1;
 
     sf::Vector2f spawn_position(0.f, highest_y);
-    Lane* new_lane = new Lane(spawn_position, current_level, direction, type);
+    auto new_lane = std::make_unique<Lane>(spawn_position, current_level, direction, type);
 
-    lanes.push_front(new_lane);
+    lanes.push_front(std::move(new_lane));
     highest_y -= lane_height;
 }
 
@@ -70,7 +66,6 @@ void Map::popLane()
 {
     if (!lanes.empty())
     {
-        delete lanes.back();
         lanes.pop_back();
     }
 }
@@ -98,7 +93,7 @@ void Map::update(float camera_top_y, float camera_bottom_y, float delta_time)
     }
 
     // Cập nhật xe chạy (Đã vá chuẩn C++)
-    for (Lane *lane : lanes)
+    for (const auto& lane : lanes)
     {
         lane->updateState(delta_time);
     }
@@ -106,15 +101,15 @@ void Map::update(float camera_top_y, float camera_bottom_y, float delta_time)
 
 void Map::render(sf::RenderWindow &window) const
 {
-    for (auto it = lanes.begin(); it != lanes.end(); ++it)
+    for (const auto& lane : lanes)
     {
-        (*it)->render(window);
+        lane->render(window);
     }
 }
 
 bool Map::checkLethalCollision(const sf::FloatRect &player_hitbox) const
 {
-    for (const Lane *lane : lanes)
+    for (const auto& lane : lanes)
     {
         if (lane->checkLethalCollision(player_hitbox))
         {
