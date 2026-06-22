@@ -5,17 +5,16 @@
 class Truck : public Vehicle
 {
 private:
-	Constants::TruckType truck_type;
+	Constants::ObjectColor truck_color;
 
 public:
-	//contructor, destructor
-	Truck(const sf::Texture& texture,
-		Constants::TruckType type = Constants::TruckType::RedTruck,
+	// contructor, destructor
+	Truck(const Constants::ObjectColor& init_color = Constants::ObjectColor::Pink,
 		Lane* init_lane = nullptr);
 
-	//get, set
-	Constants::TruckType getTruckType() const;
-	void setTruckType(const Constants::TruckType& type);
+	// get, set
+	Constants::ObjectColor getColor() const override;
+	void setColor(const Constants::ObjectColor& color);
 
-	Constants::DynamicObjectType getType() const override;
+	Constants::ObjectType getType() const override;
 };

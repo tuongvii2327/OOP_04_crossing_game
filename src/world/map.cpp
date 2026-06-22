@@ -35,35 +35,15 @@ void Map::spawnLane()
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> Rand(0, 1);
-    int get_random_number = Rand(gen);
 
-    lane_type type;
+    Constants::LaneType type = (Rand(gen) == 0) ? Constants::LaneType::Grass : Constants::LaneType::Road;
 
-    // Adjust the random spawn rate of different lane types.
-    // Adjustments were made after consultation regarding the difficulty level.
-    if (get_random_number == 0)
-    {
-        type = lane_type::GRASS;
-    }
-    else if (get_random_number == 1)
-    {
-        type = lane_type::ROAD;
-    }
+    int direction = (Rand(gen) == 0) ? 1 : -1;
 
-    sf::Texture *selectedTexture;
-    if (type == lane_type::GRASS)
-    {
-        selectedTexture = &grass_texture;
-    }
-    else if (type == lane_type::ROAD)
-    {
-        selectedTexture = &road_texture;
-    }
+    sf::Vector2f spawn_position(0.f, highest_y);
 
-    int direction = (Rand(gen) == 0);
-
-    sf::Vector2f spawn_position(0, highest_y);
-    Lane *new_lane = new Lane(type, *selectedTexture, spawn_position, current_level, direction);
+    Lane *new_lane = new Lane(spawn_position, current_level, direction, type);
+    
     lanes.push_front(new_lane);
     highest_y -= lane_height;
 }

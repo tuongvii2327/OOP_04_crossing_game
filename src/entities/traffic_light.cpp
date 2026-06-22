@@ -1,90 +1,57 @@
 #include "../include/entities/traffic_light.h"
 #include "../include/world/lane.h"
+#include "../include/utils/resource_manager.h"
 
 #pragma region PROTECTED
-void Traffic::adjustSprite()
-{
-	if (getWidthSprite() == 0.f || getHeightSprite() == 0.f)
-		return;
-	if (getWidthSprite() > Constants::TRAFFIC_WIDTH || getHeightSprite() > Constants::TRAFFIC_HEIGHT)
-	{
-		float scaleX = Constants::TRAFFIC_WIDTH / getWidthSprite();
-		float scaleY = Constants::TRAFFIC_HEIGHT / getHeightSprite();
-		float finalScale = std::min(scaleX, scaleY);
-		sprite.setScale({finalScale, finalScale});
-	}
-}
-
+//
 float Traffic::randomDuration(Constants::TrafficLightColor color) const
 {
-	if (color == Constants::TrafficLightColor::Yellow)
-		return Constants::YELLOW_DURATION;
-	static std::mt19937 rng(std::random_device{}());
-	Constants::DurationRange range = Constants::getDurationRange(color);
-	std::uniform_int_distribution<int> dist(range.min_duration, range.max_duration);
-	float base = static_cast<float>(dist(rng));
-	return base;
+    if (color == Constants::TrafficLightColor::Yellow)
+        return Constants::YELLOW_DURATION;
+
+    static std::mt19937 rng(std::random_device{}());
+    
+    // SỬA TẠI ĐÂY: Lấy khoảng thời gian động dựa theo màu sắc của đèn
+    Constants::DurationRange range = Constants::getDurationRange(color);
+    std::uniform_int_distribution<int> dist(range.min_duration, range.max_duration);
+
+    float base = static_cast<float>(dist(rng));
+    return base;
 }
 #pragma endregion
 
 #pragma region PUBLIC
-Traffic::Traffic(const sf::Texture &texture, Lane *init_lane,
-	const sf::Vector2f &init_postition,
+
+#pragma region CONSTRUCTOR, DESTRUCTOR
+//
+Traffic::Traffic(Lane *init_lane,
 	const Constants::TrafficLightColor &init_color,
 	const float &init_timer)
-	: sprite(texture)
+	: Object(Constants::ObjectType::Traffic, Constants::ObjectColor::None, init_lane)
 {
-	adjustSprite();
-	setPosition(init_postition);
-	setLane(init_lane);
-	setColor(init_color); // set random duration & timer = 0 automatically here
+	setTrafficColor(init_color); // set random duration & timer = 0 automatically here
 	setTimer(init_timer);
+	setDuration(randomDuration(init_color));
+	// make sure the lamp shows the right colour from the very first frame
+	// (setTrafficColor above skips the sprite update when init_color == default)
+	setSprite(ResourceManager::getTrafficTexture(color));
 }
+#pragma endregion
 
-sf::Sprite Traffic::getSprite() const
-{
-	return sprite;
-}
-
-void Traffic::setSprite(const sf::Sprite &new_sprite)
-{
-	sprite = new_sprite;
-	adjustSprite();
-}
-
-sf::Vector2f Traffic::getPosition() const
-{
-	return position;
-}
-
-void Traffic::setPosition(const sf::Vector2f &pos)
-{
-	position = pos;
-	sprite.setPosition(pos);
-}
-
-Lane *Traffic::getLane() const
-{
-	return current_lane;
-}
-
-void Traffic::setLane(Lane *lane)
-{
-	current_lane = lane;
-}
-
-Constants::TrafficLightColor Traffic::getColor() const
+#pragma region GET, SET
+Constants::TrafficLightColor Traffic::getTrafficColor() const
 {
 	return color;
 }
 
-void Traffic::setColor(const Constants::TrafficLightColor &new_color)
+void Traffic::setTrafficColor(const Constants::TrafficLightColor &new_color)
 {
 	if (color != new_color)
 	{
 		color = new_color;
 		setTimer(0.f);
 		setDuration(randomDuration(new_color));
+		setSprite(ResourceManager::getTrafficTexture(new_color)); // repaint the lamp
 	}
 }
 
@@ -108,51 +75,43 @@ void Traffic::setDuration(const float &new_duration)
 	duration = new_duration;
 }
 
-float Traffic::getWidthSprite() const
+Constants::ObjectType Traffic::getType() const
 {
-	return sprite.getGlobalBounds().size.x;
+	return Constants::ObjectType::Traffic;
 }
 
-float Traffic::getHeightSprite() const
+Constants::ObjectColor Traffic::getColor() const
 {
-	return sprite.getGlobalBounds().size.y;
+	return Constants::ObjectColor::None;
 }
 
+sf::Texture Traffic::getTexture()
+{
+	return ResourceManager::getTrafficTexture(color);
+}
+#pragma endregion
+
+#pragma region OTHER
 void Traffic::updateState(float delta_time)
 {
 	if (timer >= duration)
 	{
 		if (color == Constants::TrafficLightColor::Green)
-			setColor(Constants::TrafficLightColor::Yellow);
+			setTrafficColor(Constants::TrafficLightColor::Yellow);
 		else if (color == Constants::TrafficLightColor::Yellow)
-			setColor(Constants::TrafficLightColor::Red);
+			setTrafficColor(Constants::TrafficLightColor::Red);
 		else if (color == Constants::TrafficLightColor::Red)
-			setColor(Constants::TrafficLightColor::Green);
+			setTrafficColor(Constants::TrafficLightColor::Green);
 	}
 	else
 		timer += delta_time;
+	// keep the light vertically locked to its lane as the map scrolls along Oy
+	setPosition(getPosition());
 }
 
-void Traffic::render(sf::RenderWindow &window) const
+bool Traffic::isColliding(const sf::FloatRect &other_hitbox) const
 {
-	window.draw(sprite);
-
-	// draw the active light as a filled circle whose colour follows 'color'
-	sf::Color light_color;
-	switch (color)
-	{
-	case Constants::TrafficLightColor::Red:    light_color = sf::Color(230, 40, 40);   break;
-	case Constants::TrafficLightColor::Yellow: light_color = sf::Color(240, 200, 20);  break;
-	default:                                   light_color = sf::Color(40, 210, 80);   break;
-	}
-
-	float radius = std::min(Constants::TRAFFIC_WIDTH, Constants::TRAFFIC_HEIGHT) * 0.38f;
-	sf::CircleShape dot(radius);
-	dot.setFillColor(light_color);
-	dot.setOrigin(sf::Vector2f(radius, radius));
-	dot.setPosition(sf::Vector2f(position.x + Constants::TRAFFIC_WIDTH * 0.5f,
-		position.y + Constants::TRAFFIC_HEIGHT * 0.5f));
-	window.draw(dot);
+	return 0;
 }
-
+#pragma endregion
 #pragma endregion

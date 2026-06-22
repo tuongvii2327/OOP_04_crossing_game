@@ -1,32 +1,35 @@
-#include "../include/entities/dynamic_object.h"
+#include "../include/entities/object.h"
 #include "../include/world/lane.h"
+#include "../include/utils/resource_manager.h"
 
 #pragma region PRIVATE
 // update hitbox_position using position and hitbox_offset
-void DynamicObject::updateHitbox()
+void Object::updateHitbox()
 {
 	hitbox.position = position + hitbox_offset;
 }
 
 // flip sprite depending on direction.
-void DynamicObject::applyFacing()
+void Object::applyFacing()
 {
+	sf::Vector2f currentScale = sprite.getScale();
+	float absX = std::abs(currentScale.x);
 	if (direction == -1)
 	{
-		sprite.setScale({-1.f, 1.f});
-		sprite.setOrigin({getWidthSprite(), 0.f});
+		sprite.setScale({ -absX, currentScale.y });
+		sprite.setOrigin({ getWidthSprite(), 0.f });
 	}
 	else
 	{
-		sprite.setScale({1.f, 1.f});
-		sprite.setOrigin({0.f, 0.f});
+		sprite.setScale({ absX, currentScale.y });
+		sprite.setOrigin({ 0.f, 0.f });
 	}
 }
 #pragma endregion
 
 #pragma region PROTECTED
 // include #setHitboxSize(), #setHitboxOffset(), -updateHitbox()
-void DynamicObject::setHitbox()
+void Object::setHitbox()
 {
 	setHitboxSize();
 	setHitboxOffset();
@@ -34,30 +37,28 @@ void DynamicObject::setHitbox()
 }
 
 // hitbox.size = sprite size * HITBOX_SIZE_RATIO
-void DynamicObject::setHitboxSize()
+void Object::setHitboxSize()
 {
 	hitbox.size = sprite.getGlobalBounds().size * Constants::HITBOX_SIZE_RATIO;
 }
 
 // hitbox_offset = (sprite size - hitbox.size) / 2
-void DynamicObject::setHitboxOffset()
+void Object::setHitboxOffset()
 {
 	hitbox_offset = (sprite.getGlobalBounds().size - hitbox.size) / 2.f;
 }
 
-// move position by offset, update sprite position (logic same as +setPosition())
-// include -updateHitbox()
-void DynamicObject::moveBy(sf::Vector2f offset)
+// move position by offset
+// include +setPosition()
+void Object::moveBy(sf::Vector2f offset)
 {
-	position += offset;
-	sprite.setPosition(position);
-	updateHitbox();
+	setPosition(position + offset);
 }
 
 // pick a random speed from SpeedRange depending on type
 // speed = random number in [min_speed, max_speed] * (1 + (level - 1) * SPEED_LEVEL_FACTOR)
 // include +Lane::getLevel(), Constants::getSpeedRange()
-float DynamicObject::randomSpeed(Constants::DynamicObjectType type) const
+float Object::randomSpeed(const Constants::ObjectType &type) const
 {
 	int level = current_lane->getLevel();
 	static std::mt19937 rng(std::random_device{}());
@@ -70,7 +71,7 @@ float DynamicObject::randomSpeed(Constants::DynamicObjectType type) const
 
 // direction taken from current_lane (1 if no lane attached)
 // include +Lane::getDirection()
-int DynamicObject::calcDirection() const
+int Object::calcDirection() const
 {
 	return (current_lane != nullptr) ? current_lane->getDirection() : 1;
 }
@@ -78,21 +79,28 @@ int DynamicObject::calcDirection() const
 // calculate object position depending on current_lane's position
 // include +getHeightSprite(), +getWidthSprite()
 // include +Lane::getPosition()
-sf::Vector2f DynamicObject::calcSpawnPosition() const
+sf::Vector2f Object::calcSpawnPosition() const
 {
 	if (current_lane == nullptr)
 		return sf::Vector2f(0.f, 0.f);
 	sf::Vector2f lane_position = current_lane->getPosition();
 	float spawn_y = lane_position.y + (Constants::LANE_HEIGHT - getHeightSprite()) / 2.f;
-	float spawn_x = (direction == 1)
-		? lane_position.x - getWidthSprite()
-		: lane_position.x + Constants::LANE_WIDTH;
+	float spawn_x = (direction == 1) ? lane_position.x - getWidthSprite()
+	                                  : lane_position.x + Constants::LANE_WIDTH;
 	return sf::Vector2f(spawn_x, spawn_y);
 }
 
+#pragma region GET TEXTURE
+// reference into ResourceManager's cache (stays alive for the sprite's lifetime)
+const sf::Texture &Object::getTexture(const Constants::ObjectType &type, const Constants::ObjectColor &color) const
+{
+	return ResourceManager::getObjectTexture(type, color);
+}
+#pragma endregion
+
 // scale size of sprite if its size is larger than CELL_SIZE
 // include +getHeightSprite(), +getWidthSprite()
-void DynamicObject::adjustSprite()
+void Object::adjustSprite()
 {
 	if (getWidthSprite() == 0.f || getHeightSprite() == 0.f)
 		return;
@@ -111,9 +119,9 @@ void DynamicObject::adjustSprite()
 #pragma region CONSTRUCTOR, DESTRUCTOR
 // position, hitbox, is_active, direction are calculated & set automactically, sprite will be adjusted & apply facing, subclass must setVelocity
 // include #adjustSprite(), #calcDirection(), #calcSpawnPosition(), +setLane(), +setDirection(), +setPosition(), +setHitbox(), +setVelocity(), +setActiveState()
-DynamicObject::DynamicObject(const sf::Texture &texture,
-	Lane *init_lane)
-	: sprite(texture)
+// include +ResourceManager::getObjectTexture()
+Object::Object(Constants::ObjectType type, Constants::ObjectColor color, Lane *init_lane)
+	: sprite(ResourceManager::getObjectTexture(type, color))
 {
 	adjustSprite();
 	setLane(init_lane);
@@ -124,119 +132,113 @@ DynamicObject::DynamicObject(const sf::Texture &texture,
 	setActiveState(true);
 }
 
-// virtual ~DynamicObject() = default;
+// virtual ~Object() = default;
 #pragma endregion
 
 #pragma region GET, SET
-sf::Vector2f DynamicObject::getPosition() const
+sf::Vector2f Object::getPosition() const
 {
 	return position;
 }
 
-// update position & sprite position (logic same as #moveBy())
-// include -updateHitbox()
-void DynamicObject::setPosition(const sf::Vector2f &pos)
+// update position & sprite position
+// include -updateHitbox(), +getHeightSprite()
+// include +Lane::getPosition()
+void Object::setPosition(const sf::Vector2f &pos)
 {
 	position = pos;
-	sprite.setPosition(pos);
+	position.y = current_lane->getPosition().y + (Constants::LANE_HEIGHT - getHeightSprite()) / 2.f;
+	sprite.setPosition(position);
 	updateHitbox();
 }
 
-sf::Vector2f DynamicObject::getVelocity() const
+sf::Vector2f Object::getVelocity() const
 {
 	return velocity;
 }
 
-void DynamicObject::setVelocity(const sf::Vector2f &velo)
+void Object::setVelocity(const sf::Vector2f &velo)
 {
 	velocity = velo;
 }
 
-sf::Sprite DynamicObject::getSprite() const
+sf::Sprite Object::getSprite() const
 {
 	return sprite;
 }
 
 // include -applyFacing(), #adjustSprite()
-void DynamicObject::setSprite(const sf::Sprite &new_sprite)
+void Object::setSprite(const sf::Texture &texture)
 {
-	sprite = new_sprite;
-	applyFacing();
+	sprite.setTexture(texture);
 	adjustSprite();
+	applyFacing();
 }
 
-sf::FloatRect DynamicObject::getHitBox() const
+sf::FloatRect Object::getHitBox() const
 {
 	return hitbox;
 }
 // set hitbox in protected
 
-sf::Vector2f DynamicObject::getHitBoxOffset() const
+sf::Vector2f Object::getHitBoxOffset() const
 {
 	return hitbox_offset;
 }
 // set hitbox_offset in protected
 
-bool DynamicObject::isActive() const
+bool Object::isActive() const
 {
 	return is_active;
 }
 
-void DynamicObject::setActiveState(const bool &state)
+void Object::setActiveState(const bool &state)
 {
 	is_active = state;
 }
 
-Lane *DynamicObject::getLane() const
+Lane *Object::getLane() const
 {
 	return current_lane;
 }
 
-void DynamicObject::setLane(Lane *lane)
+void Object::setLane(Lane *lane)
 {
 	current_lane = lane;
 }
 
 // 1 = right, -1 = left
-int DynamicObject::getDirection() const
+int Object::getDirection() const
 {
 	return direction;
 }
 
 // accepts only 1 or -1
 // include -applyFacing()
-void DynamicObject::setDirection(const int &direct)
+void Object::setDirection(const int &direct)
 {
 	if (direct == 1 || direct == -1)
 		direction = direct;
 	applyFacing();
 }
 
-float DynamicObject::getWidthSprite() const
+float Object::getWidthSprite() const
 {
 	return sprite.getGlobalBounds().size.x;
 }
 
-float DynamicObject::getHeightSprite() const
+float Object::getHeightSprite() const
 {
 	return sprite.getGlobalBounds().size.y;
 }
 #pragma endregion
 
 #pragma region OTHER
-// true if other rectangle intersects this object's hitbox
-// bool DynamicObject::isColliding(const sf::FloatRect& other) const
-// {
-// 	return hitbox.findIntersection(other).has_value();
-// }
-
 // include +isActive(), +setActiveState(), +getWidthSprite(), +getHeightSprite()
-bool DynamicObject::isOutOfMap()
+bool Object::isOutOfLane()
 {
 	if (position.x < (Constants::GAME_PLAY_BAR_WIDTH - getWidthSprite()) ||
-		position.x > Constants::WINDOW_WIDTH ||
-		position.y < -getHeightSprite() ||
-		position.y > Constants::WINDOW_HEIGHT)
+		position.x > Constants::WINDOW_WIDTH)
 	{
 		if (isActive())
 			setActiveState(false);
@@ -247,25 +249,23 @@ bool DynamicObject::isOutOfMap()
 
 // calculated relative distance from this object to obstacle (distance between 2 sprite's edges)
 // include +getWidthSprite()
-float DynamicObject::gapToObstacle(const float &obstacle_position_x, const float &obstacle_width) const
+float Object::gapToObstacle(const float &obstacle_position_x, const float &obstacle_width) const
 {
-	float curr_front_x = (direction == 1)
-		? (position.x + getWidthSprite())
-		: (position.x);
-	float near_edge = (direction == 1)
-		? (obstacle_position_x)
-		: (obstacle_position_x + obstacle_width);
+	float curr_front_x = (direction == 1) ? (position.x + getWidthSprite()) : (position.x);
+	float near_edge = (direction == 1) ? (obstacle_position_x)
+	                                   : (obstacle_position_x + obstacle_width);
 	return direction * (near_edge - curr_front_x) - Constants::VISUAL_DISTANCE;
 }
 
 // draw sprite to screen when active
-void DynamicObject::render(sf::RenderWindow &window) const
+void Object::render(sf::RenderWindow &window) const
 {
 	if (is_active)
 		window.draw(sprite);
 }
 
-// virtual Constants::DynamicObjectType getType() const = 0;
+// virtual Constants::ObjectType getType() const = 0;
 // virtual void updateState(float delta_time) = 0;
+// virtual bool isColliding(const sf::FloatRect& other_hitbox) const = 0;
 #pragma endregion
 #pragma endregion

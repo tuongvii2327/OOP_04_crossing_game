@@ -23,8 +23,8 @@ public:
     StateMachine();
     ~StateMachine();
 
-    void addState(std::unique_ptr<State> new_state, bool is_replacing = true);
-    void removeState();
+	void addState(std::unique_ptr<State> new_state, bool is_replacing = true);
+	void removeState();
 
     bool processStateChanges();
 

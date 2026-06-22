@@ -13,14 +13,12 @@ float Vehicle::calcSafeDistance() const
 
 #pragma region CONSTRUCTOR, DESTRUCTOR
 // base_speed, safe_distance, velocity are calculated & set automactically
-// include +setBaseSpeed(), +setVelocity(), #randomSpeed()
-Vehicle::Vehicle(const sf::Texture &texture,
-	Constants::DynamicObjectType type,
-	Lane *init_lane)
-	: DynamicObject(texture, init_lane)
+// include +setBaseSpeed(), +setVelocity(), +randomSpeed()
+Vehicle::Vehicle(Constants::ObjectType type, Constants::ObjectColor color, Lane *init_lane)
+	: Object(type, color, init_lane)
 {
 	setBaseSpeed(randomSpeed(type)); // set safe_distance automatically here
-	setVelocity({base_speed * direction, 0}); // direction is already set by DynamicObject
+	setVelocity({base_speed * direction, 0}); // direction is already set by Object
 }
 #pragma endregion
 
@@ -55,21 +53,23 @@ float Vehicle::getSafeDistance() const
 // include +Lane::getNearestTrafficAhead(), +Traffic::getPosition(), +Traffic::getWidthSprite()
 void Vehicle::updateState(float delta_time)
 {
-	if (isOutOfMap() || !is_active)
+	if (isOutOfLane() || !is_active)
 		return;
 	float v_light = base_speed;
 	float v_vehicle = base_speed;
 	Traffic *nearest_traffic = current_lane->getNearestTrafficAhead(*this);
 	if (nearest_traffic)
 	{
-		float gap = gapToObstacle(nearest_traffic->getPosition().x, nearest_traffic->getWidthSprite());
+		float gap = gapToObstacle(nearest_traffic->getPosition().x,
+		                          nearest_traffic->getWidthSprite());
 		float ratio = std::clamp(gap / safe_distance, 0.f, 1.f);
 		v_light = base_speed * ratio;
 	}
 	Vehicle *nearest_vehicle = current_lane->getNearestVehicleAhead(*this);
 	if (nearest_vehicle)
 	{
-		float gap = gapToObstacle(nearest_vehicle->getPosition().x, nearest_vehicle->getWidthSprite());
+		float gap = gapToObstacle(nearest_vehicle->getPosition().x,
+		                          nearest_vehicle->getWidthSprite());
 		float ratio = std::clamp(gap / safe_distance, 0.f, 1.f);
 		float nearest_vehicle_speed = nearest_vehicle->getVelocity().x * direction;
 		v_vehicle = nearest_vehicle_speed + ratio * (base_speed - nearest_vehicle_speed);
@@ -82,6 +82,11 @@ void Vehicle::updateState(float delta_time)
 	}
 	setVelocity({v_target * direction, 0.0f});
 	moveBy(velocity * delta_time);
+}
+
+bool Vehicle::isColliding(const sf::FloatRect &other_hitbox) const
+{
+	return hitbox.findIntersection(other_hitbox).has_value();
 }
 #pragma endregion
 #pragma endregion

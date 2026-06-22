@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <fstream>
 
-
 Game::Game()
 {
     window.create(sf::VideoMode({Constants::WINDOW_WIDTH, Constants::WINDOW_HEIGHT}),

@@ -58,18 +58,44 @@ namespace Constants
 #pragma region LANE
     const unsigned int LANE_HEIGHT = 105;
     const unsigned int LANE_WIDTH = 1260;
+    const unsigned int MAX_OBJECT_PER_LANE = 4;
+
+    enum class LaneType
+    {
+        Grass,
+        Road
+    };
 #pragma endregion
 
-#pragma region DYNAMICOBJECT
+#pragma region OBJECT
     // coefficients in the 'speed' formula above
     constexpr float SPEED_LEVEL_FACTOR = 0.2f;
 
-    enum class DynamicObjectType
+    enum class ObjectType
     {
+        // Road object
         Car,
         Truck,
+
+        // Grass objecct
         Bird,
-        Rabit
+        Rabit,
+
+        // River object
+
+        // Other object
+        Traffic
+    };
+
+    enum class ObjectColor
+    {
+        Pink,
+        Yellow,
+        Orange,
+        Blue,
+        Green,
+        Grey,
+        None // keep last: used as the color count in random pickers
     };
 
     // the usable speed range of an object
@@ -81,47 +107,32 @@ namespace Constants
 
     // Base speed range (px/s) for each object type before the level multiplier is applied
     // speed = random int in [min_speed, max_speed] * (1 + (level - 1) * SPEED_LEVEL_FACTOR)
-    inline SpeedRange getSpeedRange(DynamicObjectType type)
+    inline SpeedRange getSpeedRange(ObjectType type)
     {
         switch (type)
         {
-        case DynamicObjectType::Car:
+        case ObjectType::Car:
             return {50, 80};
-        case DynamicObjectType::Truck:
+        case ObjectType::Truck:
             return {35, 65};
-        case DynamicObjectType::Bird:
+        case ObjectType::Bird:
             return {20, 60};
-        case DynamicObjectType::Rabit:
+        case ObjectType::Rabit:
             return {35, 70};
         default:
-            return {20, 30};
+            return {0, 0};
         }
     }
 
 #pragma region VEHICLE
     // factor to calculate safe_distance (safe_distance = base_speed * SAFETY_FACTOR)
     const unsigned int SAFE_DISTANCE_FACTOR = 2;
+#pragma endregion
 
-#pragma region CAR
-    enum class CarType
-    {
-        RedCar,
-        BlueCar,
-        YellowCar
-    };
-#pragma endregion
-#pragma region TRUCK
-    enum class TruckType
-    {
-        RedTruck,
-        BlueTruck,
-        YellowTruck
-    };
-#pragma endregion
-#pragma endregion
 #pragma region ANIMAL
     const unsigned int MIN_DURATION_ANIMAL = 3;
     const unsigned int MAX_DURATION_ANIMAL = 8;
 #pragma endregion
+
 #pragma endregion
 } // namespace Constants

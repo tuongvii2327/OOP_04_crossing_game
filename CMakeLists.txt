@@ -35,6 +35,13 @@ add_custom_command(TARGET CrossyRoad POST_BUILD
     "$<TARGET_FILE_DIR:CrossyRoad>/assets"
 )
 
+# Copy data folder to build directory
+add_custom_command(TARGET CrossyRoad POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_CURRENT_SOURCE_DIR}/data"
+    "$<TARGET_FILE_DIR:CrossyRoad>/data"
+)
+
 if(MSVC)
     add_custom_command(TARGET CrossyRoad POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

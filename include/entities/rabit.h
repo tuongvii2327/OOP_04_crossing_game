@@ -5,15 +5,16 @@
 class Rabit : public Animal
 {
 protected:
-	//add constants color
+	Constants::ObjectColor rabit_color;
+
 public:
-	//contructor, destructor
-	Rabit(const sf::Texture& texture,
-		//constants color
+	// contructor, destructor
+	Rabit(const Constants::ObjectColor& init_color = Constants::ObjectColor::Pink,
 		Lane* init_lane = nullptr);
 
-	//get, set
-	//get set constants color
+	// get, set
+	Constants::ObjectColor getColor() const override;
+	void setColor(const Constants::ObjectColor& type);
 
-	Constants::DynamicObjectType getType() const override;
+	Constants::ObjectType getType() const override;
 };

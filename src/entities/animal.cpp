@@ -17,10 +17,10 @@ float Animal::randomDuration() const
 #pragma region CONSTRUCTOR, DESTRUCTOR
 //speed, velocity, is_move = 1, timer = 0, duration are calculated & set automactically
 //include #randomSpeed(), #randomDuration(), +setSpeed(), +setVelocity(), +setMoveState(), +setDuration()
-Animal::Animal(const sf::Texture& texture,
-	Constants::DynamicObjectType type,
+Animal::Animal(Constants::ObjectType type,
+	Constants::ObjectColor color,
 	Lane* init_lane)
-	: DynamicObject(texture, init_lane)
+	: Object(type, color, init_lane)
 {
 	setSpeed(randomSpeed(type));
 	setVelocity({ speed * direction, 0 });
@@ -86,10 +86,18 @@ void Animal::setMoveState(const bool& state)
 
 void Animal::updateState(float delta_time)
 {
-	if (isOutOfMap() || !is_active)
+	if (isOutOfLane() || !is_active)
 		return;
+	if (timer >= duration)
+	{
+		setMoveState(!is_move);
+	}
+	else
+	{
+		timer += delta_time;
+	}
 	Animal* nearest_aniaml = current_lane->getNearestAnimalAhead(*this);
-	if (nearest_aniaml)
+	if (nearest_aniaml && is_move)
 	{
 		float gap = gapToObstacle(nearest_aniaml->getPosition().x, nearest_aniaml->getWidthSprite());
 		if (gap <= Constants::VISUAL_DISTANCE * 1.5)
@@ -97,14 +105,16 @@ void Animal::updateState(float delta_time)
 			setMoveState(0);
 		}
 	}
-	if (timer >= duration)
-	{
-		setMoveState(!is_move);
-	}
 	if (is_move)
 	{
 		moveBy(velocity * delta_time);
 	}
+	setPosition(getPosition());
+}
+
+bool Animal::isColliding(const sf::FloatRect& other_hitbox) const
+{
+	return hitbox.findIntersection(other_hitbox).has_value();
 }
 #pragma endregion
 #pragma endregion
