@@ -74,7 +74,7 @@ void People::move(float dx, float dy)
     position.x += dx;
     position.y += dy;
     sprite.setPosition(position);
-    setHitbox();
+    hitbox.position = position + hitbox_offset;
 }
 
 bool People::tryToMove(float dx, float dy, float camera_top_y)

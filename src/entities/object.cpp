@@ -2,7 +2,6 @@
 #include "../include/utils/resource_manager.h"
 #include "../include/world/lane.h"
 
-
 #pragma region PRIVATE
 // update hitbox_position using position and hitbox_offset
 void Object::updateHitbox()
@@ -11,14 +10,19 @@ void Object::updateHitbox()
 }
 
 // flip sprite depending on direction.
+// src/entities/object.cpp
+
 void Object::applyFacing()
 {
     sf::Vector2f currentScale = sprite.getScale();
     float absX = std::abs(currentScale.x);
+
+    float width = sprite.getLocalBounds().size.x;
+
     if (direction == -1)
     {
         sprite.setScale({-absX, currentScale.y});
-        sprite.setOrigin({getWidthSprite(), 0.f});
+        sprite.setOrigin({width, 0.f});
     }
     else
     {
@@ -26,6 +30,7 @@ void Object::applyFacing()
         sprite.setOrigin({0.f, 0.f});
     }
 }
+
 #pragma endregion
 
 #pragma region PROTECTED
