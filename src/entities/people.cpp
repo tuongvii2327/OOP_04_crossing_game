@@ -6,7 +6,7 @@ People::People()
     : Object(Constants::ObjectType::People, Constants::ObjectColor::None, nullptr),
       is_dead(false),
       score(0),
-      step_size(50.0f)
+      step_size(static_cast<float>(Constants::LANE_HEIGHT))
 {
     resetPosition();
 }
@@ -15,9 +15,17 @@ People::People(const sf::Texture &texture)
     : Object(Constants::ObjectType::People, Constants::ObjectColor::None, nullptr),
       is_dead(false),
       score(0),
-      step_size(50.0f)
+      step_size(static_cast<float>(Constants::LANE_HEIGHT))
 {
-    setSprite(texture);
+    sprite.setTexture(texture, true);
+
+    float target_size = 90.0f;
+    sf::Vector2f tex_size = static_cast<sf::Vector2f>(texture.getSize());
+    sprite.setScale({target_size / tex_size.x, target_size / tex_size.y});
+
+    hitbox.size = sf::Vector2f(target_size * 0.7f, target_size * 0.55f);
+    hitbox_offset = sf::Vector2f(target_size * 0.15f, target_size * 0.45f);
+
     resetPosition();
 }
 
@@ -25,7 +33,7 @@ People::People(float x, float y)
     : Object(Constants::ObjectType::People, Constants::ObjectColor::None, nullptr),
       is_dead(false),
       score(0),
-      step_size(50.0f)
+      step_size(static_cast<float>(Constants::LANE_HEIGHT)) // Sửa 50.0f thành LANE_HEIGHT
 {
     position = sf::Vector2f(x, y);
     sprite.setPosition(position);
@@ -47,7 +55,8 @@ void People::updateState(float delta_time)
     if (is_dead || !is_active)
         return;
 
-    // Nơi xử lý logic đếm lùi frame chuyển động (Animation) sau này
+    // process any animations or state changes for the People object here
+    // add later: add animation for people
 }
 
 bool People::isColliding(const sf::FloatRect &other_hitbox) const
@@ -98,13 +107,14 @@ bool People::isDead() const
 
 void People::resetPosition()
 {
-    float start_x = Constants::WINDOW_WIDTH / 2.f;
+    float start_x = (Constants::WINDOW_WIDTH - sprite.getGlobalBounds().size.x) / 2.f;
 
-    float start_y = Constants::WINDOW_HEIGHT - (Constants::LANE_HEIGHT * 1.5f);
+    float start_y = Constants::WINDOW_HEIGHT - (Constants::LANE_HEIGHT * 1.5f) - (sprite.getGlobalBounds().size.y / 2.f);
 
     position = sf::Vector2f(start_x, start_y);
     sprite.setPosition(position);
-    setHitbox();
+
+    hitbox.position = position + hitbox_offset;
 
     is_dead = false;
 }

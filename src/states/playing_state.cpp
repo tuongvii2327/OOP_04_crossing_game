@@ -49,7 +49,7 @@ void PlayingState::handleEvent(const sf::Event &event)
         if (!player_)
             return;
 
-        float step = 50.f;
+        float step = static_cast<float>(Constants::LANE_HEIGHT);
 
         float cam_top = view_.getCenter().y - (view_.getSize().y / 2.f);
         if (key_pressed->code == sf::Keyboard::Key::W || key_pressed->code == sf::Keyboard::Key::Up)
