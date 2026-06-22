@@ -8,29 +8,36 @@
 
 class State;
 
+enum class StateAction
+{
+    None,
+    Push,
+    Pop,
+    Switch,
+    Reset
+};
+
 class StateMachine
 {
 private:
     std::vector<std::unique_ptr<State>> states;
-    std::unique_ptr<State> new_state;
-
-    bool is_removing;
-    bool is_adding;
-    bool is_replacing;
-    bool is_replacing_root;
+    std::unique_ptr<State> pending_state;
+    StateAction pending_action = StateAction::None;
 
 public:
     StateMachine();
     ~StateMachine();
+    void push(std::unique_ptr<State> state);
 
-	void addState(std::unique_ptr<State> new_state, bool is_replacing = true);
-	void removeState();
+    void pop();
 
-    bool processStateChanges();
+    void switchState(std::unique_ptr<State> state);
 
-    // Get a reference to the active (top) state
+    void resetTo(std::unique_ptr<State> state);
+
+    bool processTransitions();
+
     State &getActiveState();
     bool isEmpty() const { return states.empty(); }
-    void replaceRootState(std::unique_ptr<State> new_state);
     void render(sf::RenderWindow &window);
 };

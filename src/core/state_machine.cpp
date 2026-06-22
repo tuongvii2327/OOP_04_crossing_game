@@ -3,73 +3,72 @@
 #include "states/state.h"
 #include <stdexcept>
 
-StateMachine::StateMachine()
-    : is_removing(false),
-      is_adding(false),
-      is_replacing(false),
-      is_replacing_root(false)
-{
-}
+StateMachine::StateMachine() {}
 
 StateMachine::~StateMachine() = default;
 
-// Queue a new state with move semantics
-void StateMachine::addState(std::unique_ptr<State> new_state, bool is_replacing)
+void StateMachine::push(std::unique_ptr<State> state)
 {
-    is_adding = true;
-    this->is_replacing = is_replacing;
-    this->new_state = std::move(new_state);
+    pending_action = StateAction::Push;
+    pending_state = std::move(state);
 }
 
-// Queue removal of the top state
-void StateMachine::removeState()
+void StateMachine::pop()
 {
-    is_removing = true;
+    pending_action = StateAction::Pop;
 }
 
-// Execute all pending state transitions
-bool StateMachine::processStateChanges()
+void StateMachine::switchState(std::unique_ptr<State> state)
 {
-    bool state_changed = false;
-    if (is_removing && !states.empty())
+    pending_action = StateAction::Switch;
+    pending_state = std::move(state);
+}
+
+void StateMachine::resetTo(std::unique_ptr<State> state)
+{
+    pending_action = StateAction::Reset;
+    pending_state = std::move(state);
+}
+
+bool StateMachine::processTransitions()
+{
+    if (pending_action == StateAction::None)
+        return false;
+
+    if (pending_action == StateAction::Pop || pending_action == StateAction::Switch)
     {
-        states.pop_back();
         if (!states.empty())
         {
-            states.back()->resume();
+            states.pop_back();
         }
-        is_removing = false;
-        state_changed = true;
     }
 
-    if (is_adding)
+    if (pending_action == StateAction::Reset)
     {
-        if (is_replacing_root)
+        states.clear();
+    }
+
+    if (pending_state)
+    {
+
+        if (!states.empty() && pending_action == StateAction::Push)
         {
-            states.clear(); 
-            is_replacing_root = false;
-        }
-        else if (!states.empty())
-        {
-            if (is_replacing)
-            {
-                states.pop_back();
-            }
-            else
-            {
-                states.back()->pause();
-            }
+            states.back()->pause();
         }
 
-        states.push_back(std::move(new_state));
+        states.push_back(std::move(pending_state));
         states.back()->init();
-        is_adding = false;
-        state_changed = true;
     }
-    return state_changed;
+
+    else if (!states.empty() && pending_action == StateAction::Pop)
+    {
+        states.back()->resume();
+    }
+
+    pending_action = StateAction::None;
+    return true;
 }
 
-// Get reference to active state, throw if none exists
 State &StateMachine::getActiveState()
 {
     if (states.empty())
@@ -79,26 +78,17 @@ State &StateMachine::getActiveState()
     return *states.back();
 }
 
-void StateMachine::replaceRootState(std::unique_ptr<State> new_state)
-{
-    is_replacing_root = true;
-    is_adding = true;
-    this->new_state = std::move(new_state);
-}
-
 void StateMachine::render(sf::RenderWindow &window)
 {
     if (states.empty())
         return;
 
-    // find first non-overlay state from the top
     int start_idx = states.size() - 1;
     while (start_idx > 0 && states[start_idx]->isOverlay())
     {
         start_idx--;
     }
 
-    // Render from the first non-overlay state to the top
     for (int i = start_idx; i < states.size(); ++i)
     {
         states[i]->render(window);

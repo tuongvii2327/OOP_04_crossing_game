@@ -79,7 +79,7 @@ void SaveState::handleEvent(const sf::Event &event)
         {
             if (selected_index_ == static_cast<int>(save_slot_texts_.size()) - 1)
             {
-                context_->state_machine->removeState();
+                context_->state_machine->pop(); // Back
             }
             else
             {
@@ -88,7 +88,7 @@ void SaveState::handleEvent(const sf::Event &event)
         }
         else if (key_pressed->code == sf::Keyboard::Key::Escape)
         {
-            context_->state_machine->removeState();
+            context_->state_machine->pop();
         }
     }
 }
@@ -99,9 +99,9 @@ void SaveState::update(float delta_time)
     if (is_saved_)
     {
         save_timer_ += delta_time;
-        if (save_timer_ >= 1.0f) // wait for 1 second before returning to PauseState
+        if (save_timer_ >= 1.0f)
         {
-            context_->state_machine->removeState();
+            context_->state_machine->pop();
         }
     }
 }

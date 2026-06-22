@@ -97,7 +97,7 @@ void SettingState::handleEvent(const sf::Event &event)
         {
             if (selected_index_ == 2)
             {
-                context_->state_machine->removeState();
+                context_->state_machine->pop();
             }
             else
             {
@@ -106,7 +106,7 @@ void SettingState::handleEvent(const sf::Event &event)
         }
         else if (key_pressed->code == sf::Keyboard::Key::Escape)
         {
-            context_->state_machine->removeState();
+            context_->state_machine->pop();
         }
     }
 }

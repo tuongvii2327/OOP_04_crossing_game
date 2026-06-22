@@ -32,7 +32,7 @@ Game::Game()
     std::sort(data_.high_scores.begin(), data_.high_scores.end(), std::greater<int>());
 
     // Start with the HomeState
-    state_machine.addState(std::make_unique<HomeState>(&context_));
+    state_machine.push(std::make_unique<HomeState>(&context_));
 }
 
 void Game::run()
@@ -41,7 +41,7 @@ void Game::run()
     while (window.isOpen())
     {
         // std::cout << "Looping..." << std::endl;
-        if (state_machine.processStateChanges())
+        if (state_machine.processTransitions())
         {
             // Reset clock when a state change occurs to avoid large delta time on the first update of the new state
             clock.restart();

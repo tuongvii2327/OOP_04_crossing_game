@@ -16,7 +16,6 @@ class PlayingState : public State
 private:
     std::unique_ptr<sf::Text> score_text_;
     int score_;
-    bool is_resuming_ = false;
 
     // Integrate your original entity system here
     std::unique_ptr<People> player_;
@@ -24,6 +23,7 @@ private:
 
     // Camera handling for infinite scrolling as the player advances
     sf::View view_;
+    void setupWorld();
 
 public:
     PlayingState(SharedContext *context);
@@ -43,4 +43,5 @@ public:
 
     void pause() override;
     void resume() override;
+    void restart();
 };

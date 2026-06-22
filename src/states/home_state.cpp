@@ -139,23 +139,22 @@ void HomeState::executeChoice(int index)
     {
     case 0:
         std::cout << "Transition to: Playing\n";
-        context_->state_machine->addState(std::make_unique<PlayingState>(context_), true);
+        context_->state_machine->push(std::make_unique<PlayingState>(context_));
         break;
     case 1:
         std::cout << "Transition to: Load File\n";
-        context_->state_machine->addState(std::make_unique<LoadState>(context_), false);
+        context_->state_machine->push(std::make_unique<LoadState>(context_));
         break;
     case 2:
         std::cout << "Transition to: Settings\n";
-        context_->state_machine->addState(std::make_unique<SettingState>(context_), false);
+        context_->state_machine->push(std::make_unique<SettingState>(context_));
         break;
     case 3:
         std::cout << "Transition to: Ranking\n";
-        context_->state_machine->addState(std::make_unique<RankingState>(context_), false);
+        context_->state_machine->push(std::make_unique<RankingState>(context_));
         break;
     case 4:
         std::cout << "Exit game!\n";
-        // Change how to exit the game.
         context_->window->close();
         break;
     }

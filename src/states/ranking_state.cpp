@@ -63,7 +63,7 @@ void RankingState::handleEvent(const sf::Event &event)
     {
         if (key_pressed->code == sf::Keyboard::Key::Escape)
         {
-            context_->state_machine->removeState();
+            context_->state_machine->pop();
         }
     }
 }

@@ -80,24 +80,24 @@ void PauseState::handleEvent(const sf::Event &event)
         {
             if (selected_index_ == 0)
             {
-                context_->state_machine->removeState();
+                context_->state_machine->pop(); // Resume
             }
             else if (selected_index_ == 1)
             {
-                context_->state_machine->addState(std::make_unique<SaveState>(context_), false);
+                context_->state_machine->push(std::make_unique<SaveState>(context_));
             }
             else if (selected_index_ == 2)
             {
-                context_->state_machine->addState(std::make_unique<SettingState>(context_), false);
+                context_->state_machine->push(std::make_unique<SettingState>(context_));
             }
             else if (selected_index_ == 3)
             {
-                context_->state_machine->replaceRootState(std::make_unique<HomeState>(context_));
+                context_->state_machine->resetTo(std::make_unique<HomeState>(context_));
             }
         }
         else if (key_pressed->code == sf::Keyboard::Key::Escape)
         {
-            context_->state_machine->removeState();
+            context_->state_machine->pop(); // Resume
         }
     }
 }

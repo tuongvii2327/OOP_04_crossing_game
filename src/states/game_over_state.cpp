@@ -99,13 +99,11 @@ void GameOverState::handleEvent(const sf::Event &event)
         {
             if (selected_index_ == 0)
             {
-                // Vũ khí tối thượng: Xóa sạch cả PlayingState cũ lẫn GameOverState, nạp màn chơi mới!
-                context_->state_machine->replaceRootState(std::make_unique<PlayingState>(context_));
+                context_->state_machine->pop();
             }
             else
             {
-                // Về thẳng màn hình chính
-                context_->state_machine->replaceRootState(std::make_unique<HomeState>(context_));
+                context_->state_machine->resetTo(std::make_unique<HomeState>(context_));
             }
         }
     }
