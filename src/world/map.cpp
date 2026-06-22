@@ -24,7 +24,11 @@ Map::~Map()
 void Map::initMap(float start_y)
 {
     highest_y = start_y;
-    for (int i = 0; i < Constants::NUMBER_OF_LANES; i++)
+    for (int i = 0; i < 3; i++)
+    {
+        spawnLaneAsRequire(Constants::LaneType::Grass);
+    }
+    for (int i = 3; i < Constants::NUMBER_OF_LANES; i++)
     {
         spawnLane();
     }
@@ -43,6 +47,20 @@ void Map::spawnLane()
     sf::Vector2f spawn_position(0.f, highest_y);
 
     Lane *new_lane = new Lane(spawn_position, current_level, direction, type);
+
+    lanes.push_front(new_lane);
+    highest_y -= lane_height;
+}
+
+void Map::spawnLaneAsRequire(Constants::LaneType type) 
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> Rand(0, 1);
+    int direction = (Rand(gen) == 0) ? 1 : -1;
+
+    sf::Vector2f spawn_position(0.f, highest_y);
+    Lane* new_lane = new Lane(spawn_position, current_level, direction, type);
 
     lanes.push_front(new_lane);
     highest_y -= lane_height;
