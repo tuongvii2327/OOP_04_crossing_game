@@ -64,8 +64,16 @@ void PlayingState::update(float dt)
 
     player_->updateState(dt);
 
-    context_->data->current_score = player_->getScore();
-    score_text_->setString("Score: " + std::to_string(context_->data->current_score));
+    float start_y = Constants::WINDOW_HEIGHT - (Constants::LANE_HEIGHT * 1.5f) - (player_->getHeightSprite() / 2.f);
+    float current_y = player_->getPosition().y;
+
+    int distance_score = static_cast<int>((start_y - current_y) / Constants::LANE_HEIGHT);
+
+    if (distance_score > context_->data->current_score)
+    {
+        context_->data->current_score = distance_score;
+        score_text_->setString("Score: " + std::to_string(context_->data->current_score));
+    }
 
     float current_center_y = view_.getCenter().y;
     if (player_->getPosition().y < current_center_y)
