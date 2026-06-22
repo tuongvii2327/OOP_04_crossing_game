@@ -121,10 +121,6 @@ bool Map::checkLethalCollision(const sf::FloatRect &player_hitbox) const
 
 void Map::reset(float start_y)
 {
-    for (Lane *lane : lanes)
-    {
-        delete lane;
-    }
     lanes.clear();
 
     current_level = 1;
