@@ -6,7 +6,7 @@
 #include <iostream>
 
 PlayingState::PlayingState(SharedContext *context)
-    : State(context), score_(0) {}
+    : State(context) {}
 
 void PlayingState::init()
 {
@@ -53,8 +53,7 @@ void PlayingState::handleEvent(const sf::Event &event)
     float cam_top = view_.getCenter().y - (view_.getSize().y / 2.f);
     if (player_->handleEvent(event, cam_top))
     {
-        score_ = player_->getScore();
-        score_text_->setString("Score: " + std::to_string(score_));
+        score_text_->setString("Score: " + std::to_string(context_->data->current_score));
     }
 }
 
@@ -64,6 +63,9 @@ void PlayingState::update(float dt)
         return;
 
     player_->updateState(dt);
+
+    context_->data->current_score = player_->getScore();
+    score_text_->setString("Score: " + std::to_string(context_->data->current_score));
 
     float current_center_y = view_.getCenter().y;
     if (player_->getPosition().y < current_center_y)
@@ -76,24 +78,9 @@ void PlayingState::update(float dt)
 
     map_.update(camera_top_y, camera_bottom_y, dt);
 
-    if (map_.checkLethalCollision(player_->getHitBox()))
+    if (map_.checkLethalCollision(player_->getHitBox()) || player_->getPosition().y > camera_bottom_y)
     {
-        std::cout << "[PlayingState] PLAYER KILLED BY VEHICLE!\n";
         player_->die();
-
-        context_->data->current_score = score_;
-
-        context_->state_machine->push(std::make_unique<GameOverState>(context_));
-        return;
-    }
-    else if (player_->getPosition().y > camera_bottom_y)
-    {
-        std::cout << "[PlayingState] PLAYER SWEPT BY CAMERA!\n";
-        player_->die();
-
-        context_->data->current_score = score_;
-
-        // [SỬA 3]: addState -> push
         context_->state_machine->push(std::make_unique<GameOverState>(context_));
         return;
     }
@@ -134,7 +121,7 @@ void PlayingState::restart()
 {
     std::cout << "[PlayingState] Restarting Game...\n";
 
-    score_ = 0;
+    context_->data->current_score = 0;
     score_text_->setString("Score: 0");
 
     player_->resetPosition();

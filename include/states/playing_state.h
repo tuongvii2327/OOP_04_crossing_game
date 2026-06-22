@@ -15,7 +15,6 @@ class PlayingState : public State
 {
 private:
     std::unique_ptr<sf::Text> score_text_;
-    int score_;
 
     // Integrate your original entity system here
     std::unique_ptr<People> player_;
