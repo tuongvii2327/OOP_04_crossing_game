@@ -38,41 +38,21 @@ void PlayingState::handleEvent(const sf::Event &event)
 {
     if (const auto *key_pressed = event.getIf<sf::Event::KeyPressed>())
     {
-        // Press ESC or P to open the screen-overlay Pause Menu
         if (key_pressed->code == sf::Keyboard::Key::P || key_pressed->code == sf::Keyboard::Key::Escape)
         {
-            context_->state_machine->addState(std::make_unique<PauseState>(context_), false); // Đổi ở đây
+            context_->state_machine->addState(std::make_unique<PauseState>(context_), false);
             return;
         }
+    }
 
-        // Ensure player_ is safely initialized before processing movement
-        if (!player_)
-            return;
+    if (!player_)
+        return;
 
-        float step = static_cast<float>(Constants::LANE_HEIGHT);
-
-        float cam_top = view_.getCenter().y - (view_.getSize().y / 2.f);
-        if (key_pressed->code == sf::Keyboard::Key::W || key_pressed->code == sf::Keyboard::Key::Up)
-        {
-            if (player_->tryToMove(0.f, -step, cam_top))
-            {
-                player_->addScore();
-                score_ = player_->getScore();
-                score_text_->setString("Score: " + std::to_string(score_));
-            }
-        }
-        else if (key_pressed->code == sf::Keyboard::Key::S || key_pressed->code == sf::Keyboard::Key::Down)
-        {
-            player_->tryToMove(0.f, step, cam_top);
-        }
-        else if (key_pressed->code == sf::Keyboard::Key::A || key_pressed->code == sf::Keyboard::Key::Left)
-        {
-            player_->tryToMove(-step, 0.f, cam_top);
-        }
-        else if (key_pressed->code == sf::Keyboard::Key::D || key_pressed->code == sf::Keyboard::Key::Right)
-        {
-            player_->tryToMove(step, 0.f, cam_top);
-        }
+    float cam_top = view_.getCenter().y - (view_.getSize().y / 2.f);
+    if (player_->handleEvent(event, cam_top))
+    {
+        score_ = player_->getScore();
+        score_text_->setString("Score: " + std::to_string(score_));
     }
 }
 

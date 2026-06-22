@@ -21,6 +21,7 @@ public:
 	Vehicle(Constants::ObjectType obj_type,
 		Constants::ObjectColor color,
 		Lane* init_lane = nullptr);
+		bool isLethal() const override { return true; }
 
 
 	// get, set

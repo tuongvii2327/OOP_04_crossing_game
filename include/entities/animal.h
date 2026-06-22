@@ -21,7 +21,7 @@ public:
 		Constants::ObjectColor color,
 		Lane* init_lane = nullptr);
 
-
+	bool isLethal() const override { return true; }
 	// get, set
 	float getSpeed() const;
 	void setSpeed(const float& new_speed);

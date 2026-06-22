@@ -32,4 +32,5 @@ public:
     int getScore() const;
 
     sf::FloatRect getBounds() const;
+    bool handleEvent(const sf::Event &event, float camera_top_y);
 };

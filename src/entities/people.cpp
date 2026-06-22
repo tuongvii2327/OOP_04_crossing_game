@@ -133,3 +133,36 @@ sf::FloatRect People::getBounds() const
 {
     return sprite.getGlobalBounds();
 }
+
+bool People::handleEvent(const sf::Event &event, float camera_top_y)
+{
+    if (is_dead || !is_active)
+        return false;
+
+    const auto *key = event.getIf<sf::Event::KeyPressed>();
+    if (!key)
+        return false;
+
+    if (key->code == sf::Keyboard::Key::W || key->code == sf::Keyboard::Key::Up)
+    {
+        if (tryToMove(0.f, -step_size, camera_top_y))
+        {
+            addScore();
+            return true;
+        }
+    }
+    else if (key->code == sf::Keyboard::Key::S || key->code == sf::Keyboard::Key::Down)
+    {
+        return tryToMove(0.f, step_size, camera_top_y);
+    }
+    else if (key->code == sf::Keyboard::Key::A || key->code == sf::Keyboard::Key::Left)
+    {
+        return tryToMove(-step_size, 0.f, camera_top_y);
+    }
+    else if (key->code == sf::Keyboard::Key::D || key->code == sf::Keyboard::Key::Right)
+    {
+        return tryToMove(step_size, 0.f, camera_top_y);
+    }
+
+    return false;
+}

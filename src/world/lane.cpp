@@ -492,14 +492,9 @@ bool Lane::checkLethalCollision(const sf::FloatRect &player_hitbox) const
         if (!obj->isActive())
             continue;
 
-        Constants::ObjectType type = obj->getType();
-
-        if (type == Constants::ObjectType::Car || type == Constants::ObjectType::Truck)
+        if (obj->isLethal() && obj->isColliding(player_hitbox))
         {
-            if (obj->isColliding(player_hitbox))
-            {
-                return true;
-            }
+            return true;
         }
     }
     return false;
