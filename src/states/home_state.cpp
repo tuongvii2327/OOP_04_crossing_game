@@ -155,7 +155,8 @@ void HomeState::executeChoice(int index)
         break;
     case 4:
         std::cout << "Exit game!\n";
-        context_->state_machine->removeState();
+        // Change how to exit the game.
+        context_->window->close();
         break;
     }
 }

@@ -37,14 +37,21 @@ Game::Game()
 
 void Game::run()
 {
-    std::cout << "Game is running..." << std::endl;
+    // std::cout << "Game is running..." << std::endl;
     while (window.isOpen())
     {
-        std::cout << "Looping..." << std::endl;
+        // std::cout << "Looping..." << std::endl;
         if (state_machine.processStateChanges())
         {
             // Reset clock when a state change occurs to avoid large delta time on the first update of the new state
             clock.restart();
+        }
+
+        // If there are no states left, close the window and exit the game loop
+        if (state_machine.isEmpty())
+        {
+            window.close();
+            break;
         }
 
         float dt = clock.restart().asSeconds();
