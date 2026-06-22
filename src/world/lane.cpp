@@ -24,7 +24,7 @@ void Lane::adjustSprite()
 #pragma endregion
 
 #pragma region PUBLIC
-Lane::Lane(const lane_type& curr_type, const sf::Texture &texture,
+Lane::Lane(const sf::Texture &texture,
 	const sf::Vector2f &init_position,
 	const int &init_level,
 	const int &init_direction)
