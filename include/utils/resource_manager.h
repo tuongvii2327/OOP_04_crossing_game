@@ -1,47 +1,48 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
-#include <unordered_map>
-#include <string>
+#include <SFML/Graphics.hpp>
 #include <memory>
 #include <stdexcept>
+#include <string>
+#include <unordered_map>
+
 
 class ResourceManager
 {
 private:
-    // Các kho chứa tài nguyên, dùng unique_ptr để tự động hủy vùng nhớ khi tắt game
+    // Asset caches utilizing unique_ptr to ensure automatic memory deallocation on shutdown
     std::unordered_map<std::string, std::unique_ptr<sf::Texture>> textures_;
     std::unordered_map<std::string, std::unique_ptr<sf::Font>> fonts_;
     std::unordered_map<std::string, std::unique_ptr<sf::SoundBuffer>> sound_buffers_;
 
-    // Đưa Constructor vào private để cấm khởi tạo bừa bãi ngoài hàm getInstance()
+    // Private constructor prevents external instantiation enforcing the Singleton pattern
     ResourceManager() = default;
 
 public:
-    // Xóa Copy Constructor và Copy Assignment (Luật bất thành văn của Singleton)
+    // Delete copy constructor and copy assignment operator to avoid duplicate instances
     ResourceManager(const ResourceManager &) = delete;
     ResourceManager &operator=(const ResourceManager &) = delete;
 
-    // Lấy thực thể duy nhất của toàn bộ Game
+    // Retrieve the global single instance of the resource manager
     static ResourceManager &getInstance();
 
-    // ─── CÁC HÀM LẤY TÀI NGUYÊN (Trả về tham chiếu hằng 'const &') ───
+    // ─── ASSET ACQUISITION METHODS (Returns a 'const &' reference) ───
     const sf::Texture &getTexture(const std::string &filepath);
     const sf::Font &getFont(const std::string &filepath);
     const sf::SoundBuffer &getSoundBuffer(const std::string &filepath);
 
-    // ─── HÀM HỖ TRỢ PRE-LOAD (Dùng cho màn hình LoadingScreen) ───
+    // ─── PRE-LOADING UTILITIES (Ideal for loading screens to cache assets early) ───
     void preloadTexture(const std::string &filepath) { (void)getTexture(filepath); }
     void preloadFont(const std::string &filepath) { (void)getFont(filepath); }
     void preloadSoundBuffer(const std::string &filepath) { (void)getSoundBuffer(filepath); }
 
-    // Dọn dẹp toàn bộ RAM (Dùng khi muốn Reset toàn bộ game)
+    // Wipe all internal caches to free up system memory and VRAM
     void clearAll();
 };
 
-// Hàm Helper viết tắt cho gọn code. Thay vì viết: ResourceManager::getInstance().getTexture(...)
-// Giờ chỉ cần viết: Resource().getTexture(...)
+// Global helper function shortcut. Instead of ResourceManager::getInstance().getTexture(...)
+// You can cleanly write: Resource().getTexture(...)
 inline ResourceManager &Resource()
 {
     return ResourceManager::getInstance();
