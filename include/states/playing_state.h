@@ -3,41 +3,42 @@
 #include "core/state_machine.h"
 #include "entities/people.h"
 #include "states/state.h"
+#include "utils/resource_manager.h"
 #include "world/map.h"
+
 #include <SFML/Graphics.hpp>
 #include <memory>
-
 
 class PlayingState : public State
 {
 private:
     StateMachine &state_machine_;
 
-    sf::Font font_;
     std::unique_ptr<sf::Text> score_text_;
     int score_;
+    bool is_resuming_ = false;
 
-    // Tích hợp hệ thống thực thể gốc của bạn vào đây
-    People player_;
+    // Integrate your original entity system here
+    std::unique_ptr<People> player_;
     Map map_;
 
-    // Camera xử lý cuộn màn hình vô tận theo nhân vật tiến lên
+    // Camera handling for infinite scrolling as the player advances
     sf::View view_;
 
 public:
     PlayingState(StateMachine &state_machine);
     ~PlayingState() = default;
 
-    // Khởi tạo tài nguyên UI, vị trí người chơi và sinh bản đồ ban đầu
+    // Initialize UI resources, player position, and generate the initial map
     void init() override;
 
-    // Xử lý sự kiện nhấn phím di chuyển thông qua tryToMove() của People
+    // Handle movement key presses via People's tryToMove()
     void handleEvent(const sf::Event &event) override;
 
-    // Cập nhật vị trí camera, logic sinh/xóa làn đường của Map
+    // Update camera position and handle Map's lane spawn/delete logic
     void update(float dt) override;
 
-    // Render thế giới game song song với giao diện HUD điểm số cố định
+    // Render the game world alongside the static score HUD overlay
     void render(sf::RenderWindow &window) override;
 
     void pause() override;

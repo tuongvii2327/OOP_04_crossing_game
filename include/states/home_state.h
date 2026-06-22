@@ -11,7 +11,6 @@ class HomeState : public State
 private:
     StateMachine &state_machine_;
 
-    sf::Font font_;
     std::unique_ptr<sf::Text> title_text_;
     std::vector<std::unique_ptr<sf::Text>> menu_options_;
     int selected_index_;

@@ -1,11 +1,10 @@
-// src/states/setting_state.cpp
 #include "states/setting_state.h"
 #include "utils/constants.h"
+#include "utils/resource_manager.h" // Nhúng kho quản lý tài nguyên
 #include <iostream>
 
 SettingState::SettingState(StateMachine &state_machine)
     : state_machine_(state_machine),
-      title_text_(font_),
       selected_index_(0),
       music_volume_(5),
       sfx_volume_(7),
@@ -13,39 +12,34 @@ SettingState::SettingState(StateMachine &state_machine)
 {
 }
 
-// Load font and initialize settings screen
 void SettingState::init()
 {
-    if (!font_.openFromFile("assets/fonts/VT323-Regular.ttf"))
-    {
-        std::cerr << "Failed to load font: assets/fonts/VT323-Regular.ttf" << std::endl;
-    }
+    const sf::Font &font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
 
-    setupUI();
+    title_text_ = std::make_unique<sf::Text>(font);
+
+    setupUI(font);
 }
 
-// Setup settings menu UI
-void SettingState::setupUI()
+void SettingState::setupUI(const sf::Font &font)
 {
-    title_text_.setString("SETTINGS");
-    title_text_.setCharacterSize(72);
-    title_text_.setFillColor(sf::Color::Magenta);
+    title_text_->setString("SETTINGS");
+    title_text_->setCharacterSize(72);
+    title_text_->setFillColor(sf::Color::Magenta);
 
-    sf::FloatRect title_bounds = title_text_.getLocalBounds();
+    sf::FloatRect title_bounds = title_text_->getLocalBounds();
     float title_x = (Constants::WINDOW_WIDTH - title_bounds.size.x) / 2.0f;
-    title_text_.setPosition({title_x, 150.0f});
+    title_text_->setPosition({title_x, 150.0f});
 
+    setting_texts_.clear();
     for (int i = 0; i < 4; ++i)
     {
-        sf::Text setting_text(font_);
-        setting_text.setCharacterSize(48);
-        setting_texts_.push_back(std::move(setting_text));
+        setting_texts_.push_back(std::make_unique<sf::Text>(font));
     }
 
     updateUI();
 }
 
-// Update UI display with current setting values
 void SettingState::updateUI()
 {
     std::vector<std::string> display_strings = {
@@ -59,26 +53,25 @@ void SettingState::updateUI()
 
     for (size_t i = 0; i < setting_texts_.size(); ++i)
     {
-        setting_texts_[i].setString(display_strings[i]);
+        setting_texts_[i]->setString(display_strings[i]);
 
         if (static_cast<int>(i) == selected_index_)
         {
-            setting_texts_[i].setFillColor(sf::Color::Yellow);
+            setting_texts_[i]->setFillColor(sf::Color::Yellow);
         }
         else
         {
-            setting_texts_[i].setFillColor(sf::Color::White);
+            setting_texts_[i]->setFillColor(sf::Color::White);
         }
 
-        sf::FloatRect text_bounds = setting_texts_[i].getLocalBounds();
+        sf::FloatRect text_bounds = setting_texts_[i]->getLocalBounds();
         float x_position = (Constants::WINDOW_WIDTH - text_bounds.size.x) / 2.0f;
         float y_position = initial_y + (static_cast<float>(i) * spacing);
 
-        setting_texts_[i].setPosition({x_position, y_position});
+        setting_texts_[i]->setPosition({x_position, y_position});
     }
 }
 
-// Handle keyboard input for navigation and value adjustment
 void SettingState::handleEvent(const sf::Event &event)
 {
     if (const auto *key_pressed = event.getIf<sf::Event::KeyPressed>())
@@ -117,25 +110,28 @@ void SettingState::handleEvent(const sf::Event &event)
     }
 }
 
-// Update settings state (static)
 void SettingState::update(float delta_time)
 {
 }
 
-// Render settings menu
 void SettingState::render(sf::RenderWindow &window)
 {
     window.clear(sf::Color(25, 25, 25));
 
-    window.draw(title_text_);
+    if (title_text_)
+    {
+        window.draw(*title_text_);
+    }
 
     for (const auto &setting_text : setting_texts_)
     {
-        window.draw(setting_text);
+        if (setting_text)
+        {
+            window.draw(*setting_text);
+        }
     }
 }
 
-// Move selection up
 void SettingState::moveUp()
 {
     if (selected_index_ - 1 >= 0)
@@ -145,7 +141,6 @@ void SettingState::moveUp()
     }
 }
 
-// Move selection down
 void SettingState::moveDown()
 {
     if (selected_index_ + 1 < static_cast<int>(setting_texts_.size()))
@@ -155,7 +150,6 @@ void SettingState::moveDown()
     }
 }
 
-// Increase setting value for selected option
 void SettingState::increaseSetting()
 {
     switch (selected_index_)
@@ -177,7 +171,6 @@ void SettingState::increaseSetting()
     updateUI();
 }
 
-// Decrease setting value for selected option
 void SettingState::decreaseSetting()
 {
     switch (selected_index_)

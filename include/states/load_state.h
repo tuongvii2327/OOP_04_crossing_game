@@ -10,13 +10,12 @@ class LoadState : public State
 {
 private:
     StateMachine &state_machine_;
-    sf::Font font_;
-    sf::Text title_text_;
+    std::unique_ptr<sf::Text> title_text_;
     std::vector<sf::Text> save_slot_texts_;
     int selected_index_;
 
     // Setup save slot UI
-    void setupUI();
+    void setupUI(const sf::Font &font);
     // Move selection up
     void moveUp();
     // Move selection down

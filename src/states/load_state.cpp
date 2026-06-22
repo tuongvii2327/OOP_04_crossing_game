@@ -2,36 +2,32 @@
 #include "states/load_state.h"
 #include "states/playing_state.h"
 #include "utils/constants.h"
+#include "utils/resource_manager.h"
 #include <iostream>
 
 LoadState::LoadState(StateMachine &state_machine)
-    : state_machine_(state_machine), title_text_(font_), selected_index_(0)
+    : state_machine_(state_machine), selected_index_(0)
 {
 }
 
 // Load font and initialize load screen
 void LoadState::init()
 {
-    if (!font_.openFromFile("assets/fonts/VT323-Regular.ttf"))
-    {
-        std::cerr << "Failed to load font: assets/fonts/VT323-Regular.ttf"
-                  << std::endl;
-    }
-
-    setupUI();
+    const sf::Font &font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
+    title_text_ = std::make_unique<sf::Text>(font);
+    setupUI(font);
 }
 
 // Setup load menu UI with save slots
-void LoadState::setupUI()
+void LoadState::setupUI(const sf::Font &font)
 {
-    title_text_.setFont(font_);
-    title_text_.setString("LOAD GAME");
-    title_text_.setCharacterSize(72);
-    title_text_.setFillColor(sf::Color::Cyan);
+    title_text_->setString("LOAD GAME");
+    title_text_->setCharacterSize(72);
+    title_text_->setFillColor(sf::Color::Cyan);
 
-    sf::FloatRect title_bounds = title_text_.getLocalBounds();
+    sf::FloatRect title_bounds = title_text_->getLocalBounds();
     float title_x = (Constants::WINDOW_WIDTH - title_bounds.size.x) / 2.0f;
-    title_text_.setPosition({title_x, 150.0f});
+    title_text_->setPosition({title_x, 150.0f});
 
     std::vector<std::string> save_options = {"SAVE SLOT 1", "SAVE SLOT 2",
                                              "SAVE SLOT 3", "BACK TO MENU"};
@@ -39,9 +35,10 @@ void LoadState::setupUI()
     float initial_y = 350.0f;
     float spacing = 80.0f;
 
+    save_slot_texts_.clear();
     for (size_t i = 0; i < save_options.size(); ++i)
     {
-        sf::Text slot_text(font_);
+        sf::Text slot_text(font);
         slot_text.setString(save_options[i]);
         slot_text.setCharacterSize(48);
 
@@ -107,7 +104,10 @@ void LoadState::render(sf::RenderWindow &window)
 {
     window.clear(sf::Color(25, 25, 25));
 
-    window.draw(title_text_);
+    if (title_text_) 
+    {
+        window.draw(*title_text_); 
+    }
 
     for (const auto &slot_text : save_slot_texts_)
     {

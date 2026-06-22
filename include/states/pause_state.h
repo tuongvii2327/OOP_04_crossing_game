@@ -8,24 +8,25 @@
 
 class PauseState : public State
 {
-  private:
+private:
     StateMachine &state_machine_;
-    sf::Font font_;
-    sf::Text title_text_;
-    std::vector<sf::Text> menu_texts_;
+    std::unique_ptr<sf::Text> title_text_;
+    std::vector<std::unique_ptr<sf::Text>> menu_texts_;
     int selected_index_;
 
     // Semi-transparent overlay to darken background
     sf::RectangleShape background_overlay_;
 
     // Setup pause menu UI
-    void setupUI();
+    std::unique_ptr<sf::Text> title_text_;
+
+    void setupUI(const sf::Font &font);
     // Move selection up
     void moveUp();
     // Move selection down
     void moveDown();
 
-  public:
+public:
     PauseState(StateMachine &state_machine);
     ~PauseState() override = default;
 

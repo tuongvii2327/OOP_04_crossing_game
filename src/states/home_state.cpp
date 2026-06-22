@@ -1,16 +1,18 @@
 #include "states/home_state.h"
 #include "utils/constants.h"
+#include "utils/resource_manager.h"
 #include <iostream>
 
-#include "states/playing_state.h"
-#include "states/setting_state.h"
 #include "states/load_state.h"
+#include "states/playing_state.h"
 #include "states/ranking_state.h"
+#include "states/setting_state.h"
 
-HomeState::HomeState(StateMachine& state_machine) : state_machine_(state_machine), selected_index_(0) {}
+
+HomeState::HomeState(StateMachine &state_machine) : state_machine_(state_machine), selected_index_(0) {}
 
 // Apply text formatting and center positioning
-void HomeState::setupMenuOption(sf::Text& text, const std::string& str, float y_position)
+void HomeState::setupMenuOption(sf::Text &text, const std::string &str, float y_position)
 {
     text.setString(str);
     text.setCharacterSize(40);
@@ -27,13 +29,9 @@ void HomeState::setupMenuOption(sf::Text& text, const std::string& str, float y_
 // Load font and initialize menu UI
 void HomeState::init()
 {
-    if (!font_.openFromFile("assets/fonts/VT323-Regular.ttf"))
-    {
-        std::cerr << "Error: Cannot load font!\n";
-        return;
-    }
+    const sf::Font &font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
 
-    title_text_ = std::make_unique<sf::Text>(font_);
+    title_text_ = std::make_unique<sf::Text>(font);
     title_text_->setString(Constants::GAME_TITLE);
     title_text_->setCharacterSize(80);
     title_text_->setFillColor(sf::Color::Green);
@@ -42,13 +40,12 @@ void HomeState::init()
     title_text_->setPosition({Constants::WINDOW_WIDTH / 2.0f, 200.0f});
 
     std::vector<std::pair<std::string, float>> menu_data = {
-        {"New Game", 450.0f}, {"Load File", 550.0f}, {"Settings", 650.0f}, {"Ranking", 750.0f}, {"Quit", 850.0f}
-    };
+        {"New Game", 450.0f}, {"Load File", 550.0f}, {"Settings", 650.0f}, {"Ranking", 750.0f}, {"Quit", 850.0f}};
 
     menu_options_.clear();
-    for (const auto& data : menu_data)
+    for (const auto &data : menu_data)
     {
-        auto text_ptr = std::make_unique<sf::Text>(font_);
+        auto text_ptr = std::make_unique<sf::Text>(font);
         setupMenuOption(*text_ptr, data.first, data.second);
         menu_options_.push_back(std::move(text_ptr));
     }
@@ -57,9 +54,9 @@ void HomeState::init()
 }
 
 // Handle keyboard navigation and mouse interaction
-void HomeState::handleEvent(const sf::Event& event)
+void HomeState::handleEvent(const sf::Event &event)
 {
-    if (const auto* key_pressed = event.getIf<sf::Event::KeyPressed>())
+    if (const auto *key_pressed = event.getIf<sf::Event::KeyPressed>())
     {
         if (key_pressed->code == sf::Keyboard::Key::Up || key_pressed->code == sf::Keyboard::Key::W)
         {
@@ -79,7 +76,7 @@ void HomeState::handleEvent(const sf::Event& event)
         }
     }
 
-    if (const auto* mouse_moved = event.getIf<sf::Event::MouseMoved>())
+    if (const auto *mouse_moved = event.getIf<sf::Event::MouseMoved>())
     {
         sf::Vector2f mouse_pos(static_cast<float>(mouse_moved->position.x), static_cast<float>(mouse_moved->position.y));
 
@@ -95,7 +92,7 @@ void HomeState::handleEvent(const sf::Event& event)
         }
     }
 
-    if (const auto* mouse_button_pressed = event.getIf<sf::Event::MouseButtonPressed>())
+    if (const auto *mouse_button_pressed = event.getIf<sf::Event::MouseButtonPressed>())
     {
         if (mouse_button_pressed->button == sf::Mouse::Button::Left)
         {
@@ -119,14 +116,14 @@ void HomeState::update(float dt)
 }
 
 // Draw title and menu options
-void HomeState::render(sf::RenderWindow& window)
+void HomeState::render(sf::RenderWindow &window)
 {
     if (title_text_)
     {
         window.draw(*title_text_);
     }
 
-    for (const auto& option : menu_options_)
+    for (const auto &option : menu_options_)
     {
         window.draw(*option);
     }
@@ -137,29 +134,29 @@ void HomeState::executeChoice(int index)
 {
     switch (index)
     {
-        case 0:
-            std::cout << "Transition to: Playing\n";
-            state_machine_.addState(std::make_unique<PlayingState>(state_machine_), true);
-            break;
+    case 0:
+        std::cout << "Transition to: Playing\n";
+        state_machine_.addState(std::make_unique<PlayingState>(state_machine_), true);
+        break;
 
-        case 1:
-            std::cout << "Transition to: Load File\n";
-            state_machine_.addState(std::make_unique<LoadState>(state_machine_), false);
-            break;
+    case 1:
+        std::cout << "Transition to: Load File\n";
+        state_machine_.addState(std::make_unique<LoadState>(state_machine_), false);
+        break;
 
-        case 2:
-            std::cout << "Transition to: Settings\n";
-            state_machine_.addState(std::make_unique<SettingState>(state_machine_), false);
-            break;
+    case 2:
+        std::cout << "Transition to: Settings\n";
+        state_machine_.addState(std::make_unique<SettingState>(state_machine_), false);
+        break;
 
-        case 3:
-            std::cout << "Transition to: Ranking\n";
-            state_machine_.addState(std::make_unique<RankingState>(state_machine_), false);
-            break;
+    case 3:
+        std::cout << "Transition to: Ranking\n";
+        state_machine_.addState(std::make_unique<RankingState>(state_machine_), false);
+        break;
 
-        case 4:
-            std::cout << "Exit game!\n";
-            state_machine_.removeState();
-            break;
+    case 4:
+        std::cout << "Exit game!\n";
+        state_machine_.removeState();
+        break;
     }
 }
