@@ -66,13 +66,11 @@ void LoadState::handleEvent(const sf::Event &event)
 {
     if (const auto *key_pressed = event.getIf<sf::Event::KeyPressed>())
     {
-        if (key_pressed->code == sf::Keyboard::Key::Up ||
-            key_pressed->code == sf::Keyboard::Key::W)
+        if (key_pressed->code == sf::Keyboard::Key::Up || key_pressed->code == sf::Keyboard::Key::W)
         {
             moveUp();
         }
-        else if (key_pressed->code == sf::Keyboard::Key::Down ||
-                 key_pressed->code == sf::Keyboard::Key::S)
+        else if (key_pressed->code == sf::Keyboard::Key::Down || key_pressed->code == sf::Keyboard::Key::S)
         {
             moveDown();
         }
@@ -80,7 +78,7 @@ void LoadState::handleEvent(const sf::Event &event)
         {
             if (selected_index_ == static_cast<int>(save_slot_texts_.size()) - 1)
             {
-                context_->state_machine->removeState();
+                context_->state_machine->pop(); // Back to menu
             }
             else
             {
@@ -89,7 +87,7 @@ void LoadState::handleEvent(const sf::Event &event)
         }
         else if (key_pressed->code == sf::Keyboard::Key::Escape)
         {
-            context_->state_machine->removeState();
+            context_->state_machine->pop();
         }
     }
 }
@@ -140,7 +138,5 @@ void LoadState::moveDown()
 // Load game data from save file
 void LoadState::loadGameData(int slot_index)
 {
-    // std::cout << "Attempting to load data from Save Slot: " << slot_index
-    //   << std::endl;
-    context_->state_machine->replaceRootState(std::make_unique<PlayingState>(context_));
+    context_->state_machine->switchState(std::make_unique<PlayingState>(context_));
 }
