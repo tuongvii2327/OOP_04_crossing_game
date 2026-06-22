@@ -7,19 +7,19 @@
 class Game
 {
 private:
-    sf::RenderWindow window;
-    StateMachine state_machine;
-    sf::Clock clock;
+	sf::RenderWindow window;
+	StateMachine state_machine;
+	sf::Clock clock;
 
-    // ResourceManager resource_manager;
+	// ResourceManager resource_manager;
 
-    void handleEvent();
-    void update(float dt);
-    void render();
+	void handleEvent();
+	void update(float dt);
+	void render();
 
 public:
-    Game();
-    ~Game() = default;
+	Game();
+	~Game() = default;
 
-    void run();
+	void run();
 };

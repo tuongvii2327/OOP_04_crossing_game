@@ -3,31 +3,31 @@
 
 #pragma region PUBLIC
 #pragma region CONSTRUCTOR, DESTRUCTOR
-//include +setCarType()
-Car::Car(const sf::Texture& texture,
-	Constants::CarType type,
+// 
+Car::Car(const Constants::ObjectColor& init_color,
 	Lane* init_lane)
-	: Vehicle(texture, Constants::DynamicObjectType::Car, init_lane)
+	: Vehicle(Constants::ObjectType::Car, init_color, init_lane)
 {
-	setCarType(type);
+	car_color = init_color;
 }
 #pragma endregion 
 
 
 #pragma region GET, SET
-Constants::CarType Car::getCarType() const
+Constants::ObjectColor Car::getColor() const
 {
-	return car_type;
+	return car_color;
 }
 
-void Car::setCarType(const Constants::CarType& type)
+void Car::setColor(const Constants::ObjectColor& color)
 {
-	car_type = type;
+	car_color = color;
+	setSprite(getTexture(Constants::ObjectType::Car, color));
 }
 
-Constants::DynamicObjectType Car::getType() const
+Constants::ObjectType Car::getType() const
 {
-	return Constants::DynamicObjectType::Car;
+	return Constants::ObjectType::Car;
 }
 #pragma endregion 
 #pragma endregion 

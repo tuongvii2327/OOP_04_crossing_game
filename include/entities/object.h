@@ -9,7 +9,7 @@
 
 class Lane;
 
-class DynamicObject
+class Object
 {
 private:
 	void updateHitbox(); // update hitbox_position using position and hitbox_offset
@@ -30,18 +30,17 @@ protected:
 	void setHitboxOffset(); // hitbox_offset = (sprite size - hitbox.size) / 2
 
 	void moveBy(sf::Vector2f offset); // move position by offset, update sprite position
-	float randomSpeed(Constants::DynamicObjectType type) const; // pick a random speed from SpeedRange depending on type
 	int calcDirection() const; // direction taken from current_lane
-	sf::Vector2f calcSpawnPosition() const; // calculate object position depending on current_lane's position
+	const sf::Texture& getTexture(const Constants::ObjectType& type, const Constants::ObjectColor& color) const; // cached texture for type+color
 	void adjustSprite(); // scale size of sprite if its size is larger than CELL_SIZE
 
 public:
 	// contructor, destructor
 	// position, hitbox, is_active, direction are calculated & set automactically, sprite will be adjusted & apply facing
-	DynamicObject(const sf::Texture &texture,
+	Object(Constants::ObjectType type,
+		Constants::ObjectColor color,
 		Lane *init_lane = nullptr);
-	virtual ~DynamicObject() = default;
-
+	virtual ~Object() = default;
 
 	// get, set
 	sf::Vector2f getPosition() const;
@@ -51,7 +50,7 @@ public:
 	void setVelocity(const sf::Vector2f &velo);
 
 	sf::Sprite getSprite() const;
-	void setSprite(const sf::Sprite &new_sprite);
+	void setSprite(const sf::Texture& texture);
 
 	sf::FloatRect getHitBox() const;
 	// set hitbox in protected
@@ -73,11 +72,13 @@ public:
 
 
 	// Other
-	// bool isColliding(const sf::FloatRect& other) const; // true if other rectangle intersects this object's hitbox
-
-	bool isOutOfMap();
+	float randomSpeed(const Constants::ObjectType& type) const; // pick a random speed from SpeedRange depending on type
+	sf::Vector2f calcSpawnPosition() const; // calculate object position depending on current_lane's position
+	bool isOutOfLane();
 	float gapToObstacle(const float &obstacle_position_x, const float &obstacle_width) const; // calculated relative distance from this object to obstacle (distance between 2 sprite's edges)
 	virtual void render(sf::RenderWindow &window) const; // draw sprite to screen when active
-	virtual Constants::DynamicObjectType getType() const = 0; // object type as a DynamicObjectType enum
+	virtual Constants::ObjectType getType() const = 0; // object type as a ObjectType enum
+	virtual Constants::ObjectColor getColor() const = 0;
 	virtual void updateState(float delta_time) = 0; // update state for this frame (delta_time: seconds since the previous frame)
+	virtual bool isColliding(const sf::FloatRect& other_hitbox) const = 0; // 1 if other hitbox intersects this object's hitbox
 };

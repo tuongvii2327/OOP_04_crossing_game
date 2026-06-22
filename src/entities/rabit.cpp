@@ -3,18 +3,30 @@
 
 #pragma region PUBLIC
 #pragma region CONSTRUCTOR, DESTRUCTOR
-Rabit::Rabit(const sf::Texture& texture,
-	//constants color
+Rabit::Rabit(const Constants::ObjectColor& init_color,
 	Lane* init_lane)
-	: Animal(texture, Constants::DynamicObjectType::Rabit, init_lane)
+	: Animal(Constants::ObjectType::Rabit, init_color, init_lane)
 {
-	//color
+	rabit_color = init_color;
 }
 #pragma endregion
+
 #pragma region GET, SET
-Constants::DynamicObjectType Rabit::getType() const
+
+Constants::ObjectColor Rabit::getColor() const
 {
-	return Constants::DynamicObjectType::Rabit;
+	return rabit_color;
+}
+
+void Rabit::setColor(const Constants::ObjectColor& color)
+{
+	rabit_color = color;
+	setSprite(getTexture(Constants::ObjectType::Rabit, color));
+}
+
+Constants::ObjectType Rabit::getType() const
+{
+	return Constants::ObjectType::Rabit;
 }
 #pragma endregion
 #pragma endregion

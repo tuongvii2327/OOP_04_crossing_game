@@ -3,18 +3,30 @@
 
 #pragma region PUBLIC
 #pragma region CONSTRUCTOR, DESTRUCTOR
-Bird::Bird(const sf::Texture& texture,
-	//constants color
+Bird::Bird(const Constants::ObjectColor& init_color,
 	Lane* init_lane)
-	: Animal(texture, Constants::DynamicObjectType::Bird, init_lane)
+	: Animal(Constants::ObjectType::Bird, init_color, init_lane)
 {
-	//color
+	bird_color = init_color;
 }
 #pragma endregion
+
 #pragma region GET, SET
-Constants::DynamicObjectType Bird::getType() const
+
+Constants::ObjectColor Bird::getColor() const
 {
-	return Constants::DynamicObjectType::Bird;
+	return bird_color;
+}
+
+void Bird::setColor(const Constants::ObjectColor& color)
+{
+	bird_color = color;
+	setSprite(getTexture(Constants::ObjectType::Bird, color));
+}
+
+Constants::ObjectType Bird::getType() const
+{
+	return Constants::ObjectType::Bird;
 }
 #pragma endregion
 #pragma endregion

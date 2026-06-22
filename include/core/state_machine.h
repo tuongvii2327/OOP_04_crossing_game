@@ -7,21 +7,21 @@
 class StateMachine
 {
 private:
-    std::stack<std::unique_ptr<State>> states;
-    std::unique_ptr<State> new_state;
+	std::stack<std::unique_ptr<State>> states;
+	std::unique_ptr<State> new_state;
 
-    bool is_removing;
-    bool is_adding;
-    bool is_replacing;
+	bool is_removing;
+	bool is_adding;
+	bool is_replacing;
 
 public:
-    StateMachine();
-    ~StateMachine() = default;
+	StateMachine();
+	~StateMachine() = default;
 
-    void addState(std::unique_ptr<State> new_state, bool is_replacing = true);
-    void removeState();
+	void addState(std::unique_ptr<State> new_state, bool is_replacing = true);
+	void removeState();
 
-    void processStateChanges();
+	void processStateChanges();
 
-    State& getActiveState();
+	State& getActiveState();
 };

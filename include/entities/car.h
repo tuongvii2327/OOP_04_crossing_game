@@ -5,17 +5,16 @@
 class Car : public Vehicle
 {
 private:
-	Constants::CarType car_type;
+	Constants::ObjectColor car_color;
 
 public:
-	//contructor, destructor
-	Car(const sf::Texture& texture,
-		Constants::CarType type = Constants::CarType::RedCar,
+	// contructor, destructor
+	Car(const Constants::ObjectColor& init_color = Constants::ObjectColor::Pink,
 		Lane* init_lane = nullptr);
 
-	//get, set
-	Constants::CarType getCarType() const;
-	void setCarType(const Constants::CarType& type);
+	// get, set
+	Constants::ObjectColor getColor() const override;
+	void setColor(const Constants::ObjectColor& type);
 
-	Constants::DynamicObjectType getType() const override;
+	Constants::ObjectType getType() const override;
 };
