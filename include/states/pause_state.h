@@ -2,6 +2,7 @@
 
 #include "core/state_machine.h"
 #include "states/state.h"
+#include "utils/shared_context.h"
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
@@ -9,16 +10,12 @@
 class PauseState : public State
 {
 private:
-    StateMachine &state_machine_;
     std::unique_ptr<sf::Text> title_text_;
     std::vector<std::unique_ptr<sf::Text>> menu_texts_;
     int selected_index_;
 
     // Semi-transparent overlay to darken background
     sf::RectangleShape background_overlay_;
-
-    // Setup pause menu UI
-    std::unique_ptr<sf::Text> title_text_;
 
     void setupUI(const sf::Font &font);
     // Move selection up
@@ -27,7 +24,7 @@ private:
     void moveDown();
 
 public:
-    PauseState(StateMachine &state_machine);
+    PauseState(SharedContext *context);
     ~PauseState() override = default;
 
     // Load font and initialize pause menu
@@ -38,4 +35,5 @@ public:
     void update(float delta_time) override;
     // Render pause overlay and menu
     void render(sf::RenderWindow &window) override;
+    bool isOverlay() const override { return true; }
 };

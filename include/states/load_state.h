@@ -2,6 +2,7 @@
 
 #include "core/state_machine.h"
 #include "states/state.h"
+#include "utils/shared_context.h"
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
@@ -9,7 +10,6 @@
 class LoadState : public State
 {
 private:
-    StateMachine &state_machine_;
     std::unique_ptr<sf::Text> title_text_;
     std::vector<sf::Text> save_slot_texts_;
     int selected_index_;
@@ -24,7 +24,7 @@ private:
     void loadGameData(int slot_index);
 
 public:
-    LoadState(StateMachine &state_machine);
+    LoadState(SharedContext *context);
     ~LoadState() override = default;
 
     // Initialize load screen

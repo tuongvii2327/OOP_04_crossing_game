@@ -2,11 +2,16 @@
 
 #include <SFML/Graphics.hpp>
 
+struct SharedContext;
+
 class State
 {
-public:
-    virtual ~State() = default;
+protected:
+    SharedContext *context_;
 
+public:
+    explicit State(SharedContext *context) : context_(context) {}
+    virtual ~State() = default;
     // Initialize state resources and setup
     virtual void init() = 0;
 
@@ -20,4 +25,6 @@ public:
 
     // Called when state resumes (overlay removed)
     virtual void resume() {}
+
+    virtual bool isOverlay() const { return false; }
 };

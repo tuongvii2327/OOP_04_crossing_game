@@ -3,14 +3,15 @@
 #include "core/state_machine.h"
 #include "states/state.h"
 #include "utils/resource_manager.h"
+#include "utils/shared_context.h"
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
 
+
 class RankingState : public State
 {
 private:
-    StateMachine &state_machine_;
     std::unique_ptr<sf::Text> title_text_;
     std::vector<std::unique_ptr<sf::Text>> ranking_texts_;
 
@@ -18,7 +19,7 @@ private:
     void setupUI(const sf::Font &font);
 
 public:
-    RankingState(StateMachine &state_machine);
+    RankingState(SharedContext *context);
     ~RankingState() override = default;
 
     // Initialize ranking screen with high scores

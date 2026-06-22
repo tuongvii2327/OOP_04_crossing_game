@@ -5,8 +5,8 @@
 #include "utils/resource_manager.h"
 #include <iostream>
 
-LoadState::LoadState(StateMachine &state_machine)
-    : state_machine_(state_machine), selected_index_(0)
+LoadState::LoadState(SharedContext *context)
+    : State(context), selected_index_(0)
 {
 }
 
@@ -80,7 +80,7 @@ void LoadState::handleEvent(const sf::Event &event)
         {
             if (selected_index_ == static_cast<int>(save_slot_texts_.size()) - 1)
             {
-                state_machine_.removeState();
+                context_->state_machine->removeState();
             }
             else
             {
@@ -89,7 +89,7 @@ void LoadState::handleEvent(const sf::Event &event)
         }
         else if (key_pressed->code == sf::Keyboard::Key::Escape)
         {
-            state_machine_.removeState();
+            context_->state_machine->removeState();
         }
     }
 }
@@ -104,9 +104,9 @@ void LoadState::render(sf::RenderWindow &window)
 {
     window.clear(sf::Color(25, 25, 25));
 
-    if (title_text_) 
+    if (title_text_)
     {
-        window.draw(*title_text_); 
+        window.draw(*title_text_);
     }
 
     for (const auto &slot_text : save_slot_texts_)
@@ -142,5 +142,5 @@ void LoadState::loadGameData(int slot_index)
 {
     // std::cout << "Attempting to load data from Save Slot: " << slot_index
     //   << std::endl;
-    state_machine_.replaceRootState(std::make_unique<PlayingState>(state_machine_));
+    context_->state_machine->replaceRootState(std::make_unique<PlayingState>(context_));
 }

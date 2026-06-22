@@ -1,14 +1,13 @@
 #include "states/setting_state.h"
 #include "utils/constants.h"
-#include "utils/resource_manager.h" // Nhúng kho quản lý tài nguyên
+#include "utils/resource_manager.h"
+#include "utils/shared_context.h"
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <iostream>
 
-SettingState::SettingState(StateMachine &state_machine)
-    : state_machine_(state_machine),
-      selected_index_(0),
-      music_volume_(5),
-      sfx_volume_(7),
-      is_hard_mode_(false)
+SettingState::SettingState(SharedContext *context)
+    : State(context),
+      selected_index_(0)
 {
 }
 
@@ -32,7 +31,7 @@ void SettingState::setupUI(const sf::Font &font)
     title_text_->setPosition({title_x, 150.0f});
 
     setting_texts_.clear();
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < 3; ++i)
     {
         setting_texts_.push_back(std::make_unique<sf::Text>(font));
     }
@@ -42,10 +41,12 @@ void SettingState::setupUI(const sf::Font &font)
 
 void SettingState::updateUI()
 {
+    int mus = context_->config->music_volume;
+    int sfx = context_->config->sfx_volume;
+
     std::vector<std::string> display_strings = {
-        "MUSIC VOLUME: < " + std::to_string(music_volume_ * 10) + "% >",
-        "SFX VOLUME: < " + std::to_string(sfx_volume_ * 10) + "% >",
-        "DIFFICULTY: < " + std::string(is_hard_mode_ ? "HARD" : "NORMAL") + " >",
+        "MUSIC VOLUME: < " + std::to_string(mus * 10) + "% >",
+        "SFX VOLUME: < " + std::to_string(sfx * 10) + "% >",
         "BACK TO MENU"};
 
     float initial_y = 350.0f;
@@ -94,9 +95,9 @@ void SettingState::handleEvent(const sf::Event &event)
         }
         else if (key_pressed->code == sf::Keyboard::Key::Enter)
         {
-            if (selected_index_ == 3)
+            if (selected_index_ == 2)
             {
-                state_machine_.removeState();
+                context_->state_machine->removeState();
             }
             else
             {
@@ -105,7 +106,7 @@ void SettingState::handleEvent(const sf::Event &event)
         }
         else if (key_pressed->code == sf::Keyboard::Key::Escape)
         {
-            state_machine_.removeState();
+            context_->state_machine->removeState();
         }
     }
 }
@@ -155,18 +156,13 @@ void SettingState::increaseSetting()
     switch (selected_index_)
     {
     case 0:
-        if (music_volume_ < 10)
-            music_volume_++;
+        if (context_->config->music_volume < 10)
+            context_->config->music_volume++;
         break;
     case 1:
-        if (sfx_volume_ < 10)
-            sfx_volume_++;
+        if (context_->config->sfx_volume < 10)
+            context_->config->sfx_volume++;
         break;
-    case 2:
-        is_hard_mode_ = !is_hard_mode_;
-        break;
-    default:
-        return;
     }
     updateUI();
 }
@@ -176,18 +172,13 @@ void SettingState::decreaseSetting()
     switch (selected_index_)
     {
     case 0:
-        if (music_volume_ > 0)
-            music_volume_--;
+        if (context_->config->music_volume > 0)
+            context_->config->music_volume--;
         break;
     case 1:
-        if (sfx_volume_ > 0)
-            sfx_volume_--;
+        if (context_->config->sfx_volume > 0)
+            context_->config->sfx_volume--;
         break;
-    case 2:
-        is_hard_mode_ = !is_hard_mode_;
-        break;
-    default:
-        return;
     }
     updateUI();
 }

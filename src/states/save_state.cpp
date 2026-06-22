@@ -3,11 +3,8 @@
 #include "utils/constants.h"
 #include <iostream>
 
-SaveState::SaveState(StateMachine &state_machine)
-    : state_machine_(state_machine),
-      selected_index_(0),
-      is_saved_(false),
-      save_timer_(0.0f)
+SaveState::SaveState(SharedContext *context)
+    : State(context), selected_index_(0), is_saved_(false), save_timer_(0.0f)
 {
 }
 
@@ -82,7 +79,7 @@ void SaveState::handleEvent(const sf::Event &event)
         {
             if (selected_index_ == static_cast<int>(save_slot_texts_.size()) - 1)
             {
-                state_machine_.removeState();
+                context_->state_machine->removeState();
             }
             else
             {
@@ -91,7 +88,7 @@ void SaveState::handleEvent(const sf::Event &event)
         }
         else if (key_pressed->code == sf::Keyboard::Key::Escape)
         {
-            state_machine_.removeState();
+            context_->state_machine->removeState();
         }
     }
 }
@@ -104,7 +101,7 @@ void SaveState::update(float delta_time)
         save_timer_ += delta_time;
         if (save_timer_ >= 1.0f) // wait for 1 second before returning to PauseState
         {
-            state_machine_.removeState();
+            context_->state_machine->removeState();
         }
     }
 }

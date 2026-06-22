@@ -3,17 +3,18 @@
 #include <SFML/Graphics.hpp>
 const int TILE_SIZE = 105;
 
-People::People(){
-    //player's position
+People::People()
+{
+    // player's position
     position = sf::Vector2f(Constants::WINDOW_WIDTH / 2.f, Constants::WINDOW_HEIGHT - 50.f);
 
-    //setting game's state
+    // setting game's state
     is_dead = false;
     score = 0;
 
-    shape.setSize(sf::Vector2f(50.0f, 50.0f)); 
+    shape.setSize(sf::Vector2f(50.0f, 50.0f));
     step_size = 50.0f;
-    shape.setFillColor(sf::Color::Green);      
+    shape.setFillColor(sf::Color::Green);
     shape.setPosition(position);
 
     // current_frame = sf::IntRect(0,0,50,50); //Initialize the animation frame
@@ -21,13 +22,12 @@ People::People(){
     // sprite.setTexture(texture);
     // sprite.setTextureRect(current_frame); //set the crop
     // sprite.setPosition(position);
-
 }
 
 People::People(float x, float y)
 {
-    position = sf::Vector2f (x, y);
-    
+    position = sf::Vector2f(x, y);
+
     is_dead = false;
     score = 0;
     shape.setSize(sf::Vector2f(50.0f, 50.0f));
@@ -37,26 +37,22 @@ People::People(float x, float y)
 
 void People::move(float dx, float dy)
 {
-    if(is_dead)
+    if (is_dead)
         return;
-    
+
     position.x += dx;
     position.y += dy;
     shape.setPosition(position);
 }
 
-bool People::tryToMove(float dx, float dy)
+bool People::tryToMove(float dx, float dy, float camera_top_y)
 {
     float target_x = position.x + dx;
     float target_y = position.y + dy;
 
-    // Touch window edge
-    if (target_x < 0 || target_x >= Constants::WINDOW_WIDTH || target_y < 0 || target_y >= Constants::WINDOW_HEIGHT)
+    if (target_x < 0 || target_x >= Constants::WINDOW_WIDTH ||
+        target_y < camera_top_y || target_y >= (camera_top_y + Constants::WINDOW_HEIGHT))
         return false;
-    
-    //==============================
-    // Bo sung them cac loai va cham
-    //==============================
 
     move(dx, dy);
     return true;
@@ -82,13 +78,12 @@ float People::getHeight() const
     return this->height;
 }
 
-
-sf::FloatRect People::getBounds() const //return the boundary of the player
+sf::FloatRect People::getBounds() const // return the boundary of the player
 {
     return shape.getGlobalBounds();
 }
 
-// bool People::isImpact(const Vehicle* vehicle) const 
+// bool People::isImpact(const Vehicle* vehicle) const
 // {
 //     if(vehicle == nullptr)
 //     {
@@ -99,19 +94,18 @@ sf::FloatRect People::getBounds() const //return the boundary of the player
 //     return getBounds().intersects(vehicle_rect);
 // }
 
-// bool People::isImpact(const Animal* animal) const 
+// bool People::isImpact(const Animal* animal) const
 // {
 //     if(animal == nullptr)
 //     {
 //          return false;
 //     }
 
-
 //     sf::FloatRect animal_rect(animal->getX(), animal->getY(), animal->getWidth(), animal->getHeight());
 //     return getBounds().intersects(animal_rect);
 // }
 
-// bool People::isImpact(const Coin* coin) const 
+// bool People::isImpact(const Coin* coin) const
 // {
 //     if(coin == nullptr)
 //     {
@@ -122,7 +116,7 @@ sf::FloatRect People::getBounds() const //return the boundary of the player
 //     return getBounds().intersects(coin_rect);
 // }
 
-// bool People::isImpact(const Obstacle* obstacle) const 
+// bool People::isImpact(const Obstacle* obstacle) const
 // {
 //     if(obstacle == nullptr)
 //     {
@@ -133,14 +127,14 @@ sf::FloatRect People::getBounds() const //return the boundary of the player
 //     return getBounds().intersects(obstacle_rect);
 // }
 
-
 void People::die()
 {
     is_dead = true;
 }
 
-void People::resetPosition(){
-    //restart at where we start
+void People::resetPosition()
+{
+    // restart at where we start
     position = sf::Vector2f(Constants::WINDOW_WIDTH / 2.f, Constants::WINDOW_HEIGHT - 50.f);
     is_dead = false;
     shape.setPosition(position);
@@ -148,7 +142,8 @@ void People::resetPosition(){
     // sprite.setPosition(position);
 }
 
-void People::render(sf::RenderWindow& window) {
+void People::render(sf::RenderWindow &window)
+{
     window.draw(shape);
 }
 
@@ -162,8 +157,9 @@ void People::render(sf::RenderWindow& window) {
 //     window.draw(sprite);
 // }
 
-void People::update(float delta_time){
-    if(is_dead)
+void People::update(float delta_time)
+{
+    if (is_dead)
     {
         return;
     }
@@ -193,4 +189,15 @@ int People::getScore() const
 void People::addScore()
 {
     score++;
+}
+
+People::People(const sf::Texture &texture)
+{
+    position = sf::Vector2f(Constants::WINDOW_WIDTH / 2.f, Constants::WINDOW_HEIGHT - 50.f);
+    is_dead = false;
+    score = 0;
+
+    shape.setSize(sf::Vector2f(50.0f, 50.0f));
+    shape.setFillColor(sf::Color::Green);
+    shape.setPosition(position);
 }

@@ -4,6 +4,7 @@
 #include "core/state_machine.h"
 #include "states/state.h"
 #include "utils/resource_manager.h"
+#include "utils/shared_context.h"
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
@@ -11,7 +12,6 @@
 class SaveState : public State
 {
 private:
-    StateMachine &state_machine_;
     std::unique_ptr<sf::Text> title_text_;
     std::vector<std::unique_ptr<sf::Text>> save_slot_texts_;
     int selected_index_;
@@ -28,7 +28,7 @@ private:
     void saveGameData(int slot_index);
 
 public:
-    SaveState(StateMachine &state_machine);
+    SaveState(SharedContext *context);
     ~SaveState() override = default;
 
     // Initialize save screen

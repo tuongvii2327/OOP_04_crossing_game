@@ -26,6 +26,7 @@ private:
 
 public:
     People();
+    explicit People(const sf::Texture &texture);
     People(float x, float y);
 
     // move
@@ -55,5 +56,5 @@ public:
     // render
     void render(sf::RenderWindow &window);
     void update(float delta_time);
-    bool tryToMove(float dx, float dy);
+    bool tryToMove(float dx, float dy, float camera_top_y);
 };

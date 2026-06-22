@@ -4,8 +4,8 @@
 #include "utils/resource_manager.h"
 #include <iostream>
 
-PlayingState::PlayingState(StateMachine &state_machine)
-    : state_machine_(state_machine), score_(0), is_resuming_(false) {}
+PlayingState::PlayingState(SharedContext *context)
+    : State(context), score_(0), is_resuming_(false) {}
 
 void PlayingState::init()
 {
@@ -24,7 +24,7 @@ void PlayingState::init()
 
     // 2. Initialize the player entity by passing the texture from the resource cache
     const sf::Texture &player_tex = Resource().getTexture("assets/textures/player.png");
-    player_ = std::make_unique<People>(player_tex, nullptr);
+    player_ = std::make_unique<People>(player_tex);
 
     // 3. Initialize the map background, expanding upwards starting from the screen bottom
     map_.initMap(Constants::WINDOW_HEIGHT - Constants::LANE_HEIGHT);
@@ -41,18 +41,20 @@ void PlayingState::handleEvent(const sf::Event &event)
         // Press ESC or P to open the screen-overlay Pause Menu
         if (key_pressed->code == sf::Keyboard::Key::P || key_pressed->code == sf::Keyboard::Key::Escape)
         {
-            state_machine_.addState(std::make_unique<PauseState>(state_machine_), false);
+            context_->state_machine->addState(std::make_unique<PauseState>(context_), false); // Đổi ở đây
             return;
         }
 
         // Ensure player_ is safely initialized before processing movement
-        if (!player_) return;
+        if (!player_)
+            return;
 
         float step = 50.f;
 
+        float cam_top = view_.getCenter().y - (view_.getSize().y / 2.f);
         if (key_pressed->code == sf::Keyboard::Key::W || key_pressed->code == sf::Keyboard::Key::Up)
         {
-            if (player_->tryToMove(0.f, -step))
+            if (player_->tryToMove(0.f, -step, cam_top))
             {
                 player_->addScore();
                 score_ = player_->getScore();
@@ -61,22 +63,22 @@ void PlayingState::handleEvent(const sf::Event &event)
         }
         else if (key_pressed->code == sf::Keyboard::Key::S || key_pressed->code == sf::Keyboard::Key::Down)
         {
-            player_->tryToMove(0.f, step);
+            player_->tryToMove(0.f, step, cam_top);
         }
         else if (key_pressed->code == sf::Keyboard::Key::A || key_pressed->code == sf::Keyboard::Key::Left)
         {
-            player_->tryToMove(-step, 0.f);
+            player_->tryToMove(-step, 0.f, cam_top);
         }
         else if (key_pressed->code == sf::Keyboard::Key::D || key_pressed->code == sf::Keyboard::Key::Right)
         {
-            player_->tryToMove(step, 0.f);
+            player_->tryToMove(step, 0.f, cam_top);
         }
     }
 }
 
 void PlayingState::update(float dt)
 {
-    // If the game was just unpaused, skip this frame's update 
+    // If the game was just unpaused, skip this frame's update
     // to prevent massive Delta Time spikes from breaking entity positions
     if (is_resuming_)
     {
@@ -84,7 +86,8 @@ void PlayingState::update(float dt)
         return;
     }
 
-    if (!player_) return;
+    if (!player_)
+        return;
 
     // Update player logic and animations
     player_->update(dt);
@@ -109,7 +112,7 @@ void PlayingState::render(sf::RenderWindow &window)
     // STEP 1: Apply the dynamic mobile camera view to render the game world
     window.setView(view_);
     map_.render(window);
-    
+
     if (player_)
     {
         player_->render(window);
@@ -134,3 +137,27 @@ void PlayingState::resume()
     // Trigger the resume flag to ignore the next heavily delayed frame update
     is_resuming_ = true;
 }
+
+// /// Add later in gameover_state
+// #include <algorithm>
+// #include <fstream>
+
+// void updateLeaderboard(SharedContext *context, int new_score)
+// {
+//     auto &scores = context->data->high_scores;
+
+//     scores.push_back(new_score);
+//     std::sort(scores.begin(), scores.end(), std::greater<int>());
+
+//     if (scores.size() > 5)
+//     {
+//         scores.resize(5);
+//     }
+
+//     std::ofstream file("data/highscore.bin", std::ios::binary);
+//     if (file.is_open())
+//     {
+//         file.write(reinterpret_cast<const char *>(scores.data()), scores.size() * sizeof(int));
+//         file.close();
+//     }
+// }

@@ -2,8 +2,8 @@
 #include "utils/constants.h"
 #include <iostream>
 
-RankingState::RankingState(StateMachine &state_machine)
-    : state_machine_(state_machine)
+RankingState::RankingState(SharedContext *context)
+    : State(context)
 {
 }
 
@@ -26,18 +26,20 @@ void RankingState::setupUI(const sf::Font &font)
     float title_x = (Constants::WINDOW_WIDTH - title_bounds.size.x) / 2.0f;
     title_text_->setPosition({title_x, 150.0f});
 
-    std::vector<std::string> rankings = {
-        "1. PLAYER 1 ............ 9999",
-        "2. PLAYER 2 ............ 8500",
-        "3. PLAYER 3 ............ 7200",
-        "4. PLAYER 4 ............ 6100",
-        "5. PLAYER 5 ............ 5000",
-        "",
-        "Press ESC to go back"};
+    std::vector<std::string> rankings;
+    for (size_t i = 0; i < 5; ++i)
+    {
+        int score = context_->data->high_scores[i];
+        rankings.push_back(std::to_string(i + 1) + ". PLAYER ............ " + std::to_string(score));
+    }
+
+    rankings.push_back("");
+    rankings.push_back("Press ESC to go back");
 
     float initial_y = 300.0f;
     float spacing = 60.0f;
-
+    
+    ranking_texts_.clear();
     for (size_t i = 0; i < rankings.size(); ++i)
     {
         auto ranking_text = std::make_unique<sf::Text>(font);
@@ -61,7 +63,7 @@ void RankingState::handleEvent(const sf::Event &event)
     {
         if (key_pressed->code == sf::Keyboard::Key::Escape)
         {
-            state_machine_.removeState();
+            context_->state_machine->removeState();
         }
     }
 }

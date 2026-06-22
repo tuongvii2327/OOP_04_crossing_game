@@ -6,9 +6,8 @@
 #include "utils/resource_manager.h"
 #include <iostream>
 
-
-PauseState::PauseState(StateMachine &state_machine)
-    : state_machine_(state_machine), selected_index_(0)
+PauseState::PauseState(SharedContext *context)
+    : State(context), selected_index_(0)
 {
 }
 
@@ -81,27 +80,24 @@ void PauseState::handleEvent(const sf::Event &event)
         {
             if (selected_index_ == 0)
             {
-                state_machine_.removeState(); // nhánh 'select continue'
+                context_->state_machine->removeState();
             }
             else if (selected_index_ == 1)
             {
-                // 'select save'
-                state_machine_.addState(std::make_unique<SaveState>(state_machine_), false);
+                context_->state_machine->addState(std::make_unique<SaveState>(context_), false);
             }
             else if (selected_index_ == 2)
             {
-                // 'select setting'
-                state_machine_.addState(std::make_unique<SettingState>(state_machine_), false);
+                context_->state_machine->addState(std::make_unique<SettingState>(context_), false);
             }
             else if (selected_index_ == 3)
             {
-                // 'select home'
-                state_machine_.replaceRootState(std::make_unique<HomeState>(state_machine_));
+                context_->state_machine->replaceRootState(std::make_unique<HomeState>(context_));
             }
         }
         else if (key_pressed->code == sf::Keyboard::Key::Escape)
         {
-            state_machine_.removeState();
+            context_->state_machine->removeState();
         }
     }
 }
@@ -115,9 +111,9 @@ void PauseState::update(float delta_time)
 void PauseState::render(sf::RenderWindow &window)
 {
     window.draw(background_overlay_);
-    if (title_text_) 
+    if (title_text_)
     {
-        window.draw(*title_text_); 
+        window.draw(*title_text_);
     }
     for (const auto &menu_text : menu_texts_)
     {

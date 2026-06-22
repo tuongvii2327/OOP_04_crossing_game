@@ -2,6 +2,7 @@
 
 #include "core/state_machine.h"
 #include "states/state.h"
+#include "utils/shared_context.h"
 #include <SFML/Graphics.hpp>
 #include <string>
 #include <vector>
@@ -9,8 +10,6 @@
 class HomeState : public State
 {
 private:
-    StateMachine &state_machine_;
-
     std::unique_ptr<sf::Text> title_text_;
     std::vector<std::unique_ptr<sf::Text>> menu_options_;
     int selected_index_;
@@ -22,7 +21,7 @@ private:
     void executeChoice(int index);
 
 public:
-    HomeState(StateMachine &state_machine);
+    HomeState(SharedContext *context);
     ~HomeState() = default;
 
     // Initialize home screen UI

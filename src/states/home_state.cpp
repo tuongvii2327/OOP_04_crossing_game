@@ -7,9 +7,12 @@
 #include "states/playing_state.h"
 #include "states/ranking_state.h"
 #include "states/setting_state.h"
+#include "utils/shared_context.h"
 
-
-HomeState::HomeState(StateMachine &state_machine) : state_machine_(state_machine), selected_index_(0) {}
+HomeState::HomeState(SharedContext *context)
+    : State(context), selected_index_(0)
+{
+}
 
 // Apply text formatting and center positioning
 void HomeState::setupMenuOption(sf::Text &text, const std::string &str, float y_position)
@@ -136,27 +139,23 @@ void HomeState::executeChoice(int index)
     {
     case 0:
         std::cout << "Transition to: Playing\n";
-        state_machine_.addState(std::make_unique<PlayingState>(state_machine_), true);
+        context_->state_machine->addState(std::make_unique<PlayingState>(context_), true);
         break;
-
     case 1:
         std::cout << "Transition to: Load File\n";
-        state_machine_.addState(std::make_unique<LoadState>(state_machine_), false);
+        context_->state_machine->addState(std::make_unique<LoadState>(context_), false);
         break;
-
     case 2:
         std::cout << "Transition to: Settings\n";
-        state_machine_.addState(std::make_unique<SettingState>(state_machine_), false);
+        context_->state_machine->addState(std::make_unique<SettingState>(context_), false);
         break;
-
     case 3:
         std::cout << "Transition to: Ranking\n";
-        state_machine_.addState(std::make_unique<RankingState>(state_machine_), false);
+        context_->state_machine->addState(std::make_unique<RankingState>(context_), false);
         break;
-
     case 4:
         std::cout << "Exit game!\n";
-        state_machine_.removeState();
+        context_->state_machine->removeState();
         break;
     }
 }

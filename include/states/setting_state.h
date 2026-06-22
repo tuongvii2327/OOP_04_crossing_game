@@ -2,24 +2,18 @@
 
 #include "core/state_machine.h"
 #include "states/state.h"
+#include "utils/shared_context.h"
 #include <SFML/Graphics.hpp>
 #include <memory>
 #include <string>
 #include <vector>
 
-
 class SettingState : public State
 {
 private:
-    StateMachine &state_machine_;
-
     std::unique_ptr<sf::Text> title_text_;
     std::vector<std::unique_ptr<sf::Text>> setting_texts_;
     int selected_index_;
-
-    int music_volume_;
-    int sfx_volume_;
-    bool is_hard_mode_;
 
     void setupUI(const sf::Font &font);
     void updateUI();
@@ -29,7 +23,7 @@ private:
     void decreaseSetting();
 
 public:
-    SettingState(StateMachine &state_machine);
+    SettingState(SharedContext *context);
     ~SettingState() override = default;
 
     void init() override;

@@ -4,7 +4,9 @@
 #include "entities/people.h"
 #include "states/state.h"
 #include "utils/resource_manager.h"
+#include "utils/shared_context.h"
 #include "world/map.h"
+
 
 #include <SFML/Graphics.hpp>
 #include <memory>
@@ -12,8 +14,6 @@
 class PlayingState : public State
 {
 private:
-    StateMachine &state_machine_;
-
     std::unique_ptr<sf::Text> score_text_;
     int score_;
     bool is_resuming_ = false;
@@ -26,7 +26,7 @@ private:
     sf::View view_;
 
 public:
-    PlayingState(StateMachine &state_machine);
+    PlayingState(SharedContext *context);
     ~PlayingState() = default;
 
     // Initialize UI resources, player position, and generate the initial map
