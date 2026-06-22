@@ -2,11 +2,11 @@
 
 #include "core/state_machine.h"
 #include "entities/people.h"
+#include "states/game_over_state.h"
 #include "states/state.h"
 #include "utils/resource_manager.h"
 #include "utils/shared_context.h"
 #include "world/map.h"
-
 
 #include <SFML/Graphics.hpp>
 #include <memory>

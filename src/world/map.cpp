@@ -43,7 +43,7 @@ void Map::spawnLane()
     sf::Vector2f spawn_position(0.f, highest_y);
 
     Lane *new_lane = new Lane(spawn_position, current_level, direction, type);
-    
+
     lanes.push_front(new_lane);
     highest_y -= lane_height;
 }
@@ -78,7 +78,7 @@ void Map::update(float camera_top_y, float camera_bottom_y, float delta_time)
             current_level++;
         }
     }
-    
+
     // Cập nhật xe chạy (Đã vá chuẩn C++)
     for (Lane *lane : lanes)
     {
@@ -92,4 +92,16 @@ void Map::render(sf::RenderWindow &window) const
     {
         (*it)->render(window);
     }
+}
+
+bool Map::checkLethalCollision(const sf::FloatRect &player_hitbox) const
+{
+    for (const Lane *lane : lanes)
+    {
+        if (lane->checkLethalCollision(player_hitbox))
+        {
+            return true;
+        }
+    }
+    return false;
 }

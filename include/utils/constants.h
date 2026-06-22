@@ -73,6 +73,8 @@ namespace Constants
 
     enum class ObjectType
     {
+        // Character object
+        People,
         // Road object
         Car,
         Truck,

@@ -30,7 +30,7 @@ void RankingState::setupUI(const sf::Font &font)
     for (size_t i = 0; i < 5; ++i)
     {
         int score = context_->data->high_scores[i];
-        rankings.push_back(std::to_string(i + 1) + ". PLAYER ............ " + std::to_string(score));
+        rankings.push_back("TOP " + std::to_string(i + 1) + ".............. " + std::to_string(score));
     }
 
     rankings.push_back("");
@@ -38,7 +38,7 @@ void RankingState::setupUI(const sf::Font &font)
 
     float initial_y = 300.0f;
     float spacing = 60.0f;
-    
+
     ranking_texts_.clear();
     for (size_t i = 0; i < rankings.size(); ++i)
     {

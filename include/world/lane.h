@@ -79,4 +79,5 @@ public:
 	Traffic* getNearestTrafficAhead(const Vehicle& vehicle);
 	Vehicle* getNearestVehicleAhead(const Vehicle& vehicle);
 	Animal* getNearestAnimalAhead(const Animal& animal);
+	bool checkLethalCollision(const sf::FloatRect& player_hitbox) const;
 };

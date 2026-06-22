@@ -16,7 +16,8 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 file(GLOB_RECURSE HEADERS "include/*.h" "include/*.hpp")
 
 # CHỈ TRUYỀN 2 BIẾN QUÉT TỰ ĐỘNG VÀO ĐÂY, KHÔNG ĐIỀN TÊN FILE THỦ CÔNG
-add_executable(CrossyRoad ${SOURCES} ${HEADERS})
+add_executable(CrossyRoad ${SOURCES} ${HEADERS}
+    src/states/game_over_state.cpp)
 
 if(MSVC)
     target_include_directories(CrossyRoad PRIVATE include)

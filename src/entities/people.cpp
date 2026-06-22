@@ -1,38 +1,60 @@
 #include "../include/entities/people.h"
-
-#include <SFML/Graphics.hpp>
-const int TILE_SIZE = 105;
+#include "../include/utils/constants.h"
+#include <iostream>
 
 People::People()
+    : Object(Constants::ObjectType::People, Constants::ObjectColor::None, nullptr),
+      is_dead(false),
+      score(0),
+      step_size(50.0f)
 {
-    // player's position
-    position = sf::Vector2f(Constants::WINDOW_WIDTH / 2.f, Constants::WINDOW_HEIGHT - 50.f);
+    resetPosition();
+}
 
-    // setting game's state
-    is_dead = false;
-    score = 0;
-
-    shape.setSize(sf::Vector2f(50.0f, 50.0f));
-    step_size = 50.0f;
-    shape.setFillColor(sf::Color::Green);
-    shape.setPosition(position);
-
-    // current_frame = sf::IntRect(0,0,50,50); //Initialize the animation frame
-
-    // sprite.setTexture(texture);
-    // sprite.setTextureRect(current_frame); //set the crop
-    // sprite.setPosition(position);
+People::People(const sf::Texture &texture)
+    : Object(Constants::ObjectType::People, Constants::ObjectColor::None, nullptr),
+      is_dead(false),
+      score(0),
+      step_size(50.0f)
+{
+    setSprite(texture);
+    resetPosition();
 }
 
 People::People(float x, float y)
+    : Object(Constants::ObjectType::People, Constants::ObjectColor::None, nullptr),
+      is_dead(false),
+      score(0),
+      step_size(50.0f)
 {
     position = sf::Vector2f(x, y);
+    sprite.setPosition(position);
+    setHitbox();
+}
 
-    is_dead = false;
-    score = 0;
-    shape.setSize(sf::Vector2f(50.0f, 50.0f));
-    shape.setFillColor(sf::Color::Green);
-    shape.setPosition(position);
+Constants::ObjectType People::getType() const
+{
+    return Constants::ObjectType::People;
+}
+
+Constants::ObjectColor People::getColor() const
+{
+    return Constants::ObjectColor::None;
+}
+
+void People::updateState(float delta_time)
+{
+    if (is_dead || !is_active)
+        return;
+
+    // Nơi xử lý logic đếm lùi frame chuyển động (Animation) sau này
+}
+
+bool People::isColliding(const sf::FloatRect &other_hitbox) const
+{
+    if (is_dead || !is_active)
+        return false;
+    return hitbox.findIntersection(other_hitbox).has_value();
 }
 
 void People::move(float dx, float dy)
@@ -42,148 +64,49 @@ void People::move(float dx, float dy)
 
     position.x += dx;
     position.y += dy;
-    shape.setPosition(position);
+    sprite.setPosition(position);
+    setHitbox();
 }
 
 bool People::tryToMove(float dx, float dy, float camera_top_y)
 {
+    if (is_dead)
+        return false;
+
     float target_x = position.x + dx;
     float target_y = position.y + dy;
 
-    if (target_x < 0 || target_x >= Constants::WINDOW_WIDTH ||
-        target_y < camera_top_y || target_y >= (camera_top_y + Constants::WINDOW_HEIGHT))
+    if (target_x < 0 || (target_x + getWidthSprite()) > Constants::WINDOW_WIDTH ||
+        target_y < camera_top_y || target_y > (camera_top_y + Constants::WINDOW_HEIGHT))
+    {
         return false;
+    }
 
     move(dx, dy);
     return true;
 }
-
-float People::getX() const
-{
-    return this->position.x;
-}
-
-float People::getY() const
-{
-    return this->position.y;
-}
-
-float People::getWidth() const
-{
-    return this->width;
-}
-
-float People::getHeight() const
-{
-    return this->height;
-}
-
-sf::FloatRect People::getBounds() const // return the boundary of the player
-{
-    return shape.getGlobalBounds();
-}
-
-// bool People::isImpact(const Vehicle* vehicle) const
-// {
-//     if(vehicle == nullptr)
-//     {
-//          return false;
-//     }
-
-//     sf::FloatRect vehicle_rect(vehicle->getX(), vehicle->getY(), vehicle->getWidth(), vehicle->getHeight());
-//     return getBounds().intersects(vehicle_rect);
-// }
-
-// bool People::isImpact(const Animal* animal) const
-// {
-//     if(animal == nullptr)
-//     {
-//          return false;
-//     }
-
-//     sf::FloatRect animal_rect(animal->getX(), animal->getY(), animal->getWidth(), animal->getHeight());
-//     return getBounds().intersects(animal_rect);
-// }
-
-// bool People::isImpact(const Coin* coin) const
-// {
-//     if(coin == nullptr)
-//     {
-//          return false;
-//     }
-
-//     sf::FloatRect coin_rect(coin->getX(), coin->getY(), coin->getWidth(), coin->getHeight());
-//     return getBounds().intersects(coin_rect);
-// }
-
-// bool People::isImpact(const Obstacle* obstacle) const
-// {
-//     if(obstacle == nullptr)
-//     {
-//          return false;
-//     }
-
-//     sf::FloatRect obstacle_rect(obstacle->getX(), obstacle->getY(), obstacle->getWidth(), obstacle->getHeight());
-//     return getBounds().intersects(obstacle_rect);
-// }
 
 void People::die()
 {
     is_dead = true;
 }
 
+bool People::isDead() const
+{
+    return is_dead;
+}
+
 void People::resetPosition()
 {
-    // restart at where we start
-    position = sf::Vector2f(Constants::WINDOW_WIDTH / 2.f, Constants::WINDOW_HEIGHT - 50.f);
+    float start_x = Constants::WINDOW_WIDTH / 2.f;
+
+    float start_y = Constants::WINDOW_HEIGHT - (Constants::LANE_HEIGHT * 1.5f);
+
+    position = sf::Vector2f(start_x, start_y);
+    sprite.setPosition(position);
+    setHitbox();
+
     is_dead = false;
-    shape.setPosition(position);
-
-    // sprite.setPosition(position);
-}
-
-void People::render(sf::RenderWindow &window)
-{
-    window.draw(shape);
-}
-
-// void People::render(sf::RenderWindow& window){
-
-//     //apply the crop to the sprite
-//     sprite.setTextureRect(current_frame);
-
-//     //set position of the sprite
-//     sprite.setPosition(position);
-//     window.draw(sprite);
-// }
-
-void People::update(float delta_time)
-{
-    if (is_dead)
-    {
-        return;
-    }
-
-    // if(animation_clock.getElapsedTime().asSeconds() > 0.15f) // Check if it's time to cycle the animation frame
-    // {
-    //     current_frame.left += 50;
-    //     if(current_frame.left >= 200) // Loop back to the start if we've passed the last frame
-    //     {
-    //         current_frame.left = 0;
-    //     }
-
-    //     animation_clock.restart();
-    // }
-}
-
-sf::Vector2f People::getPosition() const
-{
-    return position;
-}
-
-int People::getScore() const
-{
-    return score;
 }
 
 void People::addScore()
@@ -191,13 +114,12 @@ void People::addScore()
     score++;
 }
 
-People::People(const sf::Texture &texture)
+int People::getScore() const
 {
-    position = sf::Vector2f(Constants::WINDOW_WIDTH / 2.f, Constants::WINDOW_HEIGHT - 50.f);
-    is_dead = false;
-    score = 0;
+    return score;
+}
 
-    shape.setSize(sf::Vector2f(50.0f, 50.0f));
-    shape.setFillColor(sf::Color::Green);
-    shape.setPosition(position);
+sf::FloatRect People::getBounds() const
+{
+    return sprite.getGlobalBounds();
 }

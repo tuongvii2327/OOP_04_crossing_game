@@ -89,8 +89,14 @@ void PlayingState::update(float dt)
     if (!player_)
         return;
 
+    if (player_->isDead())
+    {
+        // stopping the game when player is dead, can be changed to transition to a GameOverState later
+        return;
+    }
+
     // Update player logic and animations
-    player_->update(dt);
+    player_->updateState(dt);
 
     // Camera calculation: Push the view center upwards when the player passes the halfway mark
     float current_center_y = view_.getCenter().y;
@@ -105,6 +111,35 @@ void PlayingState::update(float dt)
 
     // Update Map: Spawn lanes at the top, clear hidden lanes at the bottom, and advance vehicles
     map_.update(camera_top_y, camera_bottom_y, dt);
+
+    if (!player_->isDead())
+    {
+        // crash cars
+        if (map_.checkLethalCollision(player_->getHitBox()))
+        {
+            std::cout << "[PlayingState] PLAYER KILLED BY VEHICLE!\n";
+            player_->die();
+
+            context_->data->current_score = score_;
+
+            context_->state_machine->addState(std::make_unique<GameOverState>(context_), false);
+            return;
+        }
+        else if (player_->getPosition().y > camera_bottom_y)
+        {
+            std::cout << "[PlayingState] PLAYER SWEEPT BY CAMERA!\n";
+            player_->die();
+
+            context_->data->current_score = score_;
+            context_->state_machine->addState(std::make_unique<GameOverState>(context_), false);
+            return;
+        }
+    }
+    else
+    {
+        // add later: trans to game over state
+        std::cout << "Game Over! \n";
+    }
 }
 
 void PlayingState::render(sf::RenderWindow &window)
