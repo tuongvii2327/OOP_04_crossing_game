@@ -5,7 +5,6 @@
 People::People()
     : Object(Constants::ObjectType::People, Constants::ObjectColor::None, nullptr),
       is_dead(false),
-      score(0),
       step_size(static_cast<float>(Constants::LANE_HEIGHT))
 {
     resetPosition();
@@ -14,7 +13,6 @@ People::People()
 People::People(const sf::Texture &texture)
     : Object(Constants::ObjectType::People, Constants::ObjectColor::None, nullptr),
       is_dead(false),
-      score(0),
       step_size(static_cast<float>(Constants::LANE_HEIGHT))
 {
     sprite.setTexture(texture, true);
@@ -32,7 +30,6 @@ People::People(const sf::Texture &texture)
 People::People(float x, float y)
     : Object(Constants::ObjectType::People, Constants::ObjectColor::None, nullptr),
       is_dead(false),
-      score(0),
       step_size(static_cast<float>(Constants::LANE_HEIGHT)) // Sửa 50.0f thành LANE_HEIGHT
 {
     position = sf::Vector2f(x, y);
@@ -119,16 +116,6 @@ void People::resetPosition()
     is_dead = false;
 }
 
-void People::addScore()
-{
-    score++;
-}
-
-int People::getScore() const
-{
-    return score;
-}
-
 sf::FloatRect People::getBounds() const
 {
     return sprite.getGlobalBounds();
@@ -147,7 +134,6 @@ bool People::handleEvent(const sf::Event &event, float camera_top_y)
     {
         if (tryToMove(0.f, -step_size, camera_top_y))
         {
-            addScore();
             return true;
         }
     }

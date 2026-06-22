@@ -7,7 +7,6 @@ class People : public Object
 {
 private:
     bool is_dead;
-    int score;
     float step_size;
 
 public:
@@ -27,9 +26,6 @@ public:
     void die();
     bool isDead() const;
     void resetPosition();
-
-    void addScore();
-    int getScore() const;
 
     sf::FloatRect getBounds() const;
     bool handleEvent(const sf::Event &event, float camera_top_y);
