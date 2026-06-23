@@ -6,6 +6,8 @@
 #include <utility>
 #include <vector>
 #include <deque>
+#include <limits>
+#include <memory>
 
 #include "../utils/constants.h"
 #include <SFML/Graphics.hpp>
@@ -24,8 +26,8 @@ private:
 	int direction; // 1 = move right, -1 = move left
 	bool is_active = 0;
 	int num_active_object = 0;
-	std::deque<Object*> list_obj;
-	std::vector<Traffic*> list_traffic;
+	std::deque<std::unique_ptr<Object>> list_obj;
+	std::vector<std::unique_ptr<Traffic>> list_traffic;
 	Constants::LaneType type;
 
 protected:

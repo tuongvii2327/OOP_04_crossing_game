@@ -1,5 +1,8 @@
 #include "../include/world/lane.h"
 
+#include "../include/entities/traffic_light.h"
+#include "../include/entities/car.h"
+#include "../include/entities/truck.h"
 #include "../include/entities/bird.h"
 #include "../include/entities/car.h"
 #include "../include/entities/rabit.h"
@@ -15,7 +18,6 @@ void Lane::moveBy(sf::Vector2f offset)
     setPosition(position + offset);
 }
 
-// reference into ResourceManager's cache (stays alive for the sprite's lifetime)
 const sf::Texture &Lane::getTexture(const Constants::LaneType &type, int direction) const
 {
     return ResourceManager::getLaneTexture(type, direction);
@@ -46,33 +48,32 @@ int Lane::randomRange(const int &start, const int &end)
 void Lane::seedObjects()
 {
     int count = std::min(randomRange(1, 2), static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
-    float lane_left = position.x;
     float slot = Constants::LANE_WIDTH / static_cast<float>(count + 1);
     for (int i = 0; i < count; ++i)
     {
         Constants::ObjectColor color = static_cast<Constants::ObjectColor>(
             randomRange(0, static_cast<int>(Constants::ObjectColor::None) - 1));
-        Object *obj = nullptr;
+        std::unique_ptr<Object> obj;
         if (type == Constants::LaneType::Grass)
             obj = (randomRange(0, 1) == 0)
-                      ? static_cast<Object *>(new Bird(color, this))
-                      : static_cast<Object *>(new Rabit(color, this));
-        else
+                      ? std::unique_ptr<Object>(std::make_unique<Bird>(color, this))
+                      : std::unique_ptr<Object>(std::make_unique<Rabit>(color, this));
+        else if (type == Constants::LaneType::Road)
             obj = (randomRange(0, 1) == 0)
-                      ? static_cast<Object *>(new Car(color, this))
-                      : static_cast<Object *>(new Truck(color, this));
+                      ? std::unique_ptr<Object>(std::make_unique<Car>(color, this))
+                      : std::unique_ptr<Object>(std::make_unique<Truck>(color, this));
 
-        float x = lane_left + slot * (i + 1) - obj->getWidthSprite() / 2.f;
-        obj->setPosition({x, position.y});
-        list_obj.push_back(obj);
+        float x = position.x + slot * (i + 1) - obj->getWidthSprite() / 2.f;
+        obj->setPosition({x, 0}); // position.y calculated by Object
+        list_obj.push_back(std::move(obj));
     }
-    // front() = exit edge (largest x*direction), back() = entry edge (smallest x*direction)
+
     std::sort(list_obj.begin(), list_obj.end(),
-              [this](const Object *a, const Object *b)
+              [this](const std::unique_ptr<Object> &a, const std::unique_ptr<Object> &b)
               {
                   return a->getPosition().x * direction > b->getPosition().x * direction;
               });
-    num_active_object = static_cast<int>(list_obj.size()); // all seeded objects start active
+    num_active_object = static_cast<int>(list_obj.size());
 }
 
 // populate list_traffic with 0-2 lights on Road lanes only.
@@ -85,34 +86,25 @@ void Lane::seedTraffic()
 
     const float margin = 2.f * Constants::CELL_SIZE;
     const float gap_min = 3.f * Constants::CELL_SIZE;
-    const float usable = Constants::LANE_WIDTH - 2.f * margin; // space between the two margins
+    const float usable = Constants::LANE_WIDTH - 2.f * margin;
 
-    // slot = usable / (count+1); gap between 2 lights = slot, need slot >= gap_min
-    // => usable / (count+1) >= gap_min => usable >= gap_min * (count+1)
-    // for count=2: usable >= 3*gap_min; for count=1: usable >= 2*gap_min (always fits 1 if usable>=0)
-    int max_count = (usable >= 3.f * gap_min) ? 2 : (usable >= 0.f ? 1 : 0);
-    int count = randomRange(0, max_count);
+    int count = randomRange(0, 2);
     if (count == 0)
         return;
 
-    float lane_left = position.x;
-
-    // place lights by dividing [margin, LANE_WIDTH - margin] into (count+1) equal slots
-    float slot = usable / static_cast<float>(count + 1);
+    int slot = usable / (count + 1);
     for (int i = 0; i < count; ++i)
     {
-        // enforce minimum gap: if slot < gap_min the second light would be too close,
-        // but max_count already prevents that case so slot >= gap_min / (count+1) * count here
-        float x = lane_left + margin + slot * (i + 1);
+        float x = position.x + margin + slot * (i + 1);
         Constants::TrafficLightColor color = (randomRange(0, 1) == 0)
                                                  ? Constants::TrafficLightColor::Green
                                                  : Constants::TrafficLightColor::Red;
-        Traffic *light = new Traffic(this, color, static_cast<float>(randomRange(0, 4)));
-        light->setPosition({x, position.y});
-        list_traffic.push_back(light);
+        std::unique_ptr<Traffic> light = std::make_unique<Traffic>(this, color);
+        light->setPosition({x, 0}); // position.y calculated by Object
+        list_traffic.push_back(std::move(light));
     }
     std::sort(list_traffic.begin(), list_traffic.end(),
-              [this](const Traffic *a, const Traffic *b)
+              [this](const std::unique_ptr<Traffic> &a, const std::unique_ptr<Traffic> &b)
               {
                   return a->getPosition().x * direction < b->getPosition().x * direction;
               });
@@ -137,19 +129,7 @@ Lane::Lane(const sf::Vector2f &init_position,
     seedTraffic();
 }
 
-Lane::~Lane()
-{
-    for (auto obj : list_obj)
-    {
-        delete obj;
-        obj = nullptr;
-    }
-    for (auto obj : list_traffic)
-    {
-        delete obj;
-        obj = nullptr;
-    }
-}
+Lane::~Lane() = default;
 
 sf::Sprite Lane::getSprite() const
 {
@@ -249,28 +229,29 @@ void Lane::checkActive()
 
 void Lane::updateState(float delta_time)
 {
-    for (auto o : list_obj)
+    for (auto &o : list_obj)
         o->updateState(delta_time);
-    for (auto t : list_traffic)
+    for (auto &t : list_traffic)
         t->updateState(delta_time);
 
     // recount active objects (source of truth: objects deactivate themselves in updateState)
     num_active_object = 0;
-    for (auto o : list_obj)
+    for (auto &o : list_obj)
         if (o->isActive())
             ++num_active_object;
 
+    checkActive();
     spawnObject();
 }
 
 void Lane::render(sf::RenderWindow &window) const
 {
     window.draw(sprite);
-    for (auto o : list_obj)
+    for (const auto &o : list_obj)
     {
         o->render(window);
     }
-    for (auto t : list_traffic)
+    for (const auto &t : list_traffic)
     {
         t->render(window);
     }
@@ -283,13 +264,13 @@ void Lane::spawnLane(const sf::Vector2f &new_position, const int &new_level, con
     if (new_direction != direction)
     {
         setDirection(new_direction);
-        for (auto o : list_obj)
+        for (auto &o : list_obj)
         {
             o->setDirection(new_direction);
             // direction changed => flip travel sign (y stays 0)
             o->setVelocity({-o->getVelocity().x, o->getVelocity().y});
         }
-        for (auto t : list_traffic)
+        for (auto &t : list_traffic)
         {
             t->setDirection(new_direction);
         }
@@ -299,10 +280,10 @@ void Lane::spawnLane(const sf::Vector2f &new_position, const int &new_level, con
     float lane_left = position.x;
     int lo = static_cast<int>(0.1f * Constants::LANE_WIDTH);
     int hi = static_cast<int>(0.9f * Constants::LANE_WIDTH);
-    for (auto t : list_traffic)
+    for (auto &t : list_traffic)
         t->setPosition({lane_left + static_cast<float>(randomRange(lo, hi)), position.y});
     std::sort(list_traffic.begin(), list_traffic.end(),
-              [this](const Traffic *a, const Traffic *b)
+              [this](const std::unique_ptr<Traffic> &a, const std::unique_ptr<Traffic> &b)
               {
                   return a->getPosition().x * direction < b->getPosition().x * direction;
               });
@@ -319,7 +300,7 @@ void Lane::spawnObject()
 
     // Only spawn once the most-recently-entered object (back of the deque)
     // has cleared the entry edge, so a new object won't overlap it.
-    Object *last_obj = list_obj.back();
+    Object *last_obj = list_obj.back().get();
     float lane_left = position.x;
     float lane_right = position.x + Constants::LANE_WIDTH;
     float entered_distance = (direction == 1)
@@ -342,16 +323,18 @@ void Lane::spawnObject()
         {
             if ((*o)->getType() == exp_type && (*o)->getColor() == exp_color)
             {
-                Animal *target = dynamic_cast<Animal *>(*o);
+                Animal *target = dynamic_cast<Animal *>(o->get());
                 if (target)
                 {
                     target->setActiveState(true);
                     target->setPosition(target->calcSpawnPosition());
                     target->setSpeed(target->randomSpeed(exp_type));
                     target->setVelocity({target->getSpeed() * direction, 0.f});
+                    target->setMoveState(0);
                     target->setMoveState(1);
+                    std::unique_ptr<Object> moved = std::move(*o);
                     o = list_obj.erase(o);
-                    list_obj.push_back(target);
+                    list_obj.push_back(std::move(moved));
                     is_spawn = true;
                 }
                 break;
@@ -361,9 +344,9 @@ void Lane::spawnObject()
         if (!is_spawn)
         {
             if (exp_type == Constants::ObjectType::Bird)
-                list_obj.push_back(new Bird(exp_color, this));
+                list_obj.push_back(std::make_unique<Bird>(exp_color, this));
             else
-                list_obj.push_back(new Rabit(exp_color, this));
+                list_obj.push_back(std::make_unique<Rabit>(exp_color, this));
         }
     }
     else if (type == Constants::LaneType::Road)
@@ -375,15 +358,16 @@ void Lane::spawnObject()
         {
             if ((*o)->getType() == exp_type && (*o)->getColor() == exp_color)
             {
-                Vehicle *target = dynamic_cast<Vehicle *>(*o);
+                Vehicle *target = dynamic_cast<Vehicle *>(o->get());
                 if (target)
                 {
                     target->setActiveState(true);
                     target->setPosition(target->calcSpawnPosition());
                     target->setBaseSpeed(target->randomSpeed(exp_type));
                     target->setVelocity({target->getBaseSpeed() * direction, 0.f});
+                    std::unique_ptr<Object> moved = std::move(*o);
                     o = list_obj.erase(o);
-                    list_obj.push_back(target);
+                    list_obj.push_back(std::move(moved));
                     is_spawn = true;
                 }
                 break;
@@ -393,9 +377,9 @@ void Lane::spawnObject()
         if (!is_spawn)
         {
             if (exp_type == Constants::ObjectType::Car)
-                list_obj.push_back(new Car(exp_color, this));
+                list_obj.push_back(std::make_unique<Car>(exp_color, this));
             else
-                list_obj.push_back(new Truck(exp_color, this));
+                list_obj.push_back(std::make_unique<Truck>(exp_color, this));
         }
     }
 }
@@ -406,7 +390,7 @@ Traffic *Lane::getNearestTrafficAhead(const Vehicle &vehicle)
                              ? (vehicle.getPosition().x + vehicle.getWidthSprite() + Constants::VISUAL_DISTANCE)
                              : (vehicle.getPosition().x - Constants::TRAFFIC_WIDTH - Constants::VISUAL_DISTANCE);
     auto it = std::lower_bound(list_traffic.begin(), list_traffic.end(), min_distance,
-                               [this](const Traffic *t, float val)
+                               [this](const std::unique_ptr<Traffic> &t, float val)
                                {
                                    return t->getPosition().x * direction < val * direction;
                                });
@@ -414,7 +398,7 @@ Traffic *Lane::getNearestTrafficAhead(const Vehicle &vehicle)
     {
         if ((*it)->getTrafficColor() == Constants::TrafficLightColor::Red)
         {
-            return *it;
+            return it->get();
         }
         if ((*it)->getTrafficColor() == Constants::TrafficLightColor::Yellow)
         {
@@ -423,7 +407,7 @@ Traffic *Lane::getNearestTrafficAhead(const Vehicle &vehicle)
                                         ? ((*it)->getPosition().x + Constants::TRAFFIC_WIDTH + (*it)->getWidthSprite())
                                         : ((*it)->getPosition().x + Constants::TRAFFIC_WIDTH);
             if (position_after_yellow * direction < target_position * direction)
-                return *it;
+                return it->get();
         }
         ++it;
     }
@@ -436,11 +420,11 @@ Vehicle *Lane::getNearestVehicleAhead(const Vehicle &vehicle)
     // correct regardless of runtime drift in sort order (objects move at different speeds).
     Vehicle *nearest = nullptr;
     float nearest_gap = std::numeric_limits<float>::max();
-    for (auto *obj : list_obj)
+    for (auto &obj : list_obj)
     {
         if (!obj->isActive())
             continue;
-        Vehicle *v = dynamic_cast<Vehicle *>(obj);
+        Vehicle *v = dynamic_cast<Vehicle *>(obj.get());
         if (!v)
             continue;
         float gap = (v->getPosition().x - vehicle.getPosition().x) * direction;
@@ -459,11 +443,11 @@ Animal *Lane::getNearestAnimalAhead(const Animal &animal)
 {
     Animal *nearest = nullptr;
     float nearest_gap = std::numeric_limits<float>::max();
-    for (auto *obj : list_obj)
+    for (auto &obj : list_obj)
     {
         if (!obj->isActive())
             continue;
-        Animal *a = dynamic_cast<Animal *>(obj);
+        Animal *a = dynamic_cast<Animal *>(obj.get());
         if (!a)
             continue;
         float gap = (a->getPosition().x - animal.getPosition().x) * direction;
@@ -487,7 +471,7 @@ bool Lane::checkLethalCollision(const sf::FloatRect &player_hitbox) const
     if (!is_active)
         return false;
 
-    for (const Object *obj : list_obj)
+    for (const auto &obj : list_obj)
     {
         if (!obj->isActive())
             continue;
