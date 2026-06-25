@@ -229,10 +229,10 @@ void Lane::checkActive()
 
 void Lane::updateState(float delta_time)
 {
+    for (auto& t : list_traffic)
+        t->updateState(delta_time);
     for (auto &o : list_obj)
         o->updateState(delta_time);
-    for (auto &t : list_traffic)
-        t->updateState(delta_time);
 
     // recount active objects (source of truth: objects deactivate themselves in updateState)
     num_active_object = 0;
