@@ -30,7 +30,7 @@ void Lane::adjustSprite() {
 }
 
 int Lane::randomRange(const int &start, const int &end) {
-  static std::mt19937 rng(std::random_device{}());
+  static std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
   std::uniform_int_distribution<int> dist(start, end);
   return static_cast<int>(dist(rng));
 }

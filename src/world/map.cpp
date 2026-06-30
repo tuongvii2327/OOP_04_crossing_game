@@ -23,14 +23,13 @@ void Map::initMap(float start_y) {
 }
 
 void Map::spawnLane() {
-  std::random_device rd;
-  std::mt19937 gen(rd());
+  static std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
   std::uniform_int_distribution<> Rand(0, 1);
 
   Constants::LaneType type =
-      (Rand(gen) == 0) ? Constants::LaneType::Grass : Constants::LaneType::Road;
+      (Rand(rng) == 0) ? Constants::LaneType::Grass : Constants::LaneType::Road;
 
-  int direction = (Rand(gen) == 0) ? 1 : -1;
+  int direction = (Rand(rng) == 0) ? 1 : -1;
 
   sf::Vector2f spawn_position(0.f, highest_y);
 
