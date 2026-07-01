@@ -42,9 +42,11 @@ int Lane::randomRange(const int &start, const int &end) {
 void Lane::seedObjects() {
   int count = std::min(randomRange(1, 2),
                        static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
-  float slot = Constants::LANE_WIDTH / static_cast<float>(count + 1);
+  
+  const float min_gap = Constants::CELL_SIZE * 1.5f; // minimum gap between objects
+
   for (int i = 0; i < count; ++i) {
-    Constants::ObjectColor color = static_cast<Constants::ObjectColor>(
+      Constants::ObjectColor color = static_cast<Constants::ObjectColor>(
         randomRange(0, static_cast<int>(Constants::ObjectColor::None) - 1));
     std::unique_ptr<Object> obj;
     if (type == Constants::LaneType::Grass)
@@ -56,16 +58,31 @@ void Lane::seedObjects() {
                 ? std::unique_ptr<Object>(std::make_unique<Car>(color, this))
                 : std::unique_ptr<Object>(std::make_unique<Truck>(color, this));
 
-    // Add random jitter (±20% of slot width) so objects don't line up across
-    // lanes
-    float jitter = slot * 0.2f;
-    float offset = static_cast<float>(
-        randomRange(static_cast<int>(-jitter), static_cast<int>(jitter)));
-    float x =
-        position.x + slot * (i + 1) + offset - obj->getWidthSprite() / 2.f;
-    // Clamp within lane bounds
-    x = std::clamp(x, position.x,
-                   position.x + Constants::LANE_WIDTH - obj->getWidthSprite());
+
+	float obj_width = obj->getWidthSprite();
+	float lane_left = position.x, lane_right = position.x + Constants::LANE_WIDTH - obj_width;
+    int range = lane_right - lane_left;
+    if (range < 0) {
+        range = 0;
+    }
+    float x = lane_left;
+    bool placed = false;
+    for (int tryy = 0; tryy < 10; tryy++) {
+        x = lane_left + randomRange(0, range);
+        bool overlap = false;
+        for (auto& other : list_obj) {
+            float other_x = other->getPosition().x;
+            float other_width = other->getWidthSprite();
+            if (x < other_x + other_width + min_gap && x + other_width + min_gap > other_x) {
+                overlap = true;
+                break;
+            }
+        }
+        if (!overlap) {
+            placed = true;
+            break;
+        }
+    }
 
     obj->setPosition({x, 0}); // position.y calculated by Object
     list_obj.push_back(std::move(obj));
