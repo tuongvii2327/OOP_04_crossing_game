@@ -11,13 +11,13 @@
 class Game
 {
 private:
-    sf::RenderWindow window;
-    StateMachine state_machine;
-    sf::Clock clock;
+	sf::RenderWindow window;
+	StateMachine state_machine;
+	sf::Clock clock;
 
-    GameConfig config_;
-    GameData data_;
-    SharedContext context_;
+	GameConfig config_;
+	GameData data_;
+	SharedContext context_;
 
 	// ResourceManager resource_manager;
 

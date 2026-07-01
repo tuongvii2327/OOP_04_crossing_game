@@ -15,16 +15,14 @@ float Animal::randomDuration() const
 
 #pragma region PUBLIC
 #pragma region CONSTRUCTOR, DESTRUCTOR
-//speed, velocity, is_move = 1, timer = 0, duration are calculated & set automactically
-//include #randomSpeed(), #randomDuration(), +setSpeed(), +setVelocity(), +setMoveState(), +setDuration()
-Animal::Animal(Constants::ObjectType type,
-	Constants::ObjectColor color,
-	Lane* init_lane)
+// speed, velocity, is_move = 1, timer = 0, duration are calculated & set automactically
+// include +randomSpeed(), +setSpeed(), +setVelocity(), +setMoveState()
+Animal::Animal(Constants::ObjectType type, Constants::ObjectColor color, Lane* init_lane)
 	: Object(type, color, init_lane)
 {
 	setSpeed(randomSpeed(type));
 	setVelocity({ speed * direction, 0 });
-	setMoveState(1); //set timer = 0 & random duration automatically here
+	setMoveState(1); // set timer = 0 & random duration automatically here
 }
 
 #pragma endregion
@@ -35,7 +33,7 @@ float Animal::getSpeed() const
 	return speed;
 }
 
-void Animal::setSpeed(const float& new_speed)
+void Animal::setSpeed(const float &new_speed)
 {
 	speed = new_speed;
 }
@@ -45,7 +43,7 @@ float Animal::getTimer() const
 	return timer;
 }
 
-void Animal::setTimer(const float& new_timer)
+void Animal::setTimer(const float &new_timer)
 {
 	timer = new_timer;
 }
@@ -55,7 +53,7 @@ float Animal::getDuration() const
 	return duration;
 }
 
-void Animal::setDuration(const float& new_duration)
+void Animal::setDuration(const float &new_duration)
 {
 	duration = new_duration;
 }
@@ -66,8 +64,8 @@ bool Animal::isMove() const
 }
 
 // set new duration and timer = 0 if new state != current state
-//include #randomDuration(), +setDuration(), +setTimer()
-void Animal::setMoveState(const bool& state)
+// include #randomDuration(), +setDuration(), +setTimer()
+void Animal::setMoveState(const bool &state)
 {
 	if (state != is_move)
 	{
@@ -79,11 +77,13 @@ void Animal::setMoveState(const bool& state)
 #pragma endregion
 
 #pragma region OTHER
-//void Animal::playAnimalSound()
-//{
+// void Animal::playAnimalSound()
+// {
 //
-//}
+// }
 
+// include +isOutOfLane(), +setMoveState(), +gapToObstacle(), #moveBy(), +setPosition(), +getPosition(), +getWidthSprite()
+// include +Lane::getNearestAnimalAhead()
 void Animal::updateState(float delta_time)
 {
 	if (isOutOfLane() || !is_active)
@@ -112,7 +112,7 @@ void Animal::updateState(float delta_time)
 	setPosition(getPosition());
 }
 
-bool Animal::isColliding(const sf::FloatRect& other_hitbox) const
+bool Animal::isColliding(const sf::FloatRect &other_hitbox) const
 {
 	return hitbox.findIntersection(other_hitbox).has_value();
 }

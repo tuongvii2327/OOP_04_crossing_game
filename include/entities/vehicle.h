@@ -7,9 +7,9 @@
 class Vehicle : public Object
 {
 protected:
-	//sf::Sound horn_sound;
+	// sf::Sound horn_sound;
 
-	float base_speed; // max speed of this vehicle
+	float base_speed;    // max speed of this vehicle
 	float safe_distance; // distance to brake or accelerate
 
 	float calcSafeDistance() const; // safe_distance = base_speed * SAFE_DISTANCE_FACTOR
@@ -18,22 +18,20 @@ protected:
 public:
 	// contructor, destructor
 	// base_speed, safe_distance, velocity are calculated & set automactically
-	Vehicle(Constants::ObjectType obj_type,
-		Constants::ObjectColor color,
-		Lane* init_lane = nullptr);
-		bool isLethal() const override { return true; }
+	Vehicle(Constants::ObjectType obj_type, Constants::ObjectColor color, Lane* init_lane = nullptr);
+	bool isLethal() const override { return true; }
 
 
 	// get, set
 	float getBaseSpeed() const;
-	void setBaseSpeed(const float& new_speed);
+	void setBaseSpeed(const float &new_speed);
 
 	float getSafeDistance() const;
 	// set safe_distance automatically when set base_speed
 
 
 	// Other
-	//void playHornSound();
+	// void playHornSound();
 	void updateState(float delta_time) override;
-	bool isColliding(const sf::FloatRect& other_hitbox) const override;
+	bool isColliding(const sf::FloatRect &other_hitbox) const override;
 };

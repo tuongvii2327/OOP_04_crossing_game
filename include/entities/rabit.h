@@ -9,12 +9,11 @@ protected:
 
 public:
 	// contructor, destructor
-	Rabit(const Constants::ObjectColor& init_color = Constants::ObjectColor::Pink,
-		Lane* init_lane = nullptr);
+	Rabit(const Constants::ObjectColor &init_color = Constants::ObjectColor::Pink, Lane* init_lane = nullptr);
 
 	// get, set
 	Constants::ObjectColor getColor() const override;
-	void setColor(const Constants::ObjectColor& type);
+	void setColor(const Constants::ObjectColor &type);
 
 	Constants::ObjectType getType() const override;
 };

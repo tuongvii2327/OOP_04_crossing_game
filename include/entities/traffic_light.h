@@ -15,9 +15,7 @@ protected:
 
 public:
 	// contructor, destructor
-	Traffic(Lane *init_lane = nullptr,
-		const Constants::TrafficLightColor &init_color = Constants::TrafficLightColor::Green,
-		const float &init_timer = 0.0f);
+	Traffic(Lane* init_lane = nullptr, const Constants::TrafficLightColor &init_color = Constants::TrafficLightColor::Green, const float &init_timer = 0.0f);
 
 	// get, set
 	Constants::TrafficLightColor getTrafficColor() const;

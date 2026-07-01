@@ -3,30 +3,26 @@
 #include "../include/utils/resource_manager.h"
 
 #pragma region PROTECTED
-//
+// include Constants::getDurationRange()
 float Traffic::randomDuration(Constants::TrafficLightColor color) const
 {
-    if (color == Constants::TrafficLightColor::Yellow)
-        return Constants::YELLOW_DURATION;
+	if (color == Constants::TrafficLightColor::Yellow)
+		return Constants::YELLOW_DURATION;
 
-    static std::mt19937 rng(std::random_device{}());
-    
-    // SỬA TẠI ĐÂY: Lấy khoảng thời gian động dựa theo màu sắc của đèn
-    Constants::DurationRange range = Constants::getDurationRange(color);
-    std::uniform_int_distribution<int> dist(range.min_duration, range.max_duration);
+	static std::mt19937 rng(std::random_device{}());
+	std::uniform_int_distribution<int> dist(Constants::MIN_DURATION_TRAFFIC, Constants::MAX_DURATION_TRAFFIC);
 
-    float base = static_cast<float>(dist(rng));
-    return base;
+	float base = static_cast<float>(dist(rng));
+	return base;
 }
 #pragma endregion
 
 #pragma region PUBLIC
 
 #pragma region CONSTRUCTOR, DESTRUCTOR
-//
-Traffic::Traffic(Lane *init_lane,
-	const Constants::TrafficLightColor &init_color,
-	const float &init_timer)
+// include #randomDuration(), +setTrafficColor(), +setTimer(), +setDuration(), +setSprite()
+// include +ResourceManager::getTrafficTexture()
+Traffic::Traffic(Lane* init_lane, const Constants::TrafficLightColor &init_color, const float &init_timer)
 	: Object(Constants::ObjectType::Traffic, Constants::ObjectColor::None, init_lane)
 {
 	setTrafficColor(init_color); // set random duration & timer = 0 automatically here
@@ -44,6 +40,8 @@ Constants::TrafficLightColor Traffic::getTrafficColor() const
 	return color;
 }
 
+// include #randomDuration(), +setTimer(), +setDuration(), +setSprite()
+// include +ResourceManager::getTrafficTexture()
 void Traffic::setTrafficColor(const Constants::TrafficLightColor &new_color)
 {
 	if (color != new_color)
@@ -85,6 +83,7 @@ Constants::ObjectColor Traffic::getColor() const
 	return Constants::ObjectColor::None;
 }
 
+// include +ResourceManager::getTrafficTexture()
 sf::Texture Traffic::getTexture()
 {
 	return ResourceManager::getTrafficTexture(color);
@@ -92,6 +91,7 @@ sf::Texture Traffic::getTexture()
 #pragma endregion
 
 #pragma region OTHER
+// include +setTrafficColor(), +setPosition(), +getPosition()
 void Traffic::updateState(float delta_time)
 {
 	if (timer >= duration)
