@@ -40,7 +40,7 @@ int Lane::randomRange(const int &start, const int &end) {
 // Sort descending by x*direction so front has the highest x*direction (furthest
 // ahead).
 void Lane::seedObjects() {
-  int count = std::min(randomRange(2, 3),
+  int count = std::min(randomRange(1, 2),
                        static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
   float slot = Constants::LANE_WIDTH / static_cast<float>(count + 1);
   for (int i = 0; i < count; ++i) {
@@ -90,11 +90,11 @@ void Lane::seedTraffic() {
   const float margin = 2.f * Constants::CELL_SIZE;
   const float gap_min = 3.f * Constants::CELL_SIZE;
   const float usable = Constants::LANE_WIDTH - 2.f * margin;
-
-  int count = randomRange(0, 2);
+  //number of traffic 
+  int count = randomRange(0, 1);
   if (count == 0)
     return;
-
+  //calculate position
   int slot = usable / (count + 1);
   for (int i = 0; i < count; ++i) {
     float x = position.x + margin + slot * (i + 1);

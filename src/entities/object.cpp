@@ -67,7 +67,7 @@ void Object::moveBy(sf::Vector2f offset)
 float Object::randomSpeed(const Constants::ObjectType &type) const
 {
     int level = current_lane->getLevel();
-    static std::mt19937 rng(std::random_device{}());
+    static std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
     Constants::SpeedRange range = Constants::getSpeedRange(type);
     std::uniform_int_distribution<int> dist(range.min_speed, range.max_speed);
     float base = static_cast<float>(dist(rng));
