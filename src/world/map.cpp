@@ -8,6 +8,9 @@ Map::Map()
   if (!grass_texture.loadFromFile("assets/textures/grass.png")) {
     std::cerr << "Error loading grass texture!\n";
   }
+  if (!grass_texture.loadFromFile("assets/textures/grass.png")) {
+      std::cerr << "Error loading grass texture!\n";
+  }
 }
 
 Map::~Map() { lanes.clear(); }
@@ -15,7 +18,7 @@ Map::~Map() { lanes.clear(); }
 void Map::initMap(float start_y) {
   highest_y = start_y;
   for (int i = 0; i < 3; i++) {
-    spawnLaneAsRequire(Constants::LaneType::Grass);
+    spawnLaneAsRequire(Constants::LaneType::Safe);
   }
   for (int i = 3; i < Constants::NUMBER_OF_LANES; i++) {
     spawnLane();
@@ -24,10 +27,22 @@ void Map::initMap(float start_y) {
 
 void Map::spawnLane() {
   static std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
-  std::uniform_int_distribution<> Rand(0, 1);
+  std::uniform_int_distribution<> Rand(0, 2);
 
-  Constants::LaneType type =
-      (Rand(rng) == 0) ? Constants::LaneType::Grass : Constants::LaneType::Road;
+  Constants::LaneType type;
+  //    (Rand(rng) == 0) ? Constants::LaneType::Grass : Constants::LaneType::Road;
+
+  int getRandom = Rand(rng);
+
+  if (getRandom == 0) {
+      type = Constants::LaneType::Grass;
+  }
+  else if (getRandom == 1) {
+      type = Constants::LaneType::Road;
+  }
+  else {
+      type = Constants::LaneType::Safe;
+  }
 
   int direction = (Rand(rng) == 0) ? 1 : -1;
 
@@ -47,8 +62,7 @@ void Map::spawnLaneAsRequire(Constants::LaneType type) {
   int direction = (Rand(gen) == 0) ? 1 : -1;
 
   sf::Vector2f spawn_position(0.f, highest_y);
-  auto new_lane =
-      std::make_unique<Lane>(spawn_position, current_level, direction, type);
+  auto new_lane = std::make_unique<Lane>(spawn_position, current_level, direction, type);
 
   lanes.push_front(std::move(new_lane));
   highest_y -= lane_height;

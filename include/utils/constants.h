@@ -63,7 +63,8 @@ namespace Constants
     enum class LaneType
     {
         Grass,
-        Road
+        Road,
+        Safe
     };
 #pragma endregion
 

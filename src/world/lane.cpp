@@ -49,15 +49,19 @@ void Lane::seedObjects() {
       Constants::ObjectColor color = static_cast<Constants::ObjectColor>(
         randomRange(0, static_cast<int>(Constants::ObjectColor::None) - 1));
     std::unique_ptr<Object> obj;
-    if (type == Constants::LaneType::Grass)
+    if (type == Constants::LaneType::Grass) {
       obj = (randomRange(0, 1) == 0)
                 ? std::unique_ptr<Object>(std::make_unique<Bird>(color, this))
                 : std::unique_ptr<Object>(std::make_unique<Rabit>(color, this));
-    else if (type == Constants::LaneType::Road)
+    }
+    else if (type == Constants::LaneType::Road) {
       obj = (randomRange(0, 1) == 0)
                 ? std::unique_ptr<Object>(std::make_unique<Car>(color, this))
                 : std::unique_ptr<Object>(std::make_unique<Truck>(color, this));
-
+    }
+    else {
+        continue;
+    }
 
 	float obj_width = obj->getWidthSprite();
 	float lane_left = position.x, lane_right = position.x + Constants::LANE_WIDTH - obj_width;

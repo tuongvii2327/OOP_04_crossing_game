@@ -26,6 +26,7 @@ private:
 
     sf::Texture grass_texture;
     sf::Texture road_texture;
+    sf::Texture safe_texture;
 
     void spawnLane(); // Generate random one lane in the top of map
     void spawnLaneAsRequire(Constants::LaneType type); //Generate type lane as required
