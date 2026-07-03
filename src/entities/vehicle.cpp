@@ -14,10 +14,10 @@ float Vehicle::calcSafeDistance() const
 #pragma region CONSTRUCTOR, DESTRUCTOR
 // base_speed, safe_distance, velocity are calculated & set automactically
 // include +setBaseSpeed(), +setVelocity(), +randomSpeed()
-Vehicle::Vehicle(Constants::ObjectType type, Constants::ObjectColor color, Lane *init_lane)
+Vehicle::Vehicle(Constants::ObjectType type, Constants::ObjectColor color, Lane* init_lane)
 	: Object(type, color, init_lane)
 {
-	setBaseSpeed(randomSpeed(type)); // set safe_distance automatically here
+	setBaseSpeed(randomSpeed(type));          // set safe_distance automatically here
 	setVelocity({base_speed * direction, 0}); // direction is already set by Object
 }
 #pragma endregion
@@ -49,15 +49,15 @@ float Vehicle::getSafeDistance() const
 // }
 
 // check if object out of map, check the nearest traffic or vehicle to reduce current speed, move object to new position
-// include #moveBy(), +isOutOfMap(), +gapToObstacle(), +setVelocity(), +getPosition(), +getVelocity(), +getWidthSprite()
-// include +Lane::getNearestTrafficAhead(), +Traffic::getPosition(), +Traffic::getWidthSprite()
+// include #moveBy(), +isOutOfLane(), +gapToObstacle(), +setVelocity(), +getPosition(), +getVelocity(), +getWidthSprite()
+// include +Lane::getNearestTrafficAhead(), +Lane::getNearestVehicleAhead(), +Traffic::getPosition(), +Traffic::getWidthSprite()
 void Vehicle::updateState(float delta_time)
 {
 	if (isOutOfLane() || !is_active)
 		return;
 	float v_light = base_speed;
 	float v_vehicle = base_speed;
-	Traffic *nearest_traffic = current_lane->getNearestTrafficAhead(*this);
+	Traffic* nearest_traffic = current_lane->getNearestTrafficAhead(*this);
 	if (nearest_traffic)
 	{
 		float gap = gapToObstacle(nearest_traffic->getPosition().x,
@@ -65,7 +65,7 @@ void Vehicle::updateState(float delta_time)
 		float ratio = std::clamp(gap / safe_distance, 0.f, 1.f);
 		v_light = base_speed * ratio;
 	}
-	Vehicle *nearest_vehicle = current_lane->getNearestVehicleAhead(*this);
+	Vehicle* nearest_vehicle = current_lane->getNearestVehicleAhead(*this);
 	if (nearest_vehicle)
 	{
 		float gap = gapToObstacle(nearest_vehicle->getPosition().x,

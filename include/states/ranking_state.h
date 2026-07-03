@@ -12,22 +12,22 @@
 class RankingState : public State
 {
 private:
-    std::unique_ptr<sf::Text> title_text_;
-    std::vector<std::unique_ptr<sf::Text>> ranking_texts_;
+	std::unique_ptr<sf::Text> title_text_;
+	std::vector<std::unique_ptr<sf::Text>> ranking_texts_;
 
-    // Setup ranking display UI
-    void setupUI(const sf::Font &font);
+	// Setup ranking display UI
+	void setupUI(const sf::Font &font);
 
 public:
-    RankingState(SharedContext *context);
-    ~RankingState() override = default;
+	RankingState(SharedContext* context);
+	~RankingState() override = default;
 
-    // Initialize ranking screen with high scores
-    void init() override;
-    // Handle escape key to exit rankings
-    void handleEvent(const sf::Event &event) override;
-    // Update ranking state (no-op)
-    void update(float delta_time) override;
-    // Render ranking display
-    void render(sf::RenderWindow &window) override;
+	// Initialize ranking screen with high scores
+	void init() override;
+	// Handle escape key to exit rankings
+	void handleEvent(const sf::Event &event) override;
+	// Update ranking state (no-op)
+	void update(float delta_time) override;
+	// Render ranking display
+	void render(sf::RenderWindow &window) override;
 };

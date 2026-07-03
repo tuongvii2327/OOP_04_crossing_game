@@ -14,33 +14,33 @@
 class PlayingState : public State
 {
 private:
-    std::unique_ptr<sf::Text> score_text_;
+	std::unique_ptr<sf::Text> score_text_;
 
-    // Integrate your original entity system here
-    std::unique_ptr<People> player_;
-    Map map_;
+	// Integrate your original entity system here
+	std::unique_ptr<People> player_;
+	Map map_;
 
-    // Camera handling for infinite scrolling as the player advances
-    sf::View view_;
-    void setupWorld();
+	// Camera handling for infinite scrolling as the player advances
+	sf::View view_;
+	void setupWorld();
 
 public:
-    PlayingState(SharedContext *context);
-    ~PlayingState() = default;
+	PlayingState(SharedContext* context);
+	~PlayingState() = default;
 
-    // Initialize UI resources, player position, and generate the initial map
-    void init() override;
+	// Initialize UI resources, player position, and generate the initial map
+	void init() override;
 
-    // Handle movement key presses via People's tryToMove()
-    void handleEvent(const sf::Event &event) override;
+	// Handle movement key presses via People's tryToMove()
+	void handleEvent(const sf::Event &event) override;
 
-    // Update camera position and handle Map's lane spawn/delete logic
-    void update(float dt) override;
+	// Update camera position and handle Map's lane spawn/delete logic
+	void update(float dt) override;
 
-    // Render the game world alongside the static score HUD overlay
-    void render(sf::RenderWindow &window) override;
+	// Render the game world alongside the static score HUD overlay
+	void render(sf::RenderWindow &window) override;
 
-    void pause() override;
-    void resume() override;
-    void restart();
+	void pause() override;
+	void resume() override;
+	void restart();
 };

@@ -3,8 +3,7 @@
 
 #pragma region PUBLIC
 #pragma region CONSTRUCTOR, DESTRUCTOR
-Rabit::Rabit(const Constants::ObjectColor& init_color,
-	Lane* init_lane)
+Rabit::Rabit(const Constants::ObjectColor &init_color, Lane* init_lane)
 	: Animal(Constants::ObjectType::Rabit, init_color, init_lane)
 {
 	rabit_color = init_color;
@@ -18,7 +17,8 @@ Constants::ObjectColor Rabit::getColor() const
 	return rabit_color;
 }
 
-void Rabit::setColor(const Constants::ObjectColor& color)
+// include #getTexture(), +setSprite()
+void Rabit::setColor(const Constants::ObjectColor &color)
 {
 	rabit_color = color;
 	setSprite(getTexture(Constants::ObjectType::Rabit, color));
