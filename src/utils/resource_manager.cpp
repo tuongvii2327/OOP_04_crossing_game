@@ -143,7 +143,7 @@ sf::Texture ResourceManager::buildObjectTexture(const Constants::ObjectType &typ
 		return makeVehicleTexture(88, 42, sfColor, true);
 	case Constants::ObjectType::Bird:
 		return makeAnimalTexture(46, 34, sfColor, true);
-	case Constants::ObjectType::Rabit:
+	case Constants::ObjectType::Rabbit:
 		return makeAnimalTexture(44, 40, sfColor, false);
 	default:
 		return makeTrafficTexture(toTrafficColor(Constants::TrafficLightColor::Green));

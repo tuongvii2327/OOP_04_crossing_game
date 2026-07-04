@@ -2,7 +2,7 @@
 
 #include "../include/entities/bird.h"
 #include "../include/entities/car.h"
-#include "../include/entities/rabit.h"
+#include "../include/entities/rabbit.h"
 #include "../include/entities/traffic_light.h"
 #include "../include/entities/truck.h"
 #include "../include/utils/resource_manager.h"
@@ -64,7 +64,7 @@ void Lane::seedObjects()
     if (type == Constants::LaneType::Grass) {
       obj = (randomRange(0, 1) == 0)
                 ? std::unique_ptr<Object>(std::make_unique<Bird>(color, this))
-                : std::unique_ptr<Object>(std::make_unique<Rabit>(color, this));
+                : std::unique_ptr<Object>(std::make_unique<Rabbit>(color, this));
     }
     else if (type == Constants::LaneType::Road) {
       obj = (randomRange(0, 1) == 0)
@@ -386,7 +386,7 @@ void Lane::spawnObject()
       if (exp_type == Constants::ObjectType::Bird)
         list_obj.push_back(std::make_unique<Bird>(exp_color, this));
       else
-        list_obj.push_back(std::make_unique<Rabit>(exp_color, this));
+        list_obj.push_back(std::make_unique<Rabbit>(exp_color, this));
     }
   } else if (type == Constants::LaneType::Road) {
     Constants::ObjectType exp_type = static_cast<Constants::ObjectType>(

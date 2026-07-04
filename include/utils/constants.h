@@ -48,7 +48,7 @@ namespace Constants
 
 		// Grass objecct
 		Bird,
-		Rabit,
+		Rabbit,
 
 		// River object
 
@@ -86,7 +86,7 @@ namespace Constants
 			return {35, 65};
 		case ObjectType::Bird:
 			return {20, 60};
-		case ObjectType::Rabit:
+		case ObjectType::Rabbit:
 			return {35, 70};
 		default:
 			return {0, 0};
