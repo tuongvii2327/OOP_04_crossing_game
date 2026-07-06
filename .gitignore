@@ -78,3 +78,5 @@ Testing/
 
 # Repomix outputs
 repomix-output.*
+
+**/libs/SFML-*/doc/
