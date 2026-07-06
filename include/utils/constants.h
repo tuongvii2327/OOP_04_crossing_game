@@ -38,7 +38,7 @@ namespace Constants
 	// coefficients in the 'speed' formula above
 	constexpr float SPEED_LEVEL_FACTOR = 0.2f;
 
-	enum class ObjectType
+	enum class DynamicObjectType
 	{
 		// Character object
 		People,
@@ -52,8 +52,21 @@ namespace Constants
 
 		// River object
 
-		// Other object
-		Traffic
+	};
+
+	enum class StaticObjectType
+	{
+		// Character object
+
+		// Road object
+		Traffic,
+
+		// Grass objecct
+		Rock,
+		Bush,
+
+		// River object
+
 	};
 
 	enum class ObjectColor
@@ -67,6 +80,15 @@ namespace Constants
 		None // keep last: used as the color count in random pickers
 	};
 
+	// effect of an object (dynamic or static) on People when colliding with it
+	enum class ObjectEffect
+	{
+		None,        // can be touched, nothing happens
+		Blocked,     // blocks movement, cannot walk into it
+		Lethal,      // can be touched, touching it kills the player
+		Collectible  // can be touched, touching it accumulates a special score (e.g. coin)
+	};
+
 	// the usable speed range of an object
 	struct SpeedRange
 	{
@@ -76,17 +98,17 @@ namespace Constants
 
 	// Base speed range (px/s) for each object type before the level multiplier is applied
 	// speed = random int in [min_speed, max_speed] * (1 + (level - 1) * SPEED_LEVEL_FACTOR)
-	inline SpeedRange getSpeedRange(ObjectType type)
+	inline SpeedRange getSpeedRange(DynamicObjectType type)
 	{
 		switch (type)
 		{
-		case ObjectType::Car:
+		case DynamicObjectType::Car:
 			return {50, 80};
-		case ObjectType::Truck:
+		case DynamicObjectType::Truck:
 			return {35, 65};
-		case ObjectType::Bird:
+		case DynamicObjectType::Bird:
 			return {20, 60};
-		case ObjectType::Rabbit:
+		case DynamicObjectType::Rabbit:
 			return {35, 70};
 		default:
 			return {0, 0};
@@ -94,7 +116,7 @@ namespace Constants
 	}
 
 #pragma region VEHICLE
-	// factor to calculate safe_distance (safe_distance = base_speed * SAFETY_FACTOR)
+	// factor to calculate safe_distance (safe_distance = base_speed * SAFE_DISTANCE_FACTOR)
 	const unsigned int SAFE_DISTANCE_FACTOR = 2;
 #pragma endregion
 
@@ -106,7 +128,7 @@ namespace Constants
 #pragma region TRAFFIC
 	const float YELLOW_DURATION = 4; // second
 	const unsigned int TRAFFIC_HEIGHT = 30;
-	const unsigned int TRAFFIC_WIDTH = 30;
+	const unsigned int TRAFFIC_WIDTH = 72;
 	const unsigned int MIN_DURATION_TRAFFIC = 6;
 	const unsigned int MAX_DURATION_TRAFFIC = 8;
 

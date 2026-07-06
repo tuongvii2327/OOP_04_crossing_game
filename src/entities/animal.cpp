@@ -10,21 +10,19 @@ float Animal::randomDuration() const
 	float base = static_cast<float>(dist(rng));
 	return base;
 }
-
 #pragma endregion
 
 #pragma region PUBLIC
+
 #pragma region CONSTRUCTOR, DESTRUCTOR
 // speed, velocity, is_move = 1, timer = 0, duration are calculated & set automactically
-// include +randomSpeed(), +setSpeed(), +setVelocity(), +setMoveState()
-Animal::Animal(Constants::ObjectType type, Constants::ObjectColor color, Lane* init_lane)
-	: Object(type, color, init_lane)
+Animal::Animal(Constants::DynamicObjectType init_type, Constants::ObjectColor init_color, Lane* init_lane)
+	: DynamicObject(init_type, init_color, init_lane)
 {
-	setSpeed(randomSpeed(type));
+	setSpeed(randomSpeed(init_type));
 	setVelocity({ speed * direction, 0 });
 	setMoveState(1); // set timer = 0 & random duration automatically here
 }
-
 #pragma endregion
 
 #pragma region GET, SET
@@ -64,7 +62,6 @@ bool Animal::isMove() const
 }
 
 // set new duration and timer = 0 if new state != current state
-// include #randomDuration(), +setDuration(), +setTimer()
 void Animal::setMoveState(const bool &state)
 {
 	if (state != is_move)
@@ -82,8 +79,7 @@ void Animal::setMoveState(const bool &state)
 //
 // }
 
-// include +isOutOfLane(), +setMoveState(), +gapToObstacle(), #moveBy(), +setPosition(), +getPosition(), +getWidthSprite()
-// include +Lane::getNearestAnimalAhead()
+// advance timer, flip moving/stopped state on timeout, stop early when blocked by the nearest animal ahead, then move if currently in the moving state
 void Animal::updateState(float delta_time)
 {
 	if (isOutOfLane() || !is_active)
@@ -96,10 +92,13 @@ void Animal::updateState(float delta_time)
 	{
 		timer += delta_time;
 	}
-	Animal* nearest_aniaml = current_lane->getNearestAnimalAhead(*this);
-	if (nearest_aniaml && is_move)
+	Animal* nearest_animal = current_lane->getNearestAnimalAhead(*this);
+	if (nearest_animal && is_move)
 	{
-		float gap = gapToObstacle(nearest_aniaml->getPosition().x, nearest_aniaml->getWidthSprite());
+		// gapToObstacle() already subtracts VISUAL_DISTANCE, so the real stop
+		// margin below is VISUAL_DISTANCE * 2.5 - kept wide on purpose so animals
+		// don't bunch up close to each other while stopped.
+		float gap = gapToObstacle(nearest_animal->getPosition().x, nearest_animal->getWidthSprite());
 		if (gap <= Constants::VISUAL_DISTANCE * 1.5)
 		{
 			setMoveState(0);
@@ -110,11 +109,6 @@ void Animal::updateState(float delta_time)
 		moveBy(velocity * delta_time);
 	}
 	setPosition(getPosition());
-}
-
-bool Animal::isColliding(const sf::FloatRect &other_hitbox) const
-{
-	return hitbox.findIntersection(other_hitbox).has_value();
 }
 #pragma endregion
 #pragma endregion

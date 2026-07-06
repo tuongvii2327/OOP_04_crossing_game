@@ -13,12 +13,11 @@ float Vehicle::calcSafeDistance() const
 
 #pragma region CONSTRUCTOR, DESTRUCTOR
 // base_speed, safe_distance, velocity are calculated & set automactically
-// include +setBaseSpeed(), +setVelocity(), +randomSpeed()
-Vehicle::Vehicle(Constants::ObjectType type, Constants::ObjectColor color, Lane* init_lane)
-	: Object(type, color, init_lane)
+Vehicle::Vehicle(Constants::DynamicObjectType init_type, Constants::ObjectColor init_color, Lane* init_lane)
+	: DynamicObject(init_type, init_color, init_lane)
 {
-	setBaseSpeed(randomSpeed(type));          // set safe_distance automatically here
-	setVelocity({base_speed * direction, 0}); // direction is already set by Object
+	setBaseSpeed(randomSpeed(init_type));     // set safe_distance automatically here
+	setVelocity({base_speed * direction, 0}); // direction is already set by DynamicObject
 }
 #pragma endregion
 
@@ -29,7 +28,6 @@ float Vehicle::getBaseSpeed() const
 }
 
 // set base_speed & safe_distance
-// include #calcSafeDistance()
 void Vehicle::setBaseSpeed(const float &new_speed)
 {
 	base_speed = new_speed;
@@ -49,8 +47,6 @@ float Vehicle::getSafeDistance() const
 // }
 
 // check if object out of map, check the nearest traffic or vehicle to reduce current speed, move object to new position
-// include #moveBy(), +isOutOfLane(), +gapToObstacle(), +setVelocity(), +getPosition(), +getVelocity(), +getWidthSprite()
-// include +Lane::getNearestTrafficAhead(), +Lane::getNearestVehicleAhead(), +Traffic::getPosition(), +Traffic::getWidthSprite()
 void Vehicle::updateState(float delta_time)
 {
 	if (isOutOfLane() || !is_active)
@@ -82,11 +78,6 @@ void Vehicle::updateState(float delta_time)
 	}
 	setVelocity({v_target * direction, 0.0f});
 	moveBy(velocity * delta_time);
-}
-
-bool Vehicle::isColliding(const sf::FloatRect &other_hitbox) const
-{
-	return hitbox.findIntersection(other_hitbox).has_value();
 }
 #pragma endregion
 #pragma endregion

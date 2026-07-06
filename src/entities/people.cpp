@@ -3,7 +3,7 @@
 #include <iostream>
 
 People::People()
-	: Object(Constants::ObjectType::People, Constants::ObjectColor::None, nullptr),
+	: DynamicObject(Constants::DynamicObjectType::People, Constants::ObjectColor::None, nullptr),
 	  is_dead(false),
 	  step_size(static_cast<float>(Constants::LANE_HEIGHT))
 {
@@ -11,7 +11,7 @@ People::People()
 }
 
 People::People(const sf::Texture &texture)
-	: Object(Constants::ObjectType::People, Constants::ObjectColor::None, nullptr),
+	: DynamicObject(Constants::DynamicObjectType::People, Constants::ObjectColor::None, nullptr),
 	  is_dead(false),
 	  step_size(static_cast<float>(Constants::LANE_HEIGHT))
 {
@@ -28,7 +28,7 @@ People::People(const sf::Texture &texture)
 }
 
 People::People(float x, float y)
-	: Object(Constants::ObjectType::People, Constants::ObjectColor::None, nullptr),
+	: DynamicObject(Constants::DynamicObjectType::People, Constants::ObjectColor::None, nullptr),
 	  is_dead(false),
 	  step_size(static_cast<float>(Constants::LANE_HEIGHT)) // Sửa 50.0f thành LANE_HEIGHT
 {
@@ -37,9 +37,9 @@ People::People(float x, float y)
 	setHitbox();
 }
 
-Constants::ObjectType People::getType() const
+Constants::DynamicObjectType People::getType() const
 {
-	return Constants::ObjectType::People;
+	return Constants::DynamicObjectType::People;
 }
 
 Constants::ObjectColor People::getColor() const

@@ -13,7 +13,7 @@ public:
 
 	// get, set
 	Constants::ObjectColor getColor() const override;
-	void setColor(const Constants::ObjectColor &type);
+	void setColor(const Constants::ObjectColor &new_color);
 
-	Constants::ObjectType getType() const override;
+	Constants::DynamicObjectType getType() const override;
 };
