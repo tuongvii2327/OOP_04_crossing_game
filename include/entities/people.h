@@ -1,9 +1,9 @@
 #pragma once
 
-#include "object.h"
+#include "dynamic_object.h"
 #include <SFML/Graphics.hpp>
 
-class People : public Object
+class People : public DynamicObject
 {
 private:
 	bool is_dead;
@@ -15,7 +15,7 @@ public:
 	explicit People(const sf::Texture &texture);
 	People(float x, float y);
 
-	Constants::ObjectType getType() const override;
+	Constants::DynamicObjectType getType() const override;
 	Constants::ObjectColor getColor() const override;
 	void updateState(float delta_time) override;
 	bool isColliding(const sf::FloatRect &other_hitbox) const override;

@@ -1,10 +1,10 @@
 #pragma once
 
 #include <cmath>
-#include "object.h"
+#include "dynamic_object.h"
 #include "traffic_light.h"
 
-class Vehicle : public Object
+class Vehicle : public DynamicObject
 {
 protected:
 	// sf::Sound horn_sound;
@@ -14,13 +14,9 @@ protected:
 
 	float calcSafeDistance() const; // safe_distance = base_speed * SAFE_DISTANCE_FACTOR
 
-
 public:
 	// contructor, destructor
-	// base_speed, safe_distance, velocity are calculated & set automactically
-	Vehicle(Constants::ObjectType obj_type, Constants::ObjectColor color, Lane* init_lane = nullptr);
-	bool isLethal() const override { return true; }
-
+	Vehicle(Constants::DynamicObjectType init_type, Constants::ObjectColor init_color, Lane* init_lane = nullptr); // base_speed, safe_distance, velocity are calculated & set automactically
 
 	// get, set
 	float getBaseSpeed() const;
@@ -29,9 +25,8 @@ public:
 	float getSafeDistance() const;
 	// set safe_distance automatically when set base_speed
 
-
 	// Other
 	// void playHornSound();
+	Constants::ObjectEffect getEffect() const override { return Constants::ObjectEffect::Lethal; }
 	void updateState(float delta_time) override;
-	bool isColliding(const sf::FloatRect &other_hitbox) const override;
 };

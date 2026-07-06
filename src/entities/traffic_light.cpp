@@ -3,7 +3,7 @@
 #include "../include/utils/resource_manager.h"
 
 #pragma region PROTECTED
-// include Constants::getDurationRange()
+// pick a random duration for the given color; Yellow is always fixed at YELLOW_DURATION
 float Traffic::randomDuration(Constants::TrafficLightColor color) const
 {
 	if (color == Constants::TrafficLightColor::Yellow)
@@ -20,10 +20,9 @@ float Traffic::randomDuration(Constants::TrafficLightColor color) const
 #pragma region PUBLIC
 
 #pragma region CONSTRUCTOR, DESTRUCTOR
-// include #randomDuration(), +setTrafficColor(), +setTimer(), +setDuration(), +setSprite()
-// include +ResourceManager::getTrafficTexture()
-Traffic::Traffic(Lane* init_lane, const Constants::TrafficLightColor &init_color, const float &init_timer)
-	: Object(Constants::ObjectType::Traffic, Constants::ObjectColor::None, init_lane)
+// sets the initial color/timer/duration, then repaints the sprite for the very first frame
+Traffic::Traffic(Lane* init_lane, const Constants::TrafficLightColor &init_color, const float &init_timer, const sf::Vector2f &init_position)
+	: StaticObject(Constants::StaticObjectType::Traffic, init_position, init_lane, Constants::ObjectColor::None)
 {
 	setTrafficColor(init_color); // set random duration & timer = 0 automatically here
 	setTimer(init_timer);
@@ -40,8 +39,7 @@ Constants::TrafficLightColor Traffic::getTrafficColor() const
 	return color;
 }
 
-// include #randomDuration(), +setTimer(), +setDuration(), +setSprite()
-// include +ResourceManager::getTrafficTexture()
+// only acts if new_color != current color: sets color, resets timer, rolls a new duration, and repaints the lamp
 void Traffic::setTrafficColor(const Constants::TrafficLightColor &new_color)
 {
 	if (color != new_color)
@@ -72,26 +70,15 @@ void Traffic::setDuration(const float &new_duration)
 {
 	duration = new_duration;
 }
-
-Constants::ObjectType Traffic::getType() const
-{
-	return Constants::ObjectType::Traffic;
-}
-
-Constants::ObjectColor Traffic::getColor() const
-{
-	return Constants::ObjectColor::None;
-}
-
-// include +ResourceManager::getTrafficTexture()
-sf::Texture Traffic::getTexture()
-{
-	return ResourceManager::getTrafficTexture(color);
-}
 #pragma endregion
 
 #pragma region OTHER
-// include +setTrafficColor(), +setPosition(), +getPosition()
+Constants::StaticObjectType Traffic::getType() const
+{
+	return Constants::StaticObjectType::Traffic;
+}
+
+// cycle Green -> Yellow -> Red -> Green on timeout, then keep the light vertically locked to its lane as the map scrolls along Oy
 void Traffic::updateState(float delta_time)
 {
 	if (timer >= duration)
@@ -105,13 +92,7 @@ void Traffic::updateState(float delta_time)
 	}
 	else
 		timer += delta_time;
-	// keep the light vertically locked to its lane as the map scrolls along Oy
 	setPosition(getPosition());
-}
-
-bool Traffic::isColliding(const sf::FloatRect &other_hitbox) const
-{
-	return 0;
 }
 #pragma endregion
 #pragma endregion

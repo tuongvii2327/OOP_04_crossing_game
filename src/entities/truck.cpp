@@ -3,14 +3,13 @@
 
 #pragma region PUBLIC
 #pragma region CONSTRUCTOR, DESTRUCTOR
-//
+// fixed type Truck, base_speed/safe_distance/velocity set by Vehicle
 Truck::Truck(const Constants::ObjectColor &init_color, Lane* init_lane)
-	: Vehicle(Constants::ObjectType::Truck, init_color, init_lane)
+	: Vehicle(Constants::DynamicObjectType::Truck, init_color, init_lane)
 {
 	truck_color = init_color;
 }
 #pragma endregion
-
 
 #pragma region GET, SET
 Constants::ObjectColor Truck::getColor() const
@@ -18,16 +17,15 @@ Constants::ObjectColor Truck::getColor() const
 	return truck_color;
 }
 
-// include #getTexture(), +setSprite()
-void Truck::setColor(const Constants::ObjectColor &color)
+void Truck::setColor(const Constants::ObjectColor &new_color)
 {
-	truck_color = color;
-	setSprite(getTexture(Constants::ObjectType::Truck, color));
+	truck_color = new_color;
+	setSprite(getTexture(Constants::DynamicObjectType::Truck, new_color));
 }
 
-Constants::ObjectType Truck::getType() const
+Constants::DynamicObjectType Truck::getType() const
 {
-	return Constants::ObjectType::Truck;
+	return Constants::DynamicObjectType::Truck;
 }
 #pragma endregion
 #pragma endregion
