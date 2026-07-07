@@ -109,6 +109,52 @@ void GameOverState::handleEvent(const sf::Event &event)
             }
         }
     }
+
+    if (const auto *mouse_moved = event.getIf<sf::Event::MouseMoved>())
+    {
+        sf::Vector2f mouse_pos(static_cast<float>(mouse_moved->position.x), static_cast<float>(mouse_moved->position.y));
+
+        for (size_t i = 0; i < menu_texts_.size(); ++i)
+        {
+            if (menu_texts_[i]->getGlobalBounds().contains(mouse_pos))
+            {
+                if (selected_index_ != static_cast<int>(i))
+                {
+                    menu_texts_[selected_index_]->setFillColor(sf::Color::White);
+                    selected_index_ = static_cast<int>(i);
+                    menu_texts_[selected_index_]->setFillColor(sf::Color::Yellow);
+                    
+                }
+                break;
+            }
+        }
+    }
+
+    if (const auto *mouse_button_pressed = event.getIf<sf::Event::MouseButtonPressed>())
+    {
+        if (mouse_button_pressed->button == sf::Mouse::Button::Left)
+        {
+            sf::Vector2f mouse_pos(static_cast<float>(mouse_button_pressed->position.x), static_cast<float>(mouse_button_pressed->position.y));
+
+            for (size_t i = 0; i < menu_texts_.size(); ++i)
+            {
+                if (menu_texts_[i]->getGlobalBounds().contains(mouse_pos))
+                {
+                    selected_index_ = static_cast<int>(i);
+                                        
+                    if (selected_index_ == 0)
+                    {
+                        context_->state_machine->pop();
+                    }
+                    else
+                    {
+                        context_->state_machine->resetTo(std::make_unique<HomeState>(context_));
+                    }
+                    break;
+                }
+            }
+        }
+    }
 }
 
 void GameOverState::update(float delta_time) {}

@@ -138,6 +138,7 @@ void SettingState::handleEvent(const sf::Event &event)
             {
                 if (setting_texts_[i]->getGlobalBounds().contains(mouse_pos))
                 {
+                    selected_index_ = static_cast<int>(i);
                     if (selected_index_ == 2)
                     {
                         context_->state_machine->pop();

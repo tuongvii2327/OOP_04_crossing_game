@@ -87,9 +87,13 @@ void HomeState::handleEvent(const sf::Event &event)
         {
             if (menu_options_[i]->getGlobalBounds().contains(mouse_pos))
             {
-                menu_options_[selected_index_]->setFillColor(sf::Color::White);
-                selected_index_ = static_cast<int>(i);
-                menu_options_[selected_index_]->setFillColor(sf::Color::Yellow);
+                if (selected_index_ != static_cast<int>(i))
+                {
+                    menu_options_[selected_index_]->setFillColor(sf::Color::White);
+                    selected_index_ = static_cast<int>(i);
+                    menu_options_[selected_index_]->setFillColor(sf::Color::Yellow);
+                    // add sound effect for mouse hover later
+                }
                 break;
             }
         }
