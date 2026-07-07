@@ -76,20 +76,30 @@ void People::move(float dx, float dy)
 
 bool People::tryToMove(float dx, float dy, float camera_top_y)
 {
-	if (is_dead)
-		return false;
+    if (is_dead)
+        return false;
 
-	float target_x = position.x + dx;
-	float target_y = position.y + dy;
+    float future_hitbox_left = position.x + hitbox_offset.x + dx;
+    float future_hitbox_right = future_hitbox_left + hitbox.size.x;
+    
+    float future_hitbox_top = position.y + hitbox_offset.y + dy;
+    float future_hitbox_bottom = future_hitbox_top + hitbox.size.y;
 
-	if (target_x < 0 || (target_x + getWidthSprite()) > Constants::WINDOW_WIDTH ||
-		target_y < camera_top_y || target_y > (camera_top_y + Constants::WINDOW_HEIGHT))
-	{
-		return false;
-	}
+    float left_bound = Constants::GAME_PLAY_BAR_WIDTH; // left (140)
+    float right_bound = Constants::WINDOW_WIDTH;       // right (1400)
 
+	// check if hit box out out bounds
+	if (future_hitbox_left < left_bound || 
+        future_hitbox_right > right_bound ||
+        future_hitbox_top < camera_top_y || 
+        future_hitbox_bottom > (camera_top_y + Constants::WINDOW_HEIGHT))
+    {
+        return false; 
+    }
+
+	// if valid, move the People object
 	move(dx, dy);
-	return true;
+    return true;
 }
 
 void People::die()
