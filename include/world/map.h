@@ -5,11 +5,12 @@
 #include <iostream>
 #include <random>
 #include <utility>
-
+#include <memory>
 
 #include <SFML/Graphics.hpp>
 
 #include "../utils/constants.h"
+#include "../utils/shared_context.h"
 
 #include "lane.h"
 
@@ -24,16 +25,18 @@ private:
 	// current level
 	int current_level;
 
-    sf::Texture grass_texture;
-    sf::Texture road_texture;
-    sf::Texture safe_texture;
+	int total_lanes_spawned = 0;
+
+	SharedContext* context_; // lưu trữ ngữ cảnh dùng chung
+
+	std::mt19937 rng;
 
 	void spawnLane();                                  // Generate random one lane in the top of map
 	void spawnLaneAsRequire(Constants::LaneType type); // Generate type lane as required
 	void popLane();                                    // Delete the oldest lane in the map
 
 public:
-	Map();
+	explicit Map(SharedContext* context = nullptr);
 	~Map();
 	void initMap(float start_y);
 	void update(float camera_top_y, float camera_bottom_y, float delta_time);

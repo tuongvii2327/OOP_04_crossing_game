@@ -11,6 +11,7 @@
 #include "../utils/constants.h"
 #include <SFML/Graphics.hpp>
 
+// Foward declarations
 class DynamicObject;
 class StaticObject;
 class Vehicle;
@@ -33,9 +34,9 @@ private:
 
 protected:
 	void moveBy(sf::Vector2f offset);                                                    // move position by offset, update sprite position
-	const sf::Texture &getTexture(const Constants::LaneType &type, int direction) const; // cached lane texture
+	const sf::Texture &getTexture(const Constants::LaneType type, int direction) const; // cached lane texture
 	void adjustSprite();                                                                 // scale sprite to fit LANE_WIDTH x LANE_HEIGHT
-	int randomRange(const int &start, const int &end);                                   // random int in [start, end]
+	int randomRange(int start, int end);                                   			     // random int in [start, end]
 	void seedObjects();                                                                  // populate list_obj with 2-4 initial objects matching the lane type
 	void seedTraffic();                                                                  // populate traffic with 0 or 1 light (Road lanes only)
 
@@ -52,16 +53,16 @@ public:
 	void setPosition(const sf::Vector2f &pos);
 
 	int getLevel() const;
-	void setLevel(const int &new_level);
+	void setLevel(int new_level);
 
 	int getDirection() const;
-	void setDirection(const int &direct);
+	void setDirection(int direct);
 
 	bool isActive() const;
-	void setActiveState(const bool &state);
+	void setActiveState(bool state);
 
 	int getNumberOfActive() const;
-	void setNumberOfActive(const int &new_num);
+	void setNumberOfActive(int new_num);
 
 	float getWidthSprite() const;
 	float getHeightSprite() const;

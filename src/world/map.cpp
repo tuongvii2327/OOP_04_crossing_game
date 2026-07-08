@@ -1,4 +1,5 @@
 #include "../include/world/map.h"
+#include "../include/utils/resource_manager.h"
 
 Map::Map()
     : lane_height(Constants::LANE_HEIGHT), highest_y(0), current_level(1)

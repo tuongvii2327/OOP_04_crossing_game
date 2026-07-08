@@ -18,9 +18,9 @@ void Lane::moveBy(sf::Vector2f offset)
 }
 
 // reference into ResourceManager's cache (stays alive for the sprite's lifetime)
-const sf::Texture &Lane::getTexture(const Constants::LaneType &type, int direction) const
+const sf::Texture &Lane::getTexture(const Constants::LaneType type, int direction) const
 {
-	return ResourceManager::getLaneTexture(type, direction);
+	return Resource().getLaneTexture(type,direction);
 }
 
 // scale sprite up to fill LANE_WIDTH x LANE_HEIGHT if it's smaller
@@ -38,7 +38,7 @@ void Lane::adjustSprite()
 }
 
 // random int in [start, end]
-int Lane::randomRange(const int &start, const int &end)
+int Lane::randomRange(int start, int end)
 {
 	static std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
 	std::uniform_int_distribution<int> dist(start, end);
@@ -51,7 +51,27 @@ int Lane::randomRange(const int &start, const int &end)
 // ahead).
 void Lane::seedObjects()
 {
-	int count = std::min(randomRange(1, 2),
+	int min_spawn = 1;	// min objects per lane
+	int max_spawn = 2;	// max objects per lane
+
+	if (level >= 10) // over 100 scores
+	{
+		min_spawn = 3;
+		max_spawn = Constants::MAX_OBJECT_PER_LANE;
+	}
+	
+	else if (level >= 3) // From 30 - 100 scores
+	{
+		min_spawn = 2;
+		max_spawn = 3;
+	}
+
+	else
+	{
+		min_spawn = 1;
+		max_spawn = 2;
+	}
+	int count = std::min(randomRange(min_spawn, max_spawn),
 		static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
 
 	const float min_gap = Constants::CELL_SIZE * 1.5f; // minimum gap between objects
@@ -194,7 +214,7 @@ int Lane::getLevel() const
 	return level;
 }
 
-void Lane::setLevel(const int &new_level)
+void Lane::setLevel(int new_level)
 {
 	level = new_level;
 }
@@ -204,7 +224,7 @@ int Lane::getDirection() const
 	return direction;
 }
 
-void Lane::setDirection(const int &direct)
+void Lane::setDirection(int direct)
 {
 	if (direct == 1 || direct == -1)
 		direction = direct;
@@ -215,7 +235,7 @@ bool Lane::isActive() const
 	return is_active;
 }
 
-void Lane::setActiveState(const bool &state)
+void Lane::setActiveState(bool state)
 {
 	is_active = state;
 }
@@ -225,7 +245,7 @@ int Lane::getNumberOfActive() const
 	return num_active_object;
 }
 
-void Lane::setNumberOfActive(const int &new_num)
+void Lane::setNumberOfActive(int new_num)
 {
 	num_active_object =
 		std::clamp(new_num, 0, static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
@@ -329,11 +349,23 @@ void Lane::spawnLane(const sf::Vector2f &new_position, const int &new_level, con
 // cleared the entry edge
 void Lane::spawnObject()
 {
-	if (num_active_object >= static_cast<int>(Constants::MAX_OBJECT_PER_LANE))
+	int max_allowed = 2; // Begin levels allow max 2 objects
+	if (level >= 10)
+	{
+		max_allowed = Constants::MAX_OBJECT_PER_LANE; 
+	}
+	else if (level >= 3)
+	{
+		max_allowed = 3;
+	}
+
+	if (num_active_object >= max_allowed)
 		return;
 	if (list_dynamic.empty()) // never dereference back() on an empty deque
 		return;
-	if (randomRange(0, 1) == 0) // ~25%
+
+	int spawn_rate_chance = (level >= 6) ? 1 : 2; // Level >= 4: spawn rate = 50%, level < 4: spawn rate 1/3
+	if (randomRange(0, spawn_rate_chance) != 0)
 		return;
 
 	// Only spawn once the most-recently-entered object (back of the deque)
