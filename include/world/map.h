@@ -23,6 +23,7 @@ private:
 	float lane_height;
 	// current level
 	int current_level;
+	int duplicate_lane = 0;
 
     sf::Texture grass_texture;
     sf::Texture road_texture;
