@@ -24,6 +24,7 @@ private:
 	float lane_height;
 	// current level
 	int current_level;
+	int duplicate_lane = 0;
 
 	int total_lanes_spawned = 0;
 

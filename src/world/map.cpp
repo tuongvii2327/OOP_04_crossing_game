@@ -65,6 +65,45 @@ void Map::spawnLane()
 
 	int direction = (DirRand(rng) == 0) ? 1 : -1;
 	sf::Vector2f spawn_position(0.f, highest_y);
+    static std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
+    std::uniform_int_distribution<> Rand(0, 2);
+
+    Constants::LaneType type;
+    //      (Rand(rng) == 0) ? Constants::LaneType::Grass : Constants::LaneType::Road;
+
+    do {
+        int getRandom = Rand(rng);
+        if (getRandom == 0)
+        {
+            type = Constants::LaneType::Grass;
+        }
+        else if (getRandom == 1)
+        {
+            type = Constants::LaneType::Road;
+        }
+        else
+        {
+            type = Constants::LaneType::Safe;
+        }
+        if (!lanes.empty() && type == lanes.back()->getType())
+        {
+            duplicate_lane++;
+        }
+        else
+        {
+            duplicate_lane = 1;
+		}
+        if (duplicate_lane <= 3)
+        {
+            break;
+		}
+
+    } while (true);
+
+
+    int direction = (Rand(rng) == 0) ? 1 : -1;
+
+    sf::Vector2f spawn_position(0.f, highest_y);
 
     std::unique_ptr<Lane> new_lane =
         std::make_unique<Lane>(spawn_position, current_level, direction, type);
@@ -73,6 +112,7 @@ void Map::spawnLane()
 	highest_y -= lane_height;
 	total_lanes_spawned++;
 }
+
 
 void Map::spawnLaneAsRequire(Constants::LaneType type)
 {
@@ -84,6 +124,15 @@ void Map::spawnLaneAsRequire(Constants::LaneType type)
 	sf::Vector2f spawn_position(0.f, highest_y);
 	auto new_lane =
 		std::make_unique<Lane>(spawn_position, current_level, direction, type);
+
+    if (!lanes.empty() && type == lanes.back()->getType())
+    {
+        duplicate_lane++;
+    }
+    else
+    {
+        duplicate_lane = 1;
+	}
 
     lanes.push_front(std::move(new_lane));
     highest_y -= lane_height;
