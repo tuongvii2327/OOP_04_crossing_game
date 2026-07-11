@@ -9,6 +9,7 @@
 #include "../include/entities/bush.h"
 #include "../include/utils/resource_manager.h"
 #include <limits>
+#include "../include/utils/serialization.h"
 
 #pragma region PROTECTED
 // move position by offset, update sprite position
@@ -541,4 +542,131 @@ bool Lane::checkLethalCollision(const sf::FloatRect &player_hitbox) const
 	}
 	return false;
 }
+#pragma endregion
+
+#pragma region SAVE-LOAD
+
+// ---- ĐỊNH NGHĨA HÀM SERIALIZE (LƯU LANES VÀ OBJECTS) ----
+void Lane::serialize(std::ostream &os) const
+{
+    // 1. Lưu các thông số cơ bản của LANES
+    Serialization::write(os, type);
+    Serialization::write(os, position.x);
+    Serialization::write(os, position.y);
+    Serialization::write(os, level);
+    Serialization::write(os, direction);
+    Serialization::write(os, is_active);
+    Serialization::write(os, num_active_object);
+
+	// 2. Lưu trạng thái TRAFFIC LIGHTS
+	bool has_traffic = (traffic != nullptr);
+    Serialization::write(os, has_traffic);
+    if (has_traffic)
+    {
+        Serialization::write(os, traffic->getPosition().x);
+        Serialization::write(os, traffic->getPosition().y);
+        Serialization::write(os, traffic->getTrafficColor());
+    }
+
+	// 3. Lưu danh sách DYNAMIC OBJECTS
+    size_t obj_count = list_dynamic.size();
+    Serialization::write(os, obj_count);
+    for (const auto &obj : list_dynamic)
+    {
+        Serialization::write(os, obj->getType());
+        Serialization::write(os, obj->getColor());
+        Serialization::write(os, obj->getPosition().x);
+        Serialization::write(os, obj->getPosition().y);
+        Serialization::write(os, obj->getVelocity().x);
+        Serialization::write(os, obj->getVelocity().y);
+        Serialization::write(os, obj->isActive());
+    }
+}
+
+// ---- ĐỊNH NGHĨA HÀM DESERIALIZE (NẠP LẠI LANES VÀ OBJECTS) ----
+void Lane::deserialize(std::istream &is)
+{
+    // 1. Đọc các thông số cơ bản của LANES
+    Serialization::read(is, type);
+    Serialization::read(is, position.x);
+    Serialization::read(is, position.y);
+    Serialization::read(is, level);
+    Serialization::read(is, direction);
+    Serialization::read(is, is_active);
+    Serialization::read(is, num_active_object);
+
+    
+    sprite.setTexture(Resource().getLaneTexture(type, direction));
+    sprite.setPosition(position);
+
+    // 2. Nạp trạng thái TRAFFIC LIGHTS
+    bool has_traffic = false;
+    Serialization::read(is, has_traffic);
+    if (has_traffic)
+    {
+        float tx = 0.f, ty = 0.f;
+        Constants::TrafficLightColor t_color;
+        Serialization::read(is, tx);
+        Serialization::read(is, ty);
+        Serialization::read(is, t_color);
+
+        traffic = std::make_unique<Traffic>(this, t_color);
+        traffic->setPosition({tx, ty});
+    }
+    else
+    {
+        traffic.reset();
+    }
+
+    // 3. Nạp lại danh sách DYNAMIC OBJECTS
+    list_dynamic.clear();
+    size_t obj_count = 0;
+    Serialization::read(is, obj_count);
+
+    for (size_t i = 0; i < obj_count; ++i)
+    {
+        Constants::DynamicObjectType obj_type;
+        Constants::ObjectColor obj_color;
+        float px = 0.f, py = 0.f;
+        float vx = 0.f, vy = 0.f;
+        bool obj_active = false;
+
+        Serialization::read(is, obj_type);
+        Serialization::read(is, obj_color);
+        Serialization::read(is, px);
+        Serialization::read(is, py);
+        Serialization::read(is, vx);
+        Serialization::read(is, vy);
+        Serialization::read(is, obj_active);
+
+        // FACTORY PATTERN IMPLEMENT
+        std::unique_ptr<DynamicObject> obj;
+        switch (obj_type)
+        {
+        case Constants::DynamicObjectType::Car:
+            obj = std::make_unique<Car>(obj_color, this);
+            break;
+        case Constants::DynamicObjectType::Truck:
+            obj = std::make_unique<Truck>(obj_color, this);
+            break;
+        case Constants::DynamicObjectType::Bird:
+            obj = std::make_unique<Bird>(obj_color, this);
+            break;
+        case Constants::DynamicObjectType::Rabbit:
+            obj = std::make_unique<Rabbit>(obj_color, this);
+            break;
+        default:
+            continue;
+        }
+
+        if (obj)
+        {
+            obj->setPosition({px, py});
+            obj->setVelocity({vx, vy});
+            obj->setActiveState(obj_active);
+            list_dynamic.push_back(std::move(obj));
+        }
+    }
+}
+
 #pragma endregion

@@ -2,6 +2,7 @@
 
 #include "dynamic_object.h"
 #include <SFML/Graphics.hpp>
+#include <iostream>
 
 class People : public DynamicObject
 {
@@ -29,4 +30,8 @@ public:
 
 	sf::FloatRect getBounds() const;
 	bool handleEvent(const sf::Event &event, float camera_top_y);
+
+	// ---- Serialization & Deserialzation functions
+	void serialize (std::ostream &os) const;
+	void deserialize (std::istream &is);
 };

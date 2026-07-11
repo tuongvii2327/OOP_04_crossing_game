@@ -4,6 +4,8 @@
 #include "utils/constants.h"
 #include "utils/resource_manager.h"
 #include <iostream>
+#include <fstream>
+#include "../include/utils/serialization.h"
 
 LoadState::LoadState(SharedContext *context)
     : State(context), selected_index_(0)
@@ -16,6 +18,20 @@ void LoadState::init()
     const sf::Font &font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
     title_text_ = std::make_unique<sf::Text>(font);
     setupUI(font);
+}
+
+// ---- HÀM ĐỌC NHANH THÔNG TIN FILE LƯU ----
+bool getSlotMetadata(int slot_index, std::string &out_name, int &out_score)
+{
+    std::ifstream file("data/saves/slot_" + std::to_string(slot_index) + ".bin", std::ios::binary);
+    if (!file.is_open())
+        return false;
+
+    // Chỉ cần đọc tên và điểm ở đầu file
+    Serialization::readString(file, out_name);
+    Serialization::read(file, out_score);
+    file.close();
+    return true;
 }
 
 // Setup load menu UI with save slots
@@ -38,9 +54,30 @@ void LoadState::setupUI(const sf::Font &font)
     save_slot_texts_.clear();
     for (size_t i = 0; i < save_options.size(); ++i)
     {
+        std::string display_str;
+
+        // Chỉ đọc dữ liệu cho 3 Slot đầu (i = 0, 1, 2)
+        if (i < 3)
+        {
+            std::string slot_name;
+            int slot_score = 0;
+            if (getSlotMetadata(static_cast<int>(i) + 1, slot_name, slot_score))
+            {
+                display_str = "SLOT " + std::to_string(i + 1) + ": [" + slot_name + "] - Score: " + std::to_string(slot_score);
+            }
+            else
+            {
+                display_str = "SLOT " + std::to_string(i + 1) + ": - EMPTY -";
+            }
+        }
+        else
+        {
+            display_str = save_options[i]; // "BACK TO MENU"
+        }
+
         sf::Text slot_text(font);
-        slot_text.setString(save_options[i]);
-        slot_text.setCharacterSize(48);
+        slot_text.setString(display_str);
+        slot_text.setCharacterSize(42);
 
         if (static_cast<int>(i) == selected_index_)
         {
@@ -59,6 +96,19 @@ void LoadState::setupUI(const sf::Font &font)
         slot_text.setPosition({x_position, y_position});
         save_slot_texts_.push_back(std::move(slot_text));
     }
+
+    // Thêm nút BACK TO MENU ở cuối cùng
+    // sf::Text back_text(font);
+    // back_text.setString("BACK TO MENU");
+    // back_text.setCharacterSize(42);
+    // if (selected_index_ == 3)
+    //     back_text.setFillColor(sf::Color::Yellow);
+    // else
+    //     back_text.setFillColor(sf::Color::White);
+
+    // sf::FloatRect back_bounds = back_text.getLocalBounds();
+    // back_text.setPosition({(Constants::WINDOW_WIDTH - back_bounds.size.x) / 2.0f, initial_y + 3 * spacing});
+    // save_slot_texts_.push_back(std::move(back_text));
 }
 
 // Handle slot selection and navigation
@@ -177,5 +227,15 @@ void LoadState::moveDown()
 // Load game data from save file
 void LoadState::loadGameData(int slot_index)
 {
-    context_->state_machine->switchState(std::make_unique<PlayingState>(context_));
+    // Kiểm tra xem file có thực sự tồn tại trước khi Load để tránh nạp file trống
+    std::ifstream test_file("data/saves/slot_" + std::to_string(slot_index) + ".bin", std::ios::binary);
+    if (!test_file.is_open())
+    {
+        std::cout << "[LoadState] Slot " << slot_index << " is empty. Cannot load!" << std::endl;
+        return; // File không tồn tại, chặn không cho load
+    }
+    test_file.close();
+
+    // Khởi động PlayingState và yêu cầu nạp từ slot_index
+    context_->state_machine->switchState(std::make_unique<PlayingState>(context_, slot_index));
 }

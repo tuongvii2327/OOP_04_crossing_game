@@ -1,5 +1,6 @@
 // src/states/save_state.cpp
 #include "states/save_state.h"
+#include "states/playing_state.h"
 #include "utils/constants.h"
 #include <iostream>
 
@@ -12,8 +13,12 @@ SaveState::SaveState(SharedContext *context)
 void SaveState::init()
 {
     const sf::Font &font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
-
     title_text_ = std::make_unique<sf::Text>(font);
+
+    // Khởi tạo các Text hiển thị cho chế độ gõ tên
+    prompt_text_ = std::make_unique<sf::Text>(font);
+    input_display_text_ = std::make_unique<sf::Text>(font);
+    error_text_ = std::make_unique<sf::Text>(font);
 
     setupUI(font);
 }
@@ -21,6 +26,7 @@ void SaveState::init()
 // Setup save menu UI with save slots
 void SaveState::setupUI(const sf::Font &font)
 {
+    // 1. UI BAN ĐẦU (CHỌN SLOT)
     title_text_->setString("SAVE GAME");
     title_text_->setCharacterSize(72);
     title_text_->setFillColor(sf::Color::Green);
@@ -60,11 +66,97 @@ void SaveState::setupUI(const sf::Font &font)
         slot_text->setPosition({x_position, y_position});
         save_slot_texts_.push_back(std::move(slot_text));
     }
+
+    // 2. UI GÕ TÊN
+    prompt_text_->setString("ENTER YOU NAME (3 - 15 CHARS):");
+    prompt_text_->setCharacterSize(48);
+    prompt_text_->setFillColor(sf::Color::Cyan);
+    sf::FloatRect p_bounds = prompt_text_->getLocalBounds();
+    prompt_text_->setPosition({(Constants::WINDOW_WIDTH - p_bounds.size.x) / 2.0f, 320.0f});
+
+    input_display_text_->setString("_");
+    input_display_text_->setCharacterSize(60);
+    input_display_text_->setFillColor(sf::Color::Yellow);
+    input_display_text_->setPosition({100.f, 420.0f});
+
+    error_text_->setString("");
+    error_text_->setCharacterSize(36);
+    error_text_->setFillColor(sf::Color::Red);
 }
 
 // Handle slot selection and navigation
 void SaveState::handleEvent(const sf::Event &event)
 {
+    // ---- MODE 1: INPUTTING NAME ----
+    if (is_naming_mode_)
+    {
+        // 1. Xử lý gõ phím ký tự Unicode
+        if (const auto *text_entered = event.getIf<sf::Event::TextEntered>())
+        {
+            char32_t unicode = text_entered->unicode;
+
+            if (unicode == 8) // BACKSPACE
+            {
+                if (!input_name_.empty())
+                    input_name_.pop_back();
+
+                error_text_->setString("");
+            }
+
+            else if (unicode >= 32 && unicode < 127) // Các ký tự in ra được
+            {
+                char c = static_cast<char>(unicode);
+                
+                // RÀNG BUỘC KÝ TỰ: Chỉ chấp nhận chữ cái, số và khoảng trắng
+                if (std::isalnum(c) || c == ' ')
+                {
+                    if (input_name_.length() < 15) // MAX 15 VALID CHARACTERS
+                    {
+                        input_name_ += c;
+                        error_text_->setString("");
+                    }
+                    else
+                    {
+                        error_text_->setString("ERROR: MAX LIMIT REACHED (15 CHARS)!");
+                    }
+                }
+                else
+                {
+                    error_text_->setString("ERROR: SPECIAL CHARACTERS NOT ALLOWED!");
+                }
+            }
+            // Cập nhật chuỗi hiển thị có kèm con trỏ "_" nhấp nháy giả lập
+            input_display_text_->setString(input_name_ + "_");
+            sf::FloatRect input_bounds = input_display_text_->getLocalBounds();
+            input_display_text_->setPosition({(Constants::WINDOW_WIDTH - input_bounds.size.x) / 2.0f, 420.0f});
+        }
+
+        // 2. Xử lý nhấn Enter hoặc Esc
+        if (const auto *key_pressed = event.getIf<sf::Event::KeyPressed>())
+        {
+            if (key_pressed->code == sf::Keyboard::Key::Enter)
+            {
+                // MIN 3 VALID CHARACTERS
+                if (input_name_.length() < 3)
+                {
+                    error_text_->setString("ERROR: NAME TOO SHORT (MIN 3 CHARS)!");
+                }
+                else
+                {
+                    // Đạt mọi điều kiện -> Tiến hành lưu game
+                    saveGameData(target_slot_, input_name_);
+                    is_naming_mode_ = false; // Thoát chế độ gõ tên
+                }
+            }
+            else if (key_pressed->code == sf::Keyboard::Key::Escape)
+            {
+                is_naming_mode_ = false; // Huỷ bỏ, quay về menu chọn Slot
+            }
+        }
+        return;
+    }
+
+    // ---- MODE 2: SELECT SAVE SLOT ----
     if (const auto *key_pressed = event.getIf<sf::Event::KeyPressed>())
     {
         if (key_pressed->code == sf::Keyboard::Key::Up || key_pressed->code == sf::Keyboard::Key::W)
@@ -83,7 +175,12 @@ void SaveState::handleEvent(const sf::Event &event)
             }
             else
             {
-                saveGameData(selected_index_ + 1);
+                // Thay vì lưu ngay, chuyển sang chế độ gõ tên
+                is_naming_mode_ = true;
+                target_slot_ = selected_index_ + 1;
+                input_name_ = "";
+                input_display_text_->setString("_");
+                error_text_->setString("");
             }
         }
         else if (key_pressed->code == sf::Keyboard::Key::Escape)
@@ -132,7 +229,12 @@ void SaveState::handleEvent(const sf::Event &event)
                     }
                     else
                     {
-                        saveGameData(selected_index_ + 1); // Click SLOT
+                        // Thay vì lưu ngay, ta chuyển sang chế độ gõ tên
+                        is_naming_mode_ = true;
+                        target_slot_ = selected_index_ + 1;
+                        input_name_ = "";
+                        input_display_text_->setString("_");
+                        error_text_->setString("");
                     }
                     break;
                 }
@@ -159,11 +261,29 @@ void SaveState::render(sf::RenderWindow &window)
 {
     window.clear(sf::Color(25, 25, 25));
 
+    // Draw title
     window.draw(*title_text_);
 
-    for (const auto &slot_text : save_slot_texts_)
+    if (is_naming_mode_)
     {
-        window.draw(*slot_text);
+        // Đang gõ tên: vẽ hướng dẫn gõ, tên đang gõ, và lỗi (nếu có)
+        window.draw(*prompt_text_);
+        window.draw(*input_display_text_);
+        
+        if (error_text_->getString() != "")
+        {
+            sf::FloatRect err_bounds = error_text_->getLocalBounds();
+            error_text_->setPosition({(Constants::WINDOW_WIDTH - err_bounds.size.x) / 2.0f, 520.0f});
+            window.draw(*error_text_);
+        }
+    }
+    else
+    {
+        // Chế độ chọn thường: vẽ các Slot lựa chọn
+        for (const auto &slot_text : save_slot_texts_)
+        {
+            window.draw(*slot_text);
+        }
     }
 }
 
@@ -188,16 +308,34 @@ void SaveState::moveDown()
 }
 
 // Save game data to save file
-void SaveState::saveGameData(int slot_index)
+void SaveState::saveGameData(int slot_index, const std::string& name)
 {
-    // std::cout << "Successfully saved game to Slot " << slot_index << "!" << std::endl;
+    // Lấy màn chơi đang chạy phía bên dưới Menu Pause
+    PlayingState* active_game = PlayingState::getActiveInstance();
+    
+    if (active_game)
+    {
+        // Ghi dữ liệu trực tiếp vào file nhị phân
+        std::ofstream file("data/saves/slot_" + std::to_string(slot_index) + ".bin", std::ios::binary);
+        if (file.is_open())
+        {
+            active_game->serialize(file, name);
+            file.close();
 
-    save_slot_texts_[slot_index - 1]->setString("SAVE SLOT " + std::to_string(slot_index) + " - SAVED!");
+            std::cout << "Successfully saved game to Slot " << slot_index << "!" << std::endl;
+            save_slot_texts_[slot_index - 1]->setString("SAVE SLOT " + std::to_string(slot_index) + " - SAVED!");
+        }
+        else
+        {
+            std::cerr << "Failed to open slot file for writing!" << std::endl;
+            save_slot_texts_[slot_index - 1]->setString("SAVE SLOT " + std::to_string(slot_index) + " - FAILED!");
+        }
+    }
 
     sf::FloatRect text_bounds = save_slot_texts_[slot_index - 1]->getLocalBounds();
     float x_position = (Constants::WINDOW_WIDTH - text_bounds.size.x) / 2.0f;
     float y_position = save_slot_texts_[slot_index - 1]->getPosition().y;
     save_slot_texts_[slot_index - 1]->setPosition({x_position, y_position});
-    is_saved_ = true;
+    is_saved_ = false;
     save_timer_ = 0.0f;
 }

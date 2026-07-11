@@ -10,6 +10,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <memory>
+#include <fstream>
 
 class PlayingState : public State
 {
@@ -24,9 +25,15 @@ private:
 	sf::View view_;
 	void setupWorld();
 
+	static PlayingState* active_instance_; // Con trỏ tĩnh toàn cục cục bộ
+	int load_slot_ = 0;					   // Slot cần nạp khi khởi tạo
+
 public:
-	PlayingState(SharedContext* context);
-	~PlayingState() = default;
+	PlayingState(SharedContext* contex, int load_slot_ = 0);
+	~PlayingState() override;
+	
+	// Phương thức tĩnh để lấy thực thể PlayingState đang chạy
+	static PlayingState* getActiveInstance () { return active_instance_; }
 
 	// Initialize UI resources, player position, and generate the initial map
 	void init() override;
@@ -43,4 +50,8 @@ public:
 	void pause() override;
 	void resume() override;
 	void restart();
+
+	// Read/write playing data
+	void serialize (std::ostream &os, const std::string &slot_name) const;
+	void deserialize (std::istream &is);
 };

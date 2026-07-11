@@ -1,5 +1,7 @@
 #include "../include/entities/people.h"
 #include "../include/utils/constants.h"
+#include "../include/utils/serialization.h"
+
 #include <iostream>
 
 People::People()
@@ -124,6 +126,7 @@ void People::resetPosition()
 	hitbox.position = position + hitbox_offset;
 
 	is_dead = false;
+	is_active = true;
 }
 
 sf::FloatRect People::getBounds() const
@@ -161,4 +164,38 @@ bool People::handleEvent(const sf::Event &event, float camera_top_y)
 	}
 
 	return false;
+}
+
+void People::serialize (std::ostream &os) const{
+	// Save living status
+	Serialization::write(os, is_dead);
+
+	// Save player's coordinate
+	Serialization::write (os, position.x);
+	Serialization::write (os, position.y);
+
+	// Save player's step size
+	Serialization::write(os, step_size);
+
+	// Save active status inherit from DynamicObject
+	Serialization::write (os, is_active);
+}
+
+void People::deserialize(std::istream &is)
+{
+    Serialization::read(is, is_dead);
+    Serialization::read(is, position.x);
+    Serialization::read(is, position.y);
+    Serialization::read(is, step_size);
+    Serialization::read(is, is_active);
+
+	is_dead = false;   // Ép sống lại khi load game đề phòng file lưu bị lỗi chết
+    is_active = true;  // Ép người chơi hoạt động để nhận sự kiện phím bấm
+
+    // Log kiểm tra tọa độ nạp thực tế từ file xuống màn hình console
+    std::cout << "[DEBUG LOAD] Player Loaded Position: (" << position.x << ", " << position.y << ")\n";
+
+	// Update sprite & hitbox
+    sprite.setPosition(position);
+    hitbox.position = position + hitbox_offset;
 }

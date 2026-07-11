@@ -43,4 +43,8 @@ public:
 	void render(sf::RenderWindow &window) const;
 	bool checkLethalCollision(const sf::FloatRect &player_hitbox) const;
 	void reset(float start_y);
+
+	// ---- Serialization & Deserialization functions ---- 
+	void serialize(std::ostream &os) const;
+	void deserialize(std::istream &is);
 };

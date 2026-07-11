@@ -18,6 +18,14 @@ private:
 	bool is_saved_;
 	float save_timer_;
 
+	bool is_naming_mode_ = false;
+	std::string input_name_ = "";
+	int target_slot_ = 0;
+
+	std::unique_ptr <sf::Text> prompt_text_;
+	std::unique_ptr <sf::Text> input_display_text_;
+	std::unique_ptr <sf::Text> error_text_;
+
 	// Setup save slot UI
 	void setupUI(const sf::Font &font);
 	// Move selection up
@@ -25,7 +33,7 @@ private:
 	// Move selection down
 	void moveDown();
 	// Save game data to specified slot
-	void saveGameData(int slot_index);
+	void saveGameData(int slot_index, const std::string &name);
 
 public:
 	SaveState(SharedContext* context);
