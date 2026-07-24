@@ -1,6 +1,6 @@
-#include "../include/entities/static_object.h"
-#include "../include/utils/resource_manager.h"
-#include "../include/world/lane.h"
+#include "entities/static_object.h"
+#include "utils/resource_manager.h"
+#include "world/lane.h"
 
 #pragma region PRIVATE
 // update hitbox position using position and hitbox_offset

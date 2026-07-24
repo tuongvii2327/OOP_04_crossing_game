@@ -77,4 +77,7 @@ public:
     Vehicle *getNearestVehicleAhead(const Vehicle &vehicle);             // the vehicle immediately ahead of `vehicle` in list_obj, if it is slower
     Animal *getNearestAnimalAhead(const Animal &animal);                 // the closest stopped/slower animal ahead of `animal`
     bool checkLethalCollision(const sf::FloatRect &player_hitbox) const; // true if any active lethal object's hitbox intersects player_hitbox
+
+    void serialize(std::ostream &os) const;
+    void deserialize(std::istream &is);
 };

@@ -1,11 +1,11 @@
-#include "../include/entities/rock.h"
-#include "../include/world/lane.h"
+#include "entities/rock.h"
+#include "world/lane.h"
 
 #pragma region PUBLIC
 
 #pragma region CONSTRUCTOR, DESTRUCTOR
-Rock::Rock(Lane* init_lane, const sf::Vector2f &init_position)
-	: StaticObject(Constants::StaticObjectType::Rock, init_position, init_lane, Constants::ObjectColor::None)
+Rock::Rock(Lane *init_lane, const sf::Vector2f &init_position)
+    : StaticObject(Constants::StaticObjectType::Rock, init_position, init_lane, Constants::ObjectColor::None)
 {
 }
 #pragma endregion
@@ -13,7 +13,7 @@ Rock::Rock(Lane* init_lane, const sf::Vector2f &init_position)
 #pragma region GET, SET
 Constants::StaticObjectType Rock::getType() const
 {
-	return Constants::StaticObjectType::Rock;
+    return Constants::StaticObjectType::Rock;
 }
 #pragma endregion
 
@@ -21,7 +21,7 @@ Constants::StaticObjectType Rock::getType() const
 // keep the rock vertically locked to its lane as the map scrolls along Oy
 void Rock::updateState(float delta_time)
 {
-	setPosition(getPosition());
+    setPosition(getPosition());
 }
 #pragma endregion
 #pragma endregion

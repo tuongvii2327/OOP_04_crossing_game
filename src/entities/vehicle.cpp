@@ -1,10 +1,9 @@
-#include "../include/entities/vehicle.h"
-#include "../include/entities/traffic_light.h"
-#include "../include/utils/audio_system.h"
-#include "../include/utils/resource_manager.h"
-#include "../include/world/lane.h"
+#include "entities/vehicle.h"
+#include "entities/traffic_light.h"
+#include "utils/audio_system.h"
+#include "utils/resource_manager.h"
+#include "world/lane.h"
 #include <algorithm>
-
 
 #pragma region PROTECTED
 // safe_distance = base_speed * SAFE_DISTANCE_FACTOR

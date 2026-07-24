@@ -1,6 +1,6 @@
-#include "../include/world/map.h"
-#include "../include/utils/resource_manager.h"
-#include "../include/utils/serialization.h"
+#include "world/map.h"
+#include "utils/resource_manager.h"
+#include "utils/serialization.h"
 
 Map::Map(SharedContext *context)
     : lane_height(Constants::LANE_HEIGHT),

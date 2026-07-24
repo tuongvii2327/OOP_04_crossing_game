@@ -1,11 +1,11 @@
-#include "../include/entities/bush.h"
-#include "../include/world/lane.h"
+#include "entities/bush.h"
+#include "world/lane.h"
 
 #pragma region PUBLIC
 
 #pragma region CONSTRUCTOR, DESTRUCTOR
-Bush::Bush(Lane* init_lane, const sf::Vector2f &init_position)
-	: StaticObject(Constants::StaticObjectType::Bush, init_position, init_lane, Constants::ObjectColor::None)
+Bush::Bush(Lane *init_lane, const sf::Vector2f &init_position)
+    : StaticObject(Constants::StaticObjectType::Bush, init_position, init_lane, Constants::ObjectColor::None)
 {
 }
 #pragma endregion
@@ -13,7 +13,7 @@ Bush::Bush(Lane* init_lane, const sf::Vector2f &init_position)
 #pragma region GET, SET
 Constants::StaticObjectType Bush::getType() const
 {
-	return Constants::StaticObjectType::Bush;
+    return Constants::StaticObjectType::Bush;
 }
 #pragma endregion
 
@@ -21,7 +21,7 @@ Constants::StaticObjectType Bush::getType() const
 // keep the bush vertically locked to its lane as the map scrolls along Oy
 void Bush::updateState(float delta_time)
 {
-	setPosition(getPosition());
+    setPosition(getPosition());
 }
 #pragma endregion
 #pragma endregion

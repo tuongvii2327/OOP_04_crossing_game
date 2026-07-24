@@ -3,6 +3,8 @@
 #include "utils/audio_system.h"
 #include "utils/constants.h"
 #include "utils/resource_manager.h"
+#include "utils/serialization.h"
+#include <fstream>
 
 LoadState::LoadState(SharedContext *context)
     : State(context), selected_index_(0)

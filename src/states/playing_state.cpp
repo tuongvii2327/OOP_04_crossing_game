@@ -1,12 +1,11 @@
 #include "states/playing_state.h"
-#include "../include/utils/serialization.h"
 #include "states/game_over_state.h"
 #include "states/pause_state.h"
 #include "utils/audio_system.h"
 #include "utils/constants.h"
 #include "utils/resource_manager.h"
+#include "utils/serialization.h"
 #include <iostream>
-
 
 PlayingState *PlayingState::active_instance_ = nullptr;
 

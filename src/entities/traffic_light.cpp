@@ -1,7 +1,6 @@
-#include "../include/entities/traffic_light.h"
-#include "../include/utils/resource_manager.h"
-#include "../include/world/lane.h"
-
+#include "entities/traffic_light.h"
+#include "utils/resource_manager.h"
+#include "world/lane.h"
 
 #pragma region PROTECTED
 // pick a random duration for the given color; Yellow is always fixed at YELLOW_DURATION

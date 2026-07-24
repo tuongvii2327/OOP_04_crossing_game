@@ -1,6 +1,7 @@
-#include "../include/entities/people.h"
-#include "../include/utils/audio_system.h"
-#include "../include/utils/constants.h"
+#include "entities/people.h"
+#include "utils/audio_system.h"
+#include "utils/constants.h"
+#include "utils/serialization.h"
 
 People::People()
     : DynamicObject(Constants::DynamicObjectType::People, Constants::ObjectColor::None, nullptr),

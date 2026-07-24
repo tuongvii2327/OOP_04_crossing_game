@@ -1,7 +1,8 @@
-#include "../include/entities/animal.h"
-#include "../include/utils/audio_system.h"
-#include "../include/world/lane.h"
-#include "utils/resource_manager.h"
+#include "entities/animal.h"
+#include "utils/audio_system.h"
+// #include "utils/resource_manager.h"
+#include "world/lane.h"
+
 
 #pragma region PROTECTED
 // pick a random duration for new state between MIN_DURATION_ANIMAL & MAX_DURATION_ANIMAL

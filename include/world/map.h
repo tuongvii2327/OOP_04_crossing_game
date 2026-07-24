@@ -4,12 +4,10 @@
 #include <memory>
 #include <random>
 
-
 #include <SFML/Graphics.hpp>
 
 #include "../utils/constants.h"
 #include "../utils/shared_context.h"
-
 
 #include "lane.h"
 
@@ -29,10 +27,6 @@ private:
 
     SharedContext *context_; // lưu trữ ngữ cảnh dùng chung
 
-    int total_lanes_spawned = 0;
-
-    SharedContext *context_; // lưu trữ ngữ cảnh dùng chung
-
     std::mt19937 rng;
 
     void spawnLane();                                  // Generate random one lane in the top of map
@@ -40,7 +34,6 @@ private:
     void popLane();                                    // Delete the oldest lane in the map
 
 public:
-    explicit Map(SharedContext *context = nullptr);
     explicit Map(SharedContext *context = nullptr);
     ~Map();
     void initMap(float start_y);

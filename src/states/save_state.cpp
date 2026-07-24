@@ -1,8 +1,12 @@
 // src/states/save_state.cpp
 #include "states/save_state.h"
+#include "states/playing_state.h"
 #include "utils/audio_system.h"
 #include "utils/constants.h"
 #include "utils/resource_manager.h"
+#include <fstream>
+#include <iostream>
+
 
 SaveState::SaveState(SharedContext *context)
     : State(context), selected_index_(0), is_saved_(false), save_timer_(0.0f)

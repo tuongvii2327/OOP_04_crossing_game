@@ -17,11 +17,11 @@ Game::Game()
     window.setFramerateLimit(Constants::FPS_LIMIT);
 
     // Thêm hàm preload
-    // Audio().preloadAll();
-    // Audio().setMusicVolume(config_.music_volume);
-    // Audio().setSFXVolume(config_.sfx_volume);
-    // // Thay thế gọi String bằng Enum
-    // Audio().playMusic(AudioSystem::Music::Background);
+    Audio().preloadAll();
+    Audio().setMusicVolume(config_.music_volume);
+    Audio().setSFXVolume(config_.sfx_volume);
+    // Thay thế gọi String bằng Enum
+    Audio().playMusic(AudioSystem::Music::Background);
 
     context_.window = &window;
     context_.state_machine = &state_machine;
