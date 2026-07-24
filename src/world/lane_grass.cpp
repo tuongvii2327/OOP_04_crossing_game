@@ -3,6 +3,7 @@
 #include "entities/bird.h"
 #include "entities/rabbit.h"
 
+#include <algorithm>
 #include <limits>
 
 LaneGrass::LaneGrass(const sf::Vector2f &init_position, const int &init_level, const int &init_direction)

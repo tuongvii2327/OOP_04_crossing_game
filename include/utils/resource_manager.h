@@ -5,6 +5,7 @@
 #include <SFML/Graphics.hpp>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 
@@ -33,30 +34,30 @@ private:
     std::unordered_map<std::string, std::unique_ptr<sf::Font>> fonts_;
     std::unordered_map<std::string, std::unique_ptr<sf::SoundBuffer>> sound_buffers_;
 
-    std::map<std::pair<int, int>, sf::Texture> dynamic_texture_cache_;
-    std::map<std::pair<int, int>, sf::Texture> static_texture_cache_;
-    std::map<std::pair<int, int>, sf::Texture> lane_texture_cache_;
-    std::map<int, sf::Texture> traffic_texture_cache_;
+    // std::map<std::pair<int, int>, sf::Texture> dynamic_texture_cache_;
+    // std::map<std::pair<int, int>, sf::Texture> static_texture_cache_;
+    // std::map<std::pair<int, int>, sf::Texture> lane_texture_cache_;
+    // std::map<int, sf::Texture> traffic_texture_cache_;
 
     ResourceManager() = default;
 
-#pragma region DEMO PROCEDURAL DRAWING
-    static sf::Color toSFColor(const Constants::ObjectColor &color);            // ObjectColor -> concrete sf::Color
-    static sf::Color toTrafficColor(const Constants::TrafficLightColor &color); // TrafficLightColor -> concrete sf::Color
-    static sf::Color shade(sf::Color base, float factor);                       // multiply channels by factor (>1 lightens, <1 darkens), clamped
+// #pragma region DEMO PROCEDURAL DRAWING
+//     static sf::Color toSFColor(const Constants::ObjectColor &color);            // ObjectColor -> concrete sf::Color
+//     static sf::Color toTrafficColor(const Constants::TrafficLightColor &color); // TrafficLightColor -> concrete sf::Color
+//     static sf::Color shade(sf::Color base, float factor);                       // multiply channels by factor (>1 lightens, <1 darkens), clamped
 
-    static sf::Texture makeRoadTexture(sf::Color asphalt, int direction);
-    static sf::Texture makeGrassTexture(sf::Color base);
-    static sf::Texture makeVehicleTexture(unsigned w, unsigned h, sf::Color body, bool isTruck);
-    static sf::Texture makeAnimalTexture(unsigned w, unsigned h, sf::Color body, bool isBird);
-    static sf::Texture makePersonTexture(sf::Color body);
-    static sf::Texture makeRockTexture(unsigned w, unsigned h, sf::Color body);
-    static sf::Texture makeBushTexture(unsigned w, unsigned h, sf::Color body);
-    static sf::Texture makeTrafficTexture(Constants::TrafficLightColor active);
-    static sf::Texture buildDynamicObjectTexture(const Constants::DynamicObjectType &type, const Constants::ObjectColor &color); // dispatch to the right makeXxxTexture() by DynamicObjectType
-    static sf::Texture buildStaticObjectTexture(const Constants::StaticObjectType &type, const Constants::ObjectColor &color);   // dispatch to the right makeXxxTexture() by StaticObjectType
-    static sf::Texture buildLaneTexture(const Constants::LaneType &type, int direction);                                         // dispatch to makeRoadTexture()/makeGrassTexture() by LaneType
-#pragma endregion
+//     static sf::Texture makeRoadTexture(sf::Color asphalt, int direction);
+//     static sf::Texture makeGrassTexture(sf::Color base);
+//     static sf::Texture makeVehicleTexture(unsigned w, unsigned h, sf::Color body, bool isTruck);
+//     static sf::Texture makeAnimalTexture(unsigned w, unsigned h, sf::Color body, bool isBird);
+//     static sf::Texture makePersonTexture(sf::Color body);
+//     static sf::Texture makeRockTexture(unsigned w, unsigned h, sf::Color body);
+//     static sf::Texture makeBushTexture(unsigned w, unsigned h, sf::Color body);
+//     static sf::Texture makeTrafficTexture(Constants::TrafficLightColor active);
+//     static sf::Texture buildDynamicObjectTexture(const Constants::DynamicObjectType &type, const Constants::ObjectColor &color); // dispatch to the right makeXxxTexture() by DynamicObjectType
+//     static sf::Texture buildStaticObjectTexture(const Constants::StaticObjectType &type, const Constants::ObjectColor &color);   // dispatch to the right makeXxxTexture() by StaticObjectType
+//     static sf::Texture buildLaneTexture(const Constants::LaneType &type, int direction);                                         // dispatch to makeRoadTexture()/makeGrassTexture() by LaneType
+// #pragma endregion
 };
 
 inline ResourceManager &Resource() { return ResourceManager::getInstance(); }

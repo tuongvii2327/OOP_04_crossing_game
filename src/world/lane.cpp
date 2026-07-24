@@ -29,13 +29,11 @@ void Lane::adjustSprite()
 {
     if (getWidthSprite() == 0.f || getHeightSprite() == 0.f)
         return;
-    if (getWidthSprite() > Constants::LANE_WIDTH ||
-        getHeightSprite() > Constants::LANE_HEIGHT)
-    {
-        float scaleX = Constants::LANE_WIDTH / getWidthSprite();
-        float scaleY = Constants::LANE_HEIGHT / getHeightSprite();
-        sprite.setScale({scaleX, scaleY});
-    }
+
+    // Luôn luôn ép co giãn ảnh cho vừa bằng kích thước của làn đường (1260x105)
+    float scaleX = Constants::LANE_WIDTH / getWidthSprite();
+    float scaleY = Constants::LANE_HEIGHT / getHeightSprite();
+    sprite.setScale({scaleX, scaleY});
 }
 
 // random int in [start, end]
@@ -53,6 +51,7 @@ int Lane::randomRange(int start, int end)
 Lane::Lane(const sf::Vector2f &init_position, const int &init_level, const int &init_direction, const Constants::LaneType &init_type)
     : sprite(getTexture(init_type, init_direction))
 {
+    adjustSprite(); // <-- Kéo giãn sprite ngay khi làn đường vừa được tạo
     setDirection(init_direction);
     setLevel(init_level);
     setPosition(init_position);
@@ -123,8 +122,8 @@ int Lane::getNumberOfActive() const
 
 void Lane::setNumberOfActive(int new_num)
 {
-    num_active_object =
-        std::clamp(new_num, 0, static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
+    // Cố tình dùng min/max thay thế cho std::clamp để chống lỗi phiên bản C++
+    num_active_object = std::min(std::max(new_num, 0), static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
 }
 
 float Lane::getWidthSprite() const

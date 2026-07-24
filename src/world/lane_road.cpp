@@ -7,6 +7,7 @@
 #include "utils/serialization.h"
 
 #include <limits>
+#include <algorithm>
 
 LaneRoad::LaneRoad(const sf::Vector2f &init_position, const int &init_level, const int &init_direction)
     : Lane(init_position, init_level, init_direction, Constants::LaneType::Road)
