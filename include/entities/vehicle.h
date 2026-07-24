@@ -10,6 +10,9 @@ protected:
     float base_speed;    // max speed of this vehicle
     float safe_distance; // distance to brake or accelerate
 
+    float anim_timer = 0.f;
+    int current_frame = 0;
+
     float calcSafeDistance() const; // safe_distance = base_speed * SAFE_DISTANCE_FACTOR
 
 public:

@@ -324,29 +324,22 @@ const sf::SoundBuffer &ResourceManager::getSoundBuffer(const std::string &filepa
 
 const sf::Texture &ResourceManager::getDynamicObjectTexture(const Constants::DynamicObjectType &type, const Constants::ObjectColor &color)
 {
-    static std::map<std::pair<int, int>, sf::Texture> cache;
-    std::pair<int, int> key{static_cast<int>(type), static_cast<int>(color)};
+    (void)color;
 
-    if (cache.find(key) == cache.end())
+    switch (type)
     {
-        switch (type)
-        {
-        case Constants::DynamicObjectType::Car:
-            cache.emplace(key, makeVehicleTexture(60, 36, toSFColor(color), false));
-            break;
-        case Constants::DynamicObjectType::Truck:
-            cache.emplace(key, makeVehicleTexture(88, 42, toSFColor(color), true));
-            break;
-        case Constants::DynamicObjectType::Bird:
-            return getInstance().getTexture("assets/textures/bird_1.png"); // BẠN ĐÃ CÓ
-        case Constants::DynamicObjectType::Rabbit:
-            return getInstance().getTexture("assets/textures/rabbit_1.png"); // BẠN ĐÃ CÓ
-        case Constants::DynamicObjectType::People:
-        default:
-            return getInstance().getTexture("assets/textures/player.png"); // BẠN ĐÃ CÓ
-        }
+    case Constants::DynamicObjectType::Car:
+        return getInstance().getTexture("assets/textures/car_1.png");
+    case Constants::DynamicObjectType::Truck:
+        return getInstance().getTexture("assets/textures/truck_1.png");
+    case Constants::DynamicObjectType::Bird:
+        return getInstance().getTexture("assets/textures/bird_1.png");
+    case Constants::DynamicObjectType::Rabbit:
+        return getInstance().getTexture("assets/textures/rabbit_1.png");
+    case Constants::DynamicObjectType::People:
+    default:
+        return getInstance().getTexture("assets/textures/player.png");
     }
-    return cache[key];
 }
 
 const sf::Texture &ResourceManager::getStaticObjectTexture(const Constants::StaticObjectType &type, const Constants::ObjectColor &color)
