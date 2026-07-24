@@ -10,6 +10,9 @@
 #include "../utils/shared_context.h"
 
 #include "lane.h"
+#include "lane_road.h"
+#include "lane_grass.h"
+#include "lane_safe.h"
 
 class Map
 {
@@ -32,6 +35,12 @@ private:
     void spawnLane();                                  // Generate random one lane in the top of map
     void spawnLaneAsRequire(Constants::LaneType type); // Generate type lane as required
     void popLane();                                    // Delete the oldest lane in the map
+
+    // Factory: create the correct Lane subclass for the given type
+    static std::unique_ptr<Lane> createLane(Constants::LaneType type,
+                                            const sf::Vector2f &position,
+                                            int level,
+                                            int direction);
 
 public:
     explicit Map(SharedContext *context = nullptr);

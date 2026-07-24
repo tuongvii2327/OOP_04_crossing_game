@@ -2,13 +2,22 @@
 #include "utils/resource_manager.h"
 #include "utils/serialization.h"
 
-Map::Map(SharedContext *context)
-    : lane_height(Constants::LANE_HEIGHT),
-      highest_y(0.f),
-      current_level(1),
-      context_(context)
+// Factory: create the correct Lane subclass for the given type
+std::unique_ptr<Lane> Map::createLane(Constants::LaneType type, const sf::Vector2f &position, int level, int direction)
 {
+    switch (type)
+    {
+    case Constants::LaneType::Grass:
+        return std::make_unique<LaneGrass>(position, level, direction);
+    case Constants::LaneType::Road:
+        return std::make_unique<LaneRoad>(position, level, direction);
+    case Constants::LaneType::Safe:
+    default:
+        return std::make_unique<LaneSafe>(position, level, direction);
+    }
 }
+
+Map::Map(SharedContext *context) : lane_height(Constants::LANE_HEIGHT), highest_y(0.f), current_level(1),context_(context){}
 
 Map::~Map()
 {
@@ -87,8 +96,7 @@ void Map::spawnLane()
     int direction = (DirRand(rng) == 0) ? 1 : -1;
     sf::Vector2f spawn_position(0.f, highest_y);
 
-    std::unique_ptr<Lane> new_lane =
-        std::make_unique<Lane>(spawn_position, current_level, direction, type);
+    std::unique_ptr<Lane> new_lane = createLane(type, spawn_position, current_level, direction);
 
     lanes.push_front(std::move(new_lane));
     highest_y -= lane_height;
@@ -103,8 +111,7 @@ void Map::spawnLaneAsRequire(Constants::LaneType type)
     int direction = (Rand(gen) == 0) ? 1 : -1;
 
     sf::Vector2f spawn_position(0.f, highest_y);
-    auto new_lane =
-        std::make_unique<Lane>(spawn_position, current_level, direction, type);
+    auto new_lane = createLane(type, spawn_position, current_level, direction);
 
     if (!lanes.empty() && type == lanes.front()->getType())
     {
@@ -190,52 +197,68 @@ void Map::reset(float start_y)
     initMap(start_y);
 }
 
-// ----- ĐỊNH NGHĨA HÀM SERIALIZE (LƯU MAP & LANES) ----
+// ----- SERIALIZE (SAVE MAP & LANES) ----
 void Map::serialize(std::ostream &os) const
 {
-    // 1. Lưu các thuộc tính quản lý tọa độ và cấp độ của Map
+    // 1. Write map management properties
     Serialization::write(os, highest_y);
     Serialization::write(os, lane_height);
     Serialization::write(os, current_level);
     Serialization::write(os, total_lanes_spawned);
 
-    // 2. Lưu số lượng Lane hiện tại
+    // 2. Write lane count
     size_t lanes_count = lanes.size();
     Serialization::write(os, lanes_count);
 
-    // 3. Yêu cầu từng Lane tự Serialize dữ liệu của nó
+    // 3. Each lane serializes itself (type is written first by Lane::serialize)
     for (const auto &lane : lanes)
     {
         lane->serialize(os);
     }
 }
 
-// ---- ĐỊNH NGHĨA HÀM DESERIALIZE (NẠP LẠI MAP & LANES) ----
+// ---- DESERIALIZE (LOAD MAP & LANES) ----
 void Map::deserialize(std::istream &is)
 {
-    // 1. Đọc lại các thuộc tính Map
+    // 1. Read map management properties
     Serialization::read(is, highest_y);
     Serialization::read(is, lane_height);
     Serialization::read(is, current_level);
     Serialization::read(is, total_lanes_spawned);
 
-    // 2. Đọc số lượng Lane cần nạp
+    // 2. Read lane count
     size_t lanes_count = 0;
     Serialization::read(is, lanes_count);
 
-    // Xóa dữ liệu bản đồ cũ
+    // Clear old map data
     lanes.clear();
 
-    // 3. Khởi tạo lại và phục hồi dữ liệu cho từng Lane theo đúng thứ tự
+    // 3. For each lane: read its type first, create the correct subclass, then deserialize
     for (size_t i = 0; i < lanes_count; ++i)
     {
-        // Tạo một Lane rỗng với các tham số mặc định trước
-        auto lane = std::make_unique<Lane>();
+        // Read lane type to determine which subclass to create
+        Constants::LaneType lane_type;
+        Serialization::read(is, lane_type);
 
-        // Gọi hàm Deserialize của chính Lane đó để nạp đè dữ liệu từ file lên
+        // Create the correct subclass with default params (will be overwritten by deserialize)
+        std::unique_ptr<Lane> lane;
+        switch (lane_type)
+        {
+        case Constants::LaneType::Grass:
+            lane = std::make_unique<LaneGrass>();
+            break;
+        case Constants::LaneType::Road:
+            lane = std::make_unique<LaneRoad>();
+            break;
+        case Constants::LaneType::Safe:
+        default:
+            lane = std::make_unique<LaneSafe>();
+            break;
+        }
+
+        // Deserialize reads remaining data (type already consumed above)
         lane->deserialize(is);
 
-        // Đẩy trở lại vào Deque map
         lanes.push_back(std::move(lane));
     }
 }

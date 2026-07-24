@@ -2,6 +2,7 @@
 #include "utils/audio_system.h"
 // #include "utils/resource_manager.h"
 #include "world/lane.h"
+#include "world/lane_grass.h"
 
 
 #pragma region PROTECTED
@@ -111,7 +112,8 @@ void Animal::updateState(float delta_time)
     {
         timer += delta_time;
     }
-    Animal *nearest_animal = current_lane->getNearestAnimalAhead(*this);
+    LaneGrass *grass = dynamic_cast<LaneGrass *>(current_lane);
+    Animal *nearest_animal = grass ? grass->getNearestAnimalAhead(*this) : nullptr;
     if (nearest_animal && is_move)
     {
         // gapToObstacle() already subtracts VISUAL_DISTANCE, so the real stop

@@ -3,6 +3,7 @@
 #include "utils/audio_system.h"
 #include "utils/resource_manager.h"
 #include "world/lane.h"
+#include "world/lane_road.h"
 #include <algorithm>
 
 #pragma region PROTECTED
@@ -59,7 +60,8 @@ void Vehicle::updateState(float delta_time)
     float v_vehicle = base_speed;
     bool is_blocked = false;
 
-    Traffic *nearest_traffic = current_lane->getNearestTrafficAhead(*this);
+    LaneRoad *road = dynamic_cast<LaneRoad *>(current_lane);
+    Traffic *nearest_traffic = road ? road->getNearestTrafficAhead(*this) : nullptr;
     if (nearest_traffic)
     {
         float gap = gapToObstacle(nearest_traffic->getPosition().x,
@@ -69,7 +71,7 @@ void Vehicle::updateState(float delta_time)
         if (ratio < 0.3f)
             is_blocked = true;
     }
-    Vehicle *nearest_vehicle = current_lane->getNearestVehicleAhead(*this);
+    Vehicle *nearest_vehicle = road ? road->getNearestVehicleAhead(*this) : nullptr;
     if (nearest_vehicle)
     {
         float gap = gapToObstacle(nearest_vehicle->getPosition().x,
