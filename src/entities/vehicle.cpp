@@ -1,5 +1,6 @@
 #include "../include/entities/vehicle.h"
 #include "../include/world/lane.h"
+#include "../include/utils/resource_manager.h"
 
 #pragma region PROTECTED
 // safe_distance = base_speed * SAFE_DISTANCE_FACTOR
@@ -47,6 +48,7 @@ float Vehicle::getSafeDistance() const
 // }
 
 // check if object out of map, check the nearest traffic or vehicle to reduce current speed, move object to new position
+// check if object out of map, check the nearest traffic or vehicle to reduce current speed, move object to new position
 void Vehicle::updateState(float delta_time)
 {
 	if (isOutOfLane() || !is_active)
@@ -78,6 +80,41 @@ void Vehicle::updateState(float delta_time)
 	}
 	setVelocity({v_target * direction, 0.0f});
 	moveBy(velocity * delta_time);
+
+	// --- ANIMATION CHO CAR & TRUCK (4 FRAMES: 1 -> 4) ---
+	if (std::abs(velocity.x) > 0.1f) // Nếu xe đang chạy
+	{
+		anim_timer += delta_time;
+		if (anim_timer >= 0.1f)
+		{
+			anim_timer = 0.f;
+
+			if (getType() == Constants::DynamicObjectType::Car)
+			{
+				current_frame = (current_frame + 1) % 4;
+				if (current_frame == 0)
+					setSprite(ResourceManager::getInstance().getTexture("assets/textures/car_1.png"));
+				else if (current_frame == 1)
+					setSprite(ResourceManager::getInstance().getTexture("assets/textures/car_2.png"));
+				else if (current_frame == 2)
+					setSprite(ResourceManager::getInstance().getTexture("assets/textures/car_3.png"));
+				else
+					setSprite(ResourceManager::getInstance().getTexture("assets/textures/car_4.png"));
+			}
+			else if (getType() == Constants::DynamicObjectType::Truck)
+			{
+				current_frame = (current_frame + 1) % 4;
+				if (current_frame == 0)
+					setSprite(ResourceManager::getInstance().getTexture("assets/textures/truck_1.png"));
+				else if (current_frame == 1)
+					setSprite(ResourceManager::getInstance().getTexture("assets/textures/truck_2.png"));
+				else if (current_frame == 2)
+					setSprite(ResourceManager::getInstance().getTexture("assets/textures/truck_3.png"));
+				else
+					setSprite(ResourceManager::getInstance().getTexture("assets/textures/truck_4.png"));
+			}
+		}
+	}
 }
 #pragma endregion
 #pragma endregion

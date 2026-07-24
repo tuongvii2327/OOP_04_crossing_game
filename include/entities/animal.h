@@ -12,6 +12,9 @@ protected:
 	float duration;   // max time of the current state
 	bool is_move = 0; // current state: 1 = moving, 0 = stop
 
+	float anim_timer = 0.f;
+    int current_frame = 0;       // Đang ở frame nào (0 hoặc 1, 2...)
+
 	float randomDuration() const; // pick a random duration for new state between MIN_DURATION_ANIMAL & MAX_DURATION_ANIMAL
 
 public:

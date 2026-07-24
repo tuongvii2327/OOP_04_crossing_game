@@ -1,5 +1,6 @@
 #include "../include/entities/animal.h"
 #include "../include/world/lane.h"
+#include "utils/resource_manager.h"
 
 #pragma region PROTECTED
 // pick a random duration for new state between MIN_DURATION_ANIMAL & MAX_DURATION_ANIMAL
@@ -82,33 +83,59 @@ void Animal::setMoveState(const bool &state)
 // advance timer, flip moving/stopped state on timeout, stop early when blocked by the nearest animal ahead, then move if currently in the moving state
 void Animal::updateState(float delta_time)
 {
-	if (isOutOfLane() || !is_active)
-		return;
-	if (timer >= duration)
-	{
-		setMoveState(!is_move);
-	}
-	else
-	{
-		timer += delta_time;
-	}
-	Animal* nearest_animal = current_lane->getNearestAnimalAhead(*this);
-	if (nearest_animal && is_move)
-	{
-		// gapToObstacle() already subtracts VISUAL_DISTANCE, so the real stop
-		// margin below is VISUAL_DISTANCE * 2.5 - kept wide on purpose so animals
-		// don't bunch up close to each other while stopped.
-		float gap = gapToObstacle(nearest_animal->getPosition().x, nearest_animal->getWidthSprite());
-		if (gap <= Constants::VISUAL_DISTANCE * 1.5)
-		{
-			setMoveState(0);
-		}
-	}
-	if (is_move)
-	{
-		moveBy(velocity * delta_time);
-	}
-	setPosition(getPosition());
+    if (isOutOfLane() || !is_active)
+        return;
+    if (timer >= duration)
+    {
+        setMoveState(!is_move);
+    }
+    else
+    {
+        timer += delta_time;
+    }
+    
+    Animal* nearest_animal = current_lane->getNearestAnimalAhead(*this);
+    if (nearest_animal && is_move)
+    {
+        float gap = gapToObstacle(nearest_animal->getPosition().x, nearest_animal->getWidthSprite());
+        if (gap <= Constants::VISUAL_DISTANCE * 1.5)
+        {
+            setMoveState(0);
+        }
+    }
+    
+    if (is_move)
+    {
+        moveBy(velocity * delta_time);
+        
+        anim_timer += delta_time;
+        if (anim_timer >= 0.15f)
+        {
+            anim_timer = 0.f;
+            
+            if (getType() == Constants::DynamicObjectType::Rabbit)
+            {
+                current_frame = (current_frame + 1) % 2;
+                if (current_frame == 0)
+                    setSprite(ResourceManager::getInstance().getTexture("assets/textures/rabbit_1.png"));
+                else
+                    setSprite(ResourceManager::getInstance().getTexture("assets/textures/rabbit_2.png"));
+            }
+            else if (getType() == Constants::DynamicObjectType::Bird)
+            {
+                current_frame = (current_frame + 1) % 3;
+                if (current_frame == 0)
+                    setSprite(ResourceManager::getInstance().getTexture("assets/textures/bird_1.png"));
+                else if (current_frame == 1)
+                    setSprite(ResourceManager::getInstance().getTexture("assets/textures/bird_2.png"));
+                else
+                    setSprite(ResourceManager::getInstance().getTexture("assets/textures/bird_3.png"));
+            }
+        }
+    }
+    
+    setPosition(getPosition());
 }
+
 #pragma endregion
 #pragma endregion
