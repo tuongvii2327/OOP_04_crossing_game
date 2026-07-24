@@ -2,9 +2,12 @@
 #include "../include/utils/resource_manager.h"
 #include "../include/utils/serialization.h"
 
-Map::Map(SharedContext *context) : context_(context), lane_height(Constants::LANE_HEIGHT), highest_y(0), current_level(0)
+Map::Map(SharedContext *context)
+    : lane_height(Constants::LANE_HEIGHT),
+      highest_y(0.f),
+      current_level(1),
+      context_(context)
 {
-    rng.seed(std::chrono::steady_clock::now().time_since_epoch().count());
 }
 
 Map::~Map()

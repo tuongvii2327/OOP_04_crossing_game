@@ -1,32 +1,35 @@
 #include "states/playing_state.h"
+#include "../include/utils/serialization.h"
 #include "states/game_over_state.h"
 #include "states/pause_state.h"
+#include "utils/audio_system.h"
 #include "utils/constants.h"
 #include "utils/resource_manager.h"
 #include <iostream>
-#include "../include/utils/serialization.h"
 
-PlayingState* PlayingState::active_instance_ = nullptr;
 
-PlayingState::PlayingState(SharedContext* context, int load_slot)
-	: State(context), map_(context), load_slot_(load_slot)
+PlayingState *PlayingState::active_instance_ = nullptr;
+
+PlayingState::PlayingState(SharedContext *context, int load_slot)
+    : State(context), map_(context), load_slot_(load_slot)
 {
-	active_instance_ = this;
+    active_instance_ = this;
 }
 
 PlayingState::~PlayingState()
 {
-	if (active_instance_ != nullptr)
-	{
-		active_instance_ = nullptr;
-	}
+    if (active_instance_ != nullptr)
+    {
+        active_instance_ = nullptr;
+    }
 }
 
 void PlayingState::init()
 {
-    std::cout << "[PlayingState] Initializing...\n";
+    std::cout << "1. Bat dau PlayingState::init()\n";
 
     const sf::Font &font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
+    std::cout << "2. Load Font thanh cong\n";
 
     score_text_ = std::make_unique<sf::Text>(font);
     score_text_->setString("Score: 0");
@@ -35,34 +38,16 @@ void PlayingState::init()
     score_text_->setOutlineColor(sf::Color::Black);
     score_text_->setOutlineThickness(2.f);
     score_text_->setPosition({20.f, 20.f});
+    std::cout << "3. Tao Score Text thanh cong\n";
 
-    const sf::Texture &player_tex =
-        Resource().getTexture("assets/textures/player.png");
+    const sf::Texture &player_tex = Resource().getTexture("assets/textures/player.png");
+    std::cout << "4. Load Texture Player thanh cong\n";
+
     player_ = std::make_unique<People>(player_tex);
+    std::cout << "5. Khoi tao Player thanh cong\n";
 
-	
-    if (load_slot_ > 0)
-    {
-        // Nếu có yêu cầu load game từ save slot
-        std::ifstream file("data/saves/slot_" + std::to_string(load_slot_) + ".bin", std::ios::binary);
-        if (file.is_open())
-        {
-            deserialize(file);
-            file.close();
-            std::cout << "[PlayingState] Loaded successfully from slot " << load_slot_ << "\n";
-        }
-        else
-        {
-            std::cerr << "[PlayingState] Failed to open save file for slot " << load_slot_ << "! Starting fresh.\n";
-			context_->data->current_score = 0;
-			setupWorld();
-        }
-    }
-    else
-    {
-		context_->data->current_score = 0;
-        setupWorld(); // Tạo thế giới mới từ đầu
-    }
+    setupWorld();
+    std::cout << "6. Setup World (Map) thanh cong\n";
 }
 
 void PlayingState::setupWorld()
@@ -82,6 +67,7 @@ void PlayingState::handleEvent(const sf::Event &event)
         if (key_pressed->code == sf::Keyboard::Key::P ||
             key_pressed->code == sf::Keyboard::Key::Escape)
         {
+            Audio().playSFX(AudioSystem::SFX::Back);
             context_->state_machine->push(std::make_unique<PauseState>(context_));
             return;
         }
@@ -133,9 +119,10 @@ void PlayingState::update(float dt)
     if (map_.checkLethalCollision(player_->getHitBox()) ||
         (player_->getPosition().y + player_->getHeightSprite() * 0.5f) >= camera_bottom_y)
     {
+        Audio().playSFX(AudioSystem::SFX::Crash); // <--- Đã sửa
         player_->die();
 
-		// ---- LOGIC: Xóa sạch file Save trên đĩa khi chết ----
+        // ---- LOGIC: Xóa sạch file Save trên đĩa khi chết ----
         if (load_slot_ > 0)
         {
             std::string file_path = "data/saves/slot_" + std::to_string(load_slot_) + ".bin";
@@ -183,7 +170,7 @@ void PlayingState::restart()
 {
     std::cout << "[PlayingState] Restarting Game...\n";
 
-	load_slot_ = 0;
+    load_slot_ = 0;
     context_->data->current_score = 0;
     score_text_->setString("Score: 0");
 
@@ -196,14 +183,14 @@ void PlayingState::restart()
 void PlayingState::serialize(std::ostream &os, const std::string &slot_name) const
 {
     // 1. Lưu điểm số hiện tại của màn chơi
-	Serialization::writeString(os, slot_name);
+    Serialization::writeString(os, slot_name);
     Serialization::write(os, context_->data->current_score);
 
     // 2. Lưu tọa độ tâm Camera (sf::View) để khôi phục góc nhìn chính xác
     Serialization::write(os, view_.getCenter().x);
     Serialization::write(os, view_.getCenter().y);
 
-	std::cout << "[DEBUG SAVE] Saving Score: " << context_->data->current_score 
+    std::cout << "[DEBUG SAVE] Saving Score: " << context_->data->current_score
               << " | Camera Center Y: " << view_.getCenter().y << "\n";
 
     // 3. Yêu cầu Player và Map tự lưu dữ liệu của chúng
@@ -214,9 +201,9 @@ void PlayingState::serialize(std::ostream &os, const std::string &slot_name) con
 // ---- LOGIC DESERIALIZE CỦA PLAYING STATE ----
 void PlayingState::deserialize(std::istream &is)
 {
-	// 1. Đọc tên của save slot
-	std::string loaded_slot_name;
-	Serialization::readString(is, loaded_slot_name);
+    // 1. Đọc tên của save slot
+    std::string loaded_slot_name;
+    Serialization::readString(is, loaded_slot_name);
 
     // 2. Nạp điểm số và cập nhật lên UI
     Serialization::read(is, context_->data->current_score);

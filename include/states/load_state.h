@@ -4,7 +4,6 @@
 #include "states/state.h"
 #include "utils/shared_context.h"
 #include <SFML/Graphics.hpp>
-#include <string>
 #include <vector>
 
 class LoadState : public State

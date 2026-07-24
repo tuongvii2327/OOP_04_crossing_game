@@ -1,9 +1,9 @@
 #include "states/setting_state.h"
+#include "utils/audio_system.h"
 #include "utils/constants.h"
 #include "utils/resource_manager.h"
 #include "utils/shared_context.h"
 #include <SFML/Graphics/RenderWindow.hpp>
-#include <iostream>
 
 SettingState::SettingState(SharedContext *context)
     : State(context),
@@ -106,6 +106,7 @@ void SettingState::handleEvent(const sf::Event &event)
         }
         else if (key_pressed->code == sf::Keyboard::Key::Escape)
         {
+            Audio().playSFX(AudioSystem::SFX::Back);
             context_->state_machine->pop();
         }
     }
@@ -200,9 +201,12 @@ void SettingState::increaseSetting()
     {
     case 0:
         context_->config->music_volume = (context_->config->music_volume + 1) % 11;
+        Audio().setMusicVolume(context_->config->music_volume);
         break;
     case 1:
         context_->config->sfx_volume = (context_->config->sfx_volume + 1) % 11;
+        Audio().setSFXVolume(context_->config->sfx_volume);
+
         break;
     }
     updateUI();
@@ -214,9 +218,12 @@ void SettingState::decreaseSetting()
     {
     case 0:
         context_->config->music_volume = (context_->config->music_volume - 1 + 11) % 11;
+        Audio().setMusicVolume(context_->config->music_volume);
         break;
     case 1:
         context_->config->sfx_volume = (context_->config->sfx_volume - 1 + 11) % 11;
+        Audio().setSFXVolume(context_->config->sfx_volume);
+
         break;
     }
     updateUI();

@@ -7,6 +7,7 @@
 #include "states/playing_state.h"
 #include "states/ranking_state.h"
 #include "states/setting_state.h"
+#include "utils/audio_system.h"
 #include "utils/shared_context.h"
 
 HomeState::HomeState(SharedContext *context)
@@ -63,18 +64,21 @@ void HomeState::handleEvent(const sf::Event &event)
     {
         if (key_pressed->code == sf::Keyboard::Key::Up || key_pressed->code == sf::Keyboard::Key::W)
         {
+            Audio().playSFX(AudioSystem::SFX::Hover);
             menu_options_[selected_index_]->setFillColor(sf::Color::White);
             selected_index_ = (selected_index_ - 1 + menu_options_.size()) % menu_options_.size();
             menu_options_[selected_index_]->setFillColor(sf::Color::Yellow);
         }
         else if (key_pressed->code == sf::Keyboard::Key::Down || key_pressed->code == sf::Keyboard::Key::S)
         {
+            Audio().playSFX(AudioSystem::SFX::Hover);
             menu_options_[selected_index_]->setFillColor(sf::Color::White);
             selected_index_ = (selected_index_ + 1) % menu_options_.size();
             menu_options_[selected_index_]->setFillColor(sf::Color::Yellow);
         }
         else if (key_pressed->code == sf::Keyboard::Key::Enter)
         {
+            Audio().playSFX(AudioSystem::SFX::Click);
             executeChoice(selected_index_);
         }
     }
@@ -87,12 +91,13 @@ void HomeState::handleEvent(const sf::Event &event)
         {
             if (menu_options_[i]->getGlobalBounds().contains(mouse_pos))
             {
+                // Chỉ đổi màu và phát tiếng khi chuột di chuyển sang một menu khác
                 if (selected_index_ != static_cast<int>(i))
                 {
-                    menu_options_[selected_index_]->setFillColor(sf::Color::White);
+                    menu_options_[selected_index_]->setFillColor(sf::Color::White); // Trả chữ cũ về màu trắng
                     selected_index_ = static_cast<int>(i);
-                    menu_options_[selected_index_]->setFillColor(sf::Color::Yellow);
-                    // add sound effect for mouse hover later
+                    menu_options_[selected_index_]->setFillColor(sf::Color::Yellow); // Đổi chữ mới thành màu vàng
+                    Audio().playSFX(AudioSystem::SFX::Hover);                        // Phát âm thanh Hover
                 }
                 break;
             }
@@ -109,7 +114,9 @@ void HomeState::handleEvent(const sf::Event &event)
             {
                 if (menu_options_[i]->getGlobalBounds().contains(mouse_pos))
                 {
-                    executeChoice(static_cast<int>(i));
+                    selected_index_ = static_cast<int>(i);
+                    Audio().playSFX(AudioSystem::SFX::Click);
+                    executeChoice(selected_index_);
                     break;
                 }
             }

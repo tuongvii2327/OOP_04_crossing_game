@@ -3,10 +3,8 @@
 
 #include "core/state_machine.h"
 #include "states/state.h"
-#include "utils/resource_manager.h"
 #include "utils/shared_context.h"
 #include <SFML/Graphics.hpp>
-#include <string>
 #include <vector>
 
 class SaveState : public State

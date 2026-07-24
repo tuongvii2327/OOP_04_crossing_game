@@ -1,79 +1,77 @@
 #include "../include/entities/people.h"
+#include "../include/utils/audio_system.h"
 #include "../include/utils/constants.h"
-#include "../include/utils/serialization.h"
-
-#include <iostream>
 
 People::People()
-	: DynamicObject(Constants::DynamicObjectType::People, Constants::ObjectColor::None, nullptr),
-	  is_dead(false),
-	  step_size(static_cast<float>(Constants::LANE_HEIGHT))
+    : DynamicObject(Constants::DynamicObjectType::People, Constants::ObjectColor::None, nullptr),
+      is_dead(false),
+      step_size(static_cast<float>(Constants::LANE_HEIGHT))
 {
-	resetPosition();
+    resetPosition();
 }
 
 People::People(const sf::Texture &texture)
-	: DynamicObject(Constants::DynamicObjectType::People, Constants::ObjectColor::None, nullptr),
-	  is_dead(false),
-	  step_size(static_cast<float>(Constants::LANE_HEIGHT))
+    : DynamicObject(Constants::DynamicObjectType::People, Constants::ObjectColor::None, nullptr),
+      is_dead(false),
+      step_size(static_cast<float>(Constants::LANE_HEIGHT))
 {
-	sprite.setTexture(texture, true);
+    sprite.setTexture(texture, true);
 
-	float target_size = 90.0f;
-	sf::Vector2f tex_size = static_cast<sf::Vector2f>(texture.getSize());
-	sprite.setScale({target_size / tex_size.x, target_size / tex_size.y});
+    float target_size = 90.0f;
+    sf::Vector2f tex_size = static_cast<sf::Vector2f>(texture.getSize());
+    sprite.setScale({target_size / tex_size.x, target_size / tex_size.y});
 
-	hitbox.size = sf::Vector2f(target_size * 0.7f, target_size * 0.55f);
-	hitbox_offset = sf::Vector2f(target_size * 0.15f, target_size * 0.45f);
+    hitbox.size = sf::Vector2f(target_size * 0.7f, target_size * 0.55f);
+    hitbox_offset = sf::Vector2f(target_size * 0.15f, target_size * 0.45f);
 
-	resetPosition();
+    resetPosition();
 }
 
 People::People(float x, float y)
-	: DynamicObject(Constants::DynamicObjectType::People, Constants::ObjectColor::None, nullptr),
-	  is_dead(false),
-	  step_size(static_cast<float>(Constants::LANE_HEIGHT)) // Sửa 50.0f thành LANE_HEIGHT
+    : DynamicObject(Constants::DynamicObjectType::People, Constants::ObjectColor::None, nullptr),
+      is_dead(false),
+      step_size(static_cast<float>(Constants::LANE_HEIGHT)) // Sửa 50.0f thành LANE_HEIGHT
 {
-	position = sf::Vector2f(x, y);
-	sprite.setPosition(position);
-	setHitbox();
+    position = sf::Vector2f(x, y);
+    sprite.setPosition(position);
+    setHitbox();
 }
 
 Constants::DynamicObjectType People::getType() const
 {
-	return Constants::DynamicObjectType::People;
+    return Constants::DynamicObjectType::People;
 }
 
 Constants::ObjectColor People::getColor() const
 {
-	return Constants::ObjectColor::None;
+    return Constants::ObjectColor::None;
 }
 
 void People::updateState(float delta_time)
 {
-	if (is_dead || !is_active)
-		return;
+    if (is_dead || !is_active)
+        return;
 
-	// process any animations or state changes for the People object here
-	// add later: add animation for people
+    // process any animations or state changes for the People object here
+    // add later: add animation for people
 }
 
 bool People::isColliding(const sf::FloatRect &other_hitbox) const
 {
-	if (is_dead || !is_active)
-		return false;
-	return hitbox.findIntersection(other_hitbox).has_value();
+    if (is_dead || !is_active)
+        return false;
+    return hitbox.findIntersection(other_hitbox).has_value();
 }
 
 void People::move(float dx, float dy)
 {
-	if (is_dead)
-		return;
+    if (is_dead)
+        return;
 
-	position.x += dx;
-	position.y += dy;
-	sprite.setPosition(position);
-	hitbox.position = position + hitbox_offset;
+    position.x += dx;
+    position.y += dy;
+    sprite.setPosition(position);
+    hitbox.position = position + hitbox_offset;
 }
 
 bool People::tryToMove(float dx, float dy, float camera_top_y)
@@ -83,102 +81,103 @@ bool People::tryToMove(float dx, float dy, float camera_top_y)
 
     float future_hitbox_left = position.x + hitbox_offset.x + dx;
     float future_hitbox_right = future_hitbox_left + hitbox.size.x;
-    
+
     float future_hitbox_top = position.y + hitbox_offset.y + dy;
     float future_hitbox_bottom = future_hitbox_top + hitbox.size.y;
 
     float left_bound = Constants::GAME_PLAY_BAR_WIDTH; // left (140)
     float right_bound = Constants::WINDOW_WIDTH;       // right (1400)
 
-	// check if hit box out out bounds
-	if (future_hitbox_left < left_bound || 
+    // check if hit box out out bounds
+    if (future_hitbox_left < left_bound ||
         future_hitbox_right > right_bound ||
-        future_hitbox_top < camera_top_y || 
+        future_hitbox_top < camera_top_y ||
         future_hitbox_bottom > (camera_top_y + Constants::WINDOW_HEIGHT))
     {
-        return false; 
+        return false;
     }
 
-	// if valid, move the People object
-	move(dx, dy);
+    // if valid, move the People object
+    move(dx, dy);
+    Audio().playSFX(AudioSystem::SFX::Jump);
     return true;
 }
 
 void People::die()
 {
-	is_dead = true;
+    is_dead = true;
 }
 
 bool People::isDead() const
 {
-	return is_dead;
+    return is_dead;
 }
 
 void People::resetPosition()
 {
-	float start_x = (Constants::WINDOW_WIDTH - sprite.getGlobalBounds().size.x) / 2.f;
+    float start_x = (Constants::WINDOW_WIDTH - sprite.getGlobalBounds().size.x) / 2.f;
 
-	float start_y = Constants::WINDOW_HEIGHT - (Constants::LANE_HEIGHT * 1.5f) - (sprite.getGlobalBounds().size.y / 2.f);
+    float start_y = Constants::WINDOW_HEIGHT - (Constants::LANE_HEIGHT * 1.5f) - (sprite.getGlobalBounds().size.y / 2.f);
 
-	position = sf::Vector2f(start_x, start_y);
-	sprite.setPosition(position);
+    position = sf::Vector2f(start_x, start_y);
+    sprite.setPosition(position);
 
-	hitbox.position = position + hitbox_offset;
+    hitbox.position = position + hitbox_offset;
 
-	is_dead = false;
-	is_active = true;
+    is_dead = false;
 }
 
 sf::FloatRect People::getBounds() const
 {
-	return sprite.getGlobalBounds();
+    return sprite.getGlobalBounds();
 }
 
 bool People::handleEvent(const sf::Event &event, float camera_top_y)
 {
-	if (is_dead || !is_active)
-		return false;
+    if (is_dead || !is_active)
+        return false;
 
-	const auto* key = event.getIf<sf::Event::KeyPressed>();
-	if (!key)
-		return false;
+    const auto *key = event.getIf<sf::Event::KeyPressed>();
+    if (!key)
+        return false;
 
-	if (key->code == sf::Keyboard::Key::W || key->code == sf::Keyboard::Key::Up)
-	{
-		if (tryToMove(0.f, -step_size, camera_top_y))
-		{
-			return true;
-		}
-	}
-	else if (key->code == sf::Keyboard::Key::S || key->code == sf::Keyboard::Key::Down)
-	{
-		return tryToMove(0.f, step_size, camera_top_y);
-	}
-	else if (key->code == sf::Keyboard::Key::A || key->code == sf::Keyboard::Key::Left)
-	{
-		return tryToMove(-step_size, 0.f, camera_top_y);
-	}
-	else if (key->code == sf::Keyboard::Key::D || key->code == sf::Keyboard::Key::Right)
-	{
-		return tryToMove(step_size, 0.f, camera_top_y);
-	}
+    if (key->code == sf::Keyboard::Key::W || key->code == sf::Keyboard::Key::Up)
+    {
+        if (tryToMove(0.f, -step_size, camera_top_y))
+        {
+            return true;
+        }
+    }
+    else if (key->code == sf::Keyboard::Key::S || key->code == sf::Keyboard::Key::Down)
+    {
+        return tryToMove(0.f, step_size, camera_top_y);
+    }
+    else if (key->code == sf::Keyboard::Key::A || key->code == sf::Keyboard::Key::Left)
+    {
+        return tryToMove(-step_size, 0.f, camera_top_y);
+    }
+    else if (key->code == sf::Keyboard::Key::D || key->code == sf::Keyboard::Key::Right)
+    {
+        return tryToMove(step_size, 0.f, camera_top_y);
+    }
 
-	return false;
+    return false;
 }
 
-void People::serialize (std::ostream &os) const{
-	// Save living status
-	Serialization::write(os, is_dead);
+void People::serialize(std::ostream &os) const
+{
+    // Save living status
+    Serialization::write(os, is_dead);
 
-	// Save player's coordinate
-	Serialization::write (os, position.x);
-	Serialization::write (os, position.y);
+    // Save player's coordinate
+    Serialization::write(os, position.x);
+    Serialization::write(os, position.y);
 
-	// Save player's step size
-	Serialization::write(os, step_size);
+    // Save player's step size
+    Serialization::write(os, step_size);
 
-	// Save active status inherit from DynamicObject
-	Serialization::write (os, is_active);
+    // Save active status inherit from DynamicObject
+    Serialization::write(os, is_active);
 }
 
 void People::deserialize(std::istream &is)
@@ -189,13 +188,13 @@ void People::deserialize(std::istream &is)
     Serialization::read(is, step_size);
     Serialization::read(is, is_active);
 
-	is_dead = false;   // Ép sống lại khi load game đề phòng file lưu bị lỗi chết
-    is_active = true;  // Ép người chơi hoạt động để nhận sự kiện phím bấm
+    is_dead = false;  // Ép sống lại khi load game đề phòng file lưu bị lỗi chết
+    is_active = true; // Ép người chơi hoạt động để nhận sự kiện phím bấm
 
     // Log kiểm tra tọa độ nạp thực tế từ file xuống màn hình console
     std::cout << "[DEBUG LOAD] Player Loaded Position: (" << position.x << ", " << position.y << ")\n";
 
-	// Update sprite & hitbox
+    // Update sprite & hitbox
     sprite.setPosition(position);
     hitbox.position = position + hitbox_offset;
 }

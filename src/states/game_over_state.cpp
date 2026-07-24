@@ -1,6 +1,6 @@
 #include "states/game_over_state.h"
 #include "states/home_state.h"
-#include "states/playing_state.h"
+#include "utils/audio_system.h"
 #include "utils/constants.h"
 #include "utils/resource_manager.h"
 #include <algorithm>
@@ -101,10 +101,12 @@ void GameOverState::handleEvent(const sf::Event &event)
         {
             if (selected_index_ == 0)
             {
+                Audio().playSFX(AudioSystem::SFX::Click);
                 context_->state_machine->pop();
             }
             else
             {
+                Audio().playSFX(AudioSystem::SFX::Click);
                 context_->state_machine->resetTo(std::make_unique<HomeState>(context_));
             }
         }
@@ -123,7 +125,6 @@ void GameOverState::handleEvent(const sf::Event &event)
                     menu_texts_[selected_index_]->setFillColor(sf::Color::White);
                     selected_index_ = static_cast<int>(i);
                     menu_texts_[selected_index_]->setFillColor(sf::Color::Yellow);
-                    
                 }
                 break;
             }
@@ -141,13 +142,15 @@ void GameOverState::handleEvent(const sf::Event &event)
                 if (menu_texts_[i]->getGlobalBounds().contains(mouse_pos))
                 {
                     selected_index_ = static_cast<int>(i);
-                                        
+
                     if (selected_index_ == 0)
                     {
+                        Audio().playSFX(AudioSystem::SFX::Click);
                         context_->state_machine->pop();
                     }
                     else
                     {
+                        Audio().playSFX(AudioSystem::SFX::Click);
                         context_->state_machine->resetTo(std::make_unique<HomeState>(context_));
                     }
                     break;

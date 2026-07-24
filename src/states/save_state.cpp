@@ -1,8 +1,8 @@
 // src/states/save_state.cpp
 #include "states/save_state.h"
-#include "states/playing_state.h"
+#include "utils/audio_system.h"
 #include "utils/constants.h"
-#include <iostream>
+#include "utils/resource_manager.h"
 
 SaveState::SaveState(SharedContext *context)
     : State(context), selected_index_(0), is_saved_(false), save_timer_(0.0f)
@@ -106,7 +106,7 @@ void SaveState::handleEvent(const sf::Event &event)
             else if (unicode >= 32 && unicode < 127) // Các ký tự in ra được
             {
                 char c = static_cast<char>(unicode);
-                
+
                 // RÀNG BUỘC KÝ TỰ: Chỉ chấp nhận chữ cái, số và khoảng trắng
                 if (std::isalnum(c) || c == ' ')
                 {
@@ -185,6 +185,7 @@ void SaveState::handleEvent(const sf::Event &event)
         }
         else if (key_pressed->code == sf::Keyboard::Key::Escape)
         {
+            Audio().playSFX(AudioSystem::SFX::Back);
             context_->state_machine->pop();
         }
     }
@@ -269,7 +270,7 @@ void SaveState::render(sf::RenderWindow &window)
         // Đang gõ tên: vẽ hướng dẫn gõ, tên đang gõ, và lỗi (nếu có)
         window.draw(*prompt_text_);
         window.draw(*input_display_text_);
-        
+
         if (error_text_->getString() != "")
         {
             sf::FloatRect err_bounds = error_text_->getLocalBounds();
@@ -308,11 +309,11 @@ void SaveState::moveDown()
 }
 
 // Save game data to save file
-void SaveState::saveGameData(int slot_index, const std::string& name)
+void SaveState::saveGameData(int slot_index, const std::string &name)
 {
     // Lấy màn chơi đang chạy phía bên dưới Menu Pause
-    PlayingState* active_game = PlayingState::getActiveInstance();
-    
+    PlayingState *active_game = PlayingState::getActiveInstance();
+
     if (active_game)
     {
         // Ghi dữ liệu trực tiếp vào file nhị phân

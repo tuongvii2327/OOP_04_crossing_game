@@ -1,11 +1,8 @@
-// src/states/load_state.cpp
 #include "states/load_state.h"
 #include "states/playing_state.h"
+#include "utils/audio_system.h"
 #include "utils/constants.h"
 #include "utils/resource_manager.h"
-#include <iostream>
-#include <fstream>
-#include "../include/utils/serialization.h"
 
 LoadState::LoadState(SharedContext *context)
     : State(context), selected_index_(0)
@@ -89,8 +86,7 @@ void LoadState::setupUI(const sf::Font &font)
         }
 
         sf::FloatRect text_bounds = slot_text.getLocalBounds();
-        float x_position =
-            (Constants::WINDOW_WIDTH - text_bounds.size.x) / 2.0f;
+        float x_position = (Constants::WINDOW_WIDTH - text_bounds.size.x) / 2.0f;
         float y_position = initial_y + (static_cast<float>(i) * spacing);
 
         slot_text.setPosition({x_position, y_position});
@@ -114,18 +110,22 @@ void LoadState::setupUI(const sf::Font &font)
 // Handle slot selection and navigation
 void LoadState::handleEvent(const sf::Event &event)
 {
+    // 1. Xử lý sự kiện bàn phím
     if (const auto *key_pressed = event.getIf<sf::Event::KeyPressed>())
     {
         if (key_pressed->code == sf::Keyboard::Key::Up || key_pressed->code == sf::Keyboard::Key::W)
         {
             moveUp();
+            Audio().playSFX(AudioSystem::SFX::Hover);
         }
         else if (key_pressed->code == sf::Keyboard::Key::Down || key_pressed->code == sf::Keyboard::Key::S)
         {
             moveDown();
+            Audio().playSFX(AudioSystem::SFX::Hover);
         }
         else if (key_pressed->code == sf::Keyboard::Key::Enter)
         {
+            Audio().playSFX(AudioSystem::SFX::Click);
             if (selected_index_ == static_cast<int>(save_slot_texts_.size()) - 1)
             {
                 context_->state_machine->pop(); // Back to menu
@@ -137,10 +137,12 @@ void LoadState::handleEvent(const sf::Event &event)
         }
         else if (key_pressed->code == sf::Keyboard::Key::Escape)
         {
+            Audio().playSFX(AudioSystem::SFX::Back);
             context_->state_machine->pop();
         }
     }
 
+    // 2. Xử lý di chuột
     if (const auto *mouse_moved = event.getIf<sf::Event::MouseMoved>())
     {
         sf::Vector2f mouse_pos(static_cast<float>(mouse_moved->position.x), static_cast<float>(mouse_moved->position.y));
@@ -154,12 +156,15 @@ void LoadState::handleEvent(const sf::Event &event)
                     save_slot_texts_[selected_index_].setFillColor(sf::Color::White);
                     selected_index_ = static_cast<int>(i);
                     save_slot_texts_[selected_index_].setFillColor(sf::Color::Yellow);
+
+                    Audio().playSFX(AudioSystem::SFX::Hover);
                 }
                 break;
             }
         }
     }
 
+    // 3. Xử lý click chuột
     if (const auto *mouse_button_pressed = event.getIf<sf::Event::MouseButtonPressed>())
     {
         if (mouse_button_pressed->button == sf::Mouse::Button::Left)
@@ -170,13 +175,15 @@ void LoadState::handleEvent(const sf::Event &event)
             {
                 if (save_slot_texts_[i].getGlobalBounds().contains(mouse_pos))
                 {
-                    if (static_cast<int>(i) == static_cast<int>(save_slot_texts_.size()) - 1) // back to menu
+                    selected_index_ = static_cast<int>(i);
+                    Audio().playSFX(AudioSystem::SFX::Click);
+                    if (selected_index_ == static_cast<int>(save_slot_texts_.size()) - 1)
                     {
                         context_->state_machine->pop();
                     }
                     else
                     {
-                        loadGameData(static_cast<int>(i) + 1); // Click  SLOT GAME
+                        loadGameData(selected_index_ + 1);
                     }
                     break;
                 }

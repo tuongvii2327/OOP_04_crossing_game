@@ -5,7 +5,6 @@
 #include "utils/shared_context.h"
 #include <SFML/Graphics.hpp>
 #include <memory>
-#include <string>
 #include <vector>
 
 class SettingState : public State

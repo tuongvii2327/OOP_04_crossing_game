@@ -2,9 +2,9 @@
 #include "states/home_state.h"
 #include "states/save_state.h"
 #include "states/setting_state.h"
+#include "utils/audio_system.h"
 #include "utils/constants.h"
 #include "utils/resource_manager.h"
-#include <iostream>
 
 PauseState::PauseState(SharedContext *context)
     : State(context), selected_index_(0)
@@ -71,13 +71,16 @@ void PauseState::handleEvent(const sf::Event &event)
         if (key_pressed->code == sf::Keyboard::Key::Up || key_pressed->code == sf::Keyboard::Key::W)
         {
             moveUp();
+            Audio().playSFX(AudioSystem::SFX::Hover);
         }
         else if (key_pressed->code == sf::Keyboard::Key::Down || key_pressed->code == sf::Keyboard::Key::S)
         {
             moveDown();
+            Audio().playSFX(AudioSystem::SFX::Hover);
         }
         else if (key_pressed->code == sf::Keyboard::Key::Enter)
         {
+            Audio().playSFX(AudioSystem::SFX::Click);
             if (selected_index_ == 0)
             {
                 context_->state_machine->pop(); // Resume
@@ -97,6 +100,7 @@ void PauseState::handleEvent(const sf::Event &event)
         }
         else if (key_pressed->code == sf::Keyboard::Key::Escape)
         {
+            Audio().playSFX(AudioSystem::SFX::Back);
             context_->state_machine->pop(); // Resume
         }
     }
@@ -114,7 +118,9 @@ void PauseState::handleEvent(const sf::Event &event)
                 {
                     menu_texts_[selected_index_]->setFillColor(sf::Color::White);
                     selected_index_ = static_cast<int>(i);
-                    menu_texts_[selected_index_]->setFillColor(sf::Color::Yellow);
+                    menu_texts_[selected_index_]->setFillColor(
+                        sf::Color::Yellow);
+                    Audio().playSFX(AudioSystem::SFX::Hover);
                 }
                 break;
             }
@@ -132,19 +138,20 @@ void PauseState::handleEvent(const sf::Event &event)
             {
                 if (menu_texts_[i]->getGlobalBounds().contains(mouse_pos))
                 {
-                    if (i == 0)
+                    selected_index_ = static_cast<int>(i);
+                    if (selected_index_ == 0)
                     {
                         context_->state_machine->pop(); // Resume
                     }
-                    else if (i == 1)
+                    else if (selected_index_ == 1)
                     {
                         context_->state_machine->push(std::make_unique<SaveState>(context_));
                     }
-                    else if (i == 2)
+                    else if (selected_index_ == 2)
                     {
                         context_->state_machine->push(std::make_unique<SettingState>(context_));
                     }
-                    else if (i == 3)
+                    else if (selected_index_ == 3)
                     {
                         context_->state_machine->resetTo(std::make_unique<HomeState>(context_));
                     }
