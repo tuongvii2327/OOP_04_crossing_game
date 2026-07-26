@@ -16,7 +16,7 @@ namespace Constants
 	const unsigned int CELL_SIZE = 105;
 
 	// min distance between sprites of objects to avoid collision in visual (UI)
-	const unsigned int VISUAL_DISTANCE = 15;
+	const int VISUAL_DISTANCE = 15;
 
 	// hitbox size as a fraction of the sprite size (applies to every dynamic object)
 	constexpr float HITBOX_SIZE_RATIO = 0.9f;
@@ -26,12 +26,27 @@ namespace Constants
 	const unsigned int LANE_WIDTH = 1260;
 	const unsigned int MAX_OBJECT_PER_LANE = 4;
 
-    enum class LaneType
-    {
-        Grass,
-        Road,
-        Safe
-    };
+	enum class LaneType
+	{
+		Grass,
+		Road,
+		Safe
+	};
+
+	inline int getNumberOfTextureVariant(const LaneType &type)
+	{
+		switch (type)
+		{
+		case LaneType::Grass:
+			return 2;
+		case LaneType::Safe:
+			return 2;
+		case LaneType::Road:
+			return 3;
+		default:
+			return 1;
+		}
+	}
 #pragma endregion
 
 #pragma region OBJECT
@@ -51,7 +66,6 @@ namespace Constants
 		Rabbit,
 
 		// River object
-
 	};
 
 	enum class StaticObjectType
@@ -66,27 +80,24 @@ namespace Constants
 		Bush,
 
 		// River object
-
 	};
 
 	enum class ObjectColor
 	{
-		Pink,
-		Yellow,
-		Orange,
+		Red,
 		Blue,
 		Green,
 		Grey,
-		None // keep last: used as the color count in random pickers
+		None // ke ep last: used as the color count in random pickers
 	};
 
 	// effect of an object (dynamic or static) on People when colliding with it
 	enum class ObjectEffect
 	{
-		None,        // can be touched, nothing happens
-		Blocked,     // blocks movement, cannot walk into it
-		Lethal,      // can be touched, touching it kills the player
-		Collectible  // can be touched, touching it accumulates a special score (e.g. coin)
+		None,       // can be touched, nothing happens
+		Blocked,    // blocks movement, cannot walk into it
+		Lethal,     // can be touched, touching it kills the player
+		Collectible // can be touched, touching it accumulates a special score (e.g. coin)
 	};
 
 	// the usable speed range of an object
@@ -98,7 +109,7 @@ namespace Constants
 
 	// Base speed range (px/s) for each object type before the level multiplier is applied
 	// speed = random int in [min_speed, max_speed] * (1 + (level - 1) * SPEED_LEVEL_FACTOR)
-	inline SpeedRange getSpeedRange(DynamicObjectType type)
+	inline SpeedRange getSpeedRange(const DynamicObjectType &type)
 	{
 		switch (type)
 		{
@@ -114,7 +125,65 @@ namespace Constants
 			return {0, 0};
 		}
 	}
+	
+	struct Size
+	{
+		int width;
+		int height;
+	};
 
+	inline Size getSizeInGame(const StaticObjectType& type)
+	{
+		switch (type)
+		{
+		case StaticObjectType::Traffic:
+			return { 50, 50 };
+		case StaticObjectType::Rock:
+			return { 80, 55 };
+		case StaticObjectType::Bush:
+			return { 90, 69 };
+		default:
+			return { 90, 90 };
+		}
+	}
+
+	inline Size getSizeInGame(const DynamicObjectType& type)
+	{
+		switch (type)
+		{
+		case DynamicObjectType::People:
+			return { 52, 62 };
+		case DynamicObjectType::Car:
+			return { 90, 51 };
+		case DynamicObjectType::Truck:
+			return { 87, 81 };
+		case DynamicObjectType::Bird:
+			return { 53, 47 };
+		case DynamicObjectType::Rabbit:
+			return { 60, 60 };
+		default:
+			return { 90, 90 };
+		}
+	}
+
+	inline int getNumberOfFrames(const DynamicObjectType &type)
+	{
+		switch (type)
+		{
+		case DynamicObjectType::People:
+			return 1;
+		case DynamicObjectType::Car:
+			return 4;
+		case DynamicObjectType::Truck:
+			return 4;
+		case DynamicObjectType::Bird:
+			return 3;
+		case DynamicObjectType::Rabbit:
+			return 2;
+		default:
+			return 1;
+		}
+	}
 #pragma region VEHICLE
 	// factor to calculate safe_distance (safe_distance = base_speed * SAFE_DISTANCE_FACTOR)
 	const unsigned int SAFE_DISTANCE_FACTOR = 2;
@@ -127,8 +196,6 @@ namespace Constants
 
 #pragma region TRAFFIC
 	const float YELLOW_DURATION = 4; // second
-	const unsigned int TRAFFIC_HEIGHT = 30;
-	const unsigned int TRAFFIC_WIDTH = 72;
 	const unsigned int MIN_DURATION_TRAFFIC = 6;
 	const unsigned int MAX_DURATION_TRAFFIC = 8;
 

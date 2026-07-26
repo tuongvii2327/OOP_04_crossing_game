@@ -13,7 +13,6 @@ private:
 public:
 	// Constructors
 	People();
-	explicit People(const sf::Texture &texture);
 	People(float x, float y);
 
 	Constants::DynamicObjectType getType() const override;
@@ -22,7 +21,6 @@ public:
 	bool isColliding(const sf::FloatRect &other_hitbox) const override;
 
 	bool tryToMove(float dx, float dy, float camera_top_y);
-	void move(float dx, float dy);
 
 	void die();
 	bool isDead() const;

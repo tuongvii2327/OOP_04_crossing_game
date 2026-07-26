@@ -4,9 +4,13 @@
 
 class Bush : public StaticObject
 {
+private:
+	Constants::ObjectColor bush_color;
 public:
 	// contructor, destructor
-	Bush(Lane* init_lane = nullptr, const sf::Vector2f &init_position = sf::Vector2f(0.f, 0.f));
+	Bush(Lane* init_lane = nullptr,
+		const sf::Vector2f &init_position = sf::Vector2f(0.f, 0.f),
+		const Constants::ObjectColor& init_color = Constants::ObjectColor::None);
 
 	// get, set
 	Constants::StaticObjectType getType() const override;

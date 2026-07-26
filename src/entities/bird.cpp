@@ -1,9 +1,11 @@
 #include "entities/bird.h"
 #include "world/lane.h"
+#include "utils/resource_manager.h"
 
 #pragma region PUBLIC
 #pragma region CONSTRUCTOR, DESTRUCTOR
-Bird::Bird(const Constants::ObjectColor &init_color, Lane *init_lane)
+Bird::Bird(const Constants::ObjectColor &init_color, 
+    Lane *init_lane)
     : Animal(Constants::DynamicObjectType::Bird, init_color, init_lane)
 {
     bird_color = init_color;
@@ -20,7 +22,7 @@ Constants::ObjectColor Bird::getColor() const
 void Bird::setColor(const Constants::ObjectColor &new_color)
 {
     bird_color = new_color;
-    setSprite(getTexture(Constants::DynamicObjectType::Bird, new_color));
+    setSprite(Resource().getDynamicObjectTexture(Constants::DynamicObjectType::Bird, new_color, current_frame), Constants::DynamicObjectType::Bird);
 }
 
 Constants::DynamicObjectType Bird::getType() const

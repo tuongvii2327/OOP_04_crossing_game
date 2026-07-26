@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <deque>
 #include <memory>
@@ -13,6 +13,8 @@ class StaticObject;
 class Lane
 {
 protected:
+    int texture_variant;     //fix trong suốt vòng đời, 1 loại lane có nhiều texture_variant, số texture_variant mỗi loại lane trong Constant::getNumberOfGraphic() ps: không biết đặt tên gì
+
     sf::Sprite sprite;
     sf::Vector2f position; // top left point of sprite
     int level = 1;         // level of game in current frame
@@ -22,10 +24,10 @@ protected:
     std::deque<std::unique_ptr<DynamicObject>> list_dynamic;
 
     void moveBy(sf::Vector2f offset);                                                   // move position by offset, update sprite position
-    const sf::Texture &getTexture(const Constants::LaneType type, int direction) const; // cached lane texture
     void adjustSprite();                                                                // scale sprite to fit LANE_WIDTH x LANE_HEIGHT
     int randomRange(int start, int end);                                                // random int in [start, end]
     virtual void seedObjects() = 0;                                                     // populate list_dynamic with initial objects matching the lane type
+    int pickTextureVariant(const Constants::LaneType& type);
 
 public:
     // constructor, destructor
@@ -53,6 +55,9 @@ public:
 
     int getNumberOfActive() const;
     void setNumberOfActive(int new_num);
+
+    int getTextureVariant() const;
+    void setTextureVariant(int new_variant);
 
     float getWidthSprite() const;
     float getHeightSprite() const;

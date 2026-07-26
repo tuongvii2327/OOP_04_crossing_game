@@ -4,9 +4,12 @@
 #pragma region PUBLIC
 
 #pragma region CONSTRUCTOR, DESTRUCTOR
-Rock::Rock(Lane *init_lane, const sf::Vector2f &init_position)
-    : StaticObject(Constants::StaticObjectType::Rock, init_position, init_lane, Constants::ObjectColor::None)
+Rock::Rock(Lane* init_lane,
+    const sf::Vector2f& init_position,
+    const Constants::ObjectColor& init_color)
+    : StaticObject(init_lane, Constants::StaticObjectType::Rock, init_position, init_color)
 {
+    rock_color = init_color;
 }
 #pragma endregion
 

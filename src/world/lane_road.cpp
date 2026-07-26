@@ -132,9 +132,13 @@ void LaneRoad::updateState(float delta_time)
 // draw lane sprite + objects (base), then traffic light
 void LaneRoad::render(sf::RenderWindow &window) const
 {
-    Lane::render(window);
-    if (traffic)
+    window.draw(sprite);
+    if (traffic) // must draw traffic before vehicle
         traffic->render(window);
+    for (const auto& o : list_dynamic)
+    {
+        o->render(window);
+    } 
 }
 
 // reuse lane: base reposition + shuffle traffic light
@@ -240,7 +244,7 @@ Traffic *LaneRoad::getNearestTrafficAhead(const Vehicle &vehicle)
     if (color == Constants::TrafficLightColor::Green)
         return nullptr;
 
-    float gap = vehicle.gapToObstacle(traffic->getPosition().x, Constants::TRAFFIC_WIDTH);
+    float gap = vehicle.gapToObstacle(traffic->getPosition().x, Constants::getSizeInGame(Constants::StaticObjectType::Traffic).width);
     if (gap < 0 || gap > vehicle.getSafeDistance())
         return nullptr;
 

@@ -4,9 +4,13 @@
 
 class Rock : public StaticObject
 {
+private:
+	Constants::ObjectColor rock_color;
 public:
 	// contructor, destructor
-	Rock(Lane* init_lane = nullptr, const sf::Vector2f &init_position = sf::Vector2f(0.f, 0.f));
+	Rock(Lane* init_lane = nullptr,
+		const sf::Vector2f &init_position = sf::Vector2f(0.f, 0.f),
+		const Constants::ObjectColor& init_color = Constants::ObjectColor::None);
 
 	// get, set
 	Constants::StaticObjectType getType() const override;

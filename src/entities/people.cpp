@@ -11,31 +11,10 @@ People::People()
     resetPosition();
 }
 
-People::People(const sf::Texture &texture)
-    : DynamicObject(Constants::DynamicObjectType::People, Constants::ObjectColor::None, nullptr),
-      is_dead(false),
-      step_size(static_cast<float>(Constants::LANE_HEIGHT))
-{
-    sprite.setTexture(texture, true);
-
-    float target_size = 90.0f;
-    sf::Vector2f tex_size = static_cast<sf::Vector2f>(texture.getSize());
-    sprite.setScale({target_size / tex_size.x, target_size / tex_size.y});
-
-    hitbox.size = sf::Vector2f(target_size * 0.7f, target_size * 0.55f);
-    hitbox_offset = sf::Vector2f(target_size * 0.15f, target_size * 0.45f);
-
-    resetPosition();
-}
-
 People::People(float x, float y)
-    : DynamicObject(Constants::DynamicObjectType::People, Constants::ObjectColor::None, nullptr),
-      is_dead(false),
-      step_size(static_cast<float>(Constants::LANE_HEIGHT)) // Sửa 50.0f thành LANE_HEIGHT
+    : People()
 {
-    position = sf::Vector2f(x, y);
-    sprite.setPosition(position);
-    setHitbox();
+    setPosition(sf::Vector2f(x, y));
 }
 
 Constants::DynamicObjectType People::getType() const
@@ -64,17 +43,6 @@ bool People::isColliding(const sf::FloatRect &other_hitbox) const
     return hitbox.findIntersection(other_hitbox).has_value();
 }
 
-void People::move(float dx, float dy)
-{
-    if (is_dead)
-        return;
-
-    position.x += dx;
-    position.y += dy;
-    sprite.setPosition(position);
-    hitbox.position = position + hitbox_offset;
-}
-
 bool People::tryToMove(float dx, float dy, float camera_top_y)
 {
     if (is_dead)
@@ -99,7 +67,7 @@ bool People::tryToMove(float dx, float dy, float camera_top_y)
     }
 
     // if valid, move the People object
-    move(dx, dy);
+    moveBy(sf::Vector2f(dx, dy));
     Audio().playSFX(AudioSystem::SFX::Jump);
     return true;
 }
@@ -120,11 +88,7 @@ void People::resetPosition()
 
     float start_y = Constants::WINDOW_HEIGHT - (Constants::LANE_HEIGHT * 1.5f) - (sprite.getGlobalBounds().size.y / 2.f);
 
-    position = sf::Vector2f(start_x, start_y);
-    sprite.setPosition(position);
-
-    hitbox.position = position + hitbox_offset;
-
+    setPosition(sf::Vector2f(start_x, start_y));
     is_dead = false;
 }
 
@@ -196,6 +160,5 @@ void People::deserialize(std::istream &is)
     std::cout << "[DEBUG LOAD] Player Loaded Position: (" << position.x << ", " << position.y << ")\n";
 
     // Update sprite & hitbox
-    sprite.setPosition(position);
-    hitbox.position = position + hitbox_offset;
+    setPosition(position);
 }

@@ -18,21 +18,14 @@ void Lane::moveBy(sf::Vector2f offset)
     setPosition(position + offset);
 }
 
-// reference into ResourceManager's cache (stays alive for the sprite's lifetime)
-const sf::Texture &Lane::getTexture(const Constants::LaneType type, int direction) const
-{
-    return Resource().getLaneTexture(type, direction);
-}
-
 // scale sprite up to fill LANE_WIDTH x LANE_HEIGHT if it's smaller
 void Lane::adjustSprite()
 {
     if (getWidthSprite() == 0.f || getHeightSprite() == 0.f)
         return;
 
-    // Luôn luôn ép co giãn ảnh cho vừa bằng kích thước của làn đường (1260x105)
-    float scaleX = Constants::LANE_WIDTH / getWidthSprite();
-    float scaleY = Constants::LANE_HEIGHT / getHeightSprite();
+    float scaleX = Constants::LANE_WIDTH / sprite.getLocalBounds().size.x;
+    float scaleY = Constants::LANE_HEIGHT / sprite.getLocalBounds().size.y;
     sprite.setScale({scaleX, scaleY});
 }
 
@@ -43,13 +36,18 @@ int Lane::randomRange(int start, int end)
     std::uniform_int_distribution<int> dist(start, end);
     return static_cast<int>(dist(rng));
 }
+
+int Lane::pickTextureVariant(const Constants::LaneType& type)
+{
+    return randomRange(1, Constants::getNumberOfTextureVariant(type));
+}
 #pragma endregion
 
 #pragma region PUBLIC
 // texture, direction, level, position, active state are set here;
 // subclasses call seedObjects() and seedTraffic() in their own constructors
-Lane::Lane(const sf::Vector2f &init_position, const int &init_level, const int &init_direction, const Constants::LaneType &init_type)
-    : sprite(getTexture(init_type, init_direction))
+Lane::Lane(const sf::Vector2f& init_position, const int& init_level, const int& init_direction, const Constants::LaneType& init_type)
+    : texture_variant(pickTextureVariant(init_type)), sprite(Resource().getLaneTexture(init_type, texture_variant))
 {
     adjustSprite(); // <-- Kéo giãn sprite ngay khi làn đường vừa được tạo
     setDirection(init_direction);
@@ -68,7 +66,7 @@ sf::Sprite Lane::getSprite() const
 // swap texture, then rescale sprite to fit the lane
 void Lane::setSprite(const sf::Texture &texture)
 {
-    sprite.setTexture(texture);
+    sprite.setTexture(texture, 1);
     adjustSprite();
 }
 
@@ -124,6 +122,20 @@ void Lane::setNumberOfActive(int new_num)
 {
     // Cố tình dùng min/max thay thế cho std::clamp để chống lỗi phiên bản C++
     num_active_object = std::min(std::max(new_num, 0), static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
+}
+
+int Lane::getTextureVariant() const
+{
+    return texture_variant;
+}
+
+void Lane::setTextureVariant(int new_variant)
+{
+    int max_new_variant = Constants::getNumberOfTextureVariant(getType());
+    if (new_variant < 1 || new_variant > max_new_variant)
+        new_variant = pickTextureVariant(getType()); // fallback an toàn, không ném exception
+    texture_variant = new_variant;
+    setSprite(Resource().getLaneTexture(getType(), texture_variant));
 }
 
 float Lane::getWidthSprite() const
@@ -218,6 +230,7 @@ void Lane::serialize(std::ostream &os) const
     Serialization::write(os, position.y);
     Serialization::write(os, level);
     Serialization::write(os, direction);
+    Serialization::write(os, texture_variant);
     Serialization::write(os, is_active);
     Serialization::write(os, num_active_object);
 
@@ -242,15 +255,17 @@ void Lane::serialize(std::ostream &os) const
 void Lane::deserialize(std::istream &is)
 {
     // 1. Read basic lane properties (type already consumed by Map)
+
     Serialization::read(is, position.x);
     Serialization::read(is, position.y);
     Serialization::read(is, level);
     Serialization::read(is, direction);
+    Serialization::read(is, texture_variant);
     Serialization::read(is, is_active);
     Serialization::read(is, num_active_object);
 
-    sprite.setTexture(Resource().getLaneTexture(getType(), direction));
-    sprite.setPosition(position);
+    setTextureVariant(texture_variant); //set variant and set sprite
+    setPosition(position);
 
     // 2. Read dynamic objects
     list_dynamic.clear();

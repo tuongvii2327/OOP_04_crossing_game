@@ -16,7 +16,9 @@ protected:
 
 public:
     // contructor, destructor
-    Animal(Constants::DynamicObjectType init_type, Constants::ObjectColor init_color, Lane *init_lane = nullptr); // speed, velocity, is_move = 1, timer = 0, duration are calculated & set automactically
+    Animal(const Constants::DynamicObjectType &init_type,
+        const Constants::ObjectColor &init_color, 
+        Lane *init_lane = nullptr); // speed, velocity, is_move = 1, timer = 0, duration are calculated & set automactically
 
     // get, set
     float getSpeed() const;

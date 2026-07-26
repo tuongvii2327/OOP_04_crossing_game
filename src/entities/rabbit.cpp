@@ -1,9 +1,11 @@
 #include "entities/rabbit.h"
 #include "world/lane.h"
+#include "utils/resource_manager.h"
 
 #pragma region PUBLIC
 #pragma region CONSTRUCTOR, DESTRUCTOR
-Rabbit::Rabbit(const Constants::ObjectColor &init_color, Lane *init_lane)
+Rabbit::Rabbit(const Constants::ObjectColor &init_color, 
+    Lane *init_lane)
     : Animal(Constants::DynamicObjectType::Rabbit, init_color, init_lane)
 {
     rabbit_color = init_color;
@@ -20,7 +22,7 @@ Constants::ObjectColor Rabbit::getColor() const
 void Rabbit::setColor(const Constants::ObjectColor &new_color)
 {
     rabbit_color = new_color;
-    setSprite(getTexture(Constants::DynamicObjectType::Rabbit, new_color));
+    setSprite(Resource().getDynamicObjectTexture(Constants::DynamicObjectType::Rabbit, new_color, current_frame), Constants::DynamicObjectType::Rabbit);
 }
 
 Constants::DynamicObjectType Rabbit::getType() const

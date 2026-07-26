@@ -9,7 +9,8 @@ private:
 
 public:
 	// contructor, destructor
-	Truck(const Constants::ObjectColor &init_color = Constants::ObjectColor::Pink, Lane* init_lane = nullptr);
+	Truck(const Constants::ObjectColor &init_color = Constants::ObjectColor::Red, 
+		Lane* init_lane = nullptr);
 
 	// get, set
 	Constants::ObjectColor getColor() const override;

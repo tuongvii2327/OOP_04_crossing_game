@@ -9,7 +9,8 @@ private:
 
 public:
 	// contructor, destructor
-	Bird(const Constants::ObjectColor &init_color = Constants::ObjectColor::Pink, Lane* init_lane = nullptr);
+	Bird(const Constants::ObjectColor &init_color = Constants::ObjectColor::Green, 
+		Lane* init_lane = nullptr);
 
 	// get, set
 	Constants::ObjectColor getColor() const override;

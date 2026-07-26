@@ -39,10 +39,10 @@ void PlayingState::init()
     score_text_->setPosition({20.f, 20.f});
     std::cout << "3. Tao Score Text thanh cong\n";
 
-    const sf::Texture &player_tex = Resource().getTexture("assets/textures/player.png");
+    const sf::Texture &player_tex = Resource().getDynamicObjectTexture(Constants::DynamicObjectType::People);
     std::cout << "4. Load Texture Player thanh cong\n";
 
-    player_ = std::make_unique<People>(player_tex);
+    player_ = std::make_unique<People>();
     std::cout << "5. Khoi tao Player thanh cong\n";
 
     setupWorld();
