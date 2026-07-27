@@ -1,7 +1,9 @@
 #include "states/home_state.h"
+#include "states/shop_state.h"
 #include "utils/constants.h"
 #include "utils/resource_manager.h"
 #include <iostream>
+
 
 #include "states/load_state.h"
 #include "states/playing_state.h"
@@ -45,7 +47,7 @@ void HomeState::init()
     title_text_->setPosition({Constants::WINDOW_WIDTH / 2.0f, 200.0f});
 
     std::vector<std::pair<std::string, float>> menu_data = {
-        {"New Game", 450.0f}, {"Load File", 550.0f}, {"Settings", 650.0f}, {"Ranking", 750.0f}, {"Quit", 850.0f}};
+        {"New Game", 450.0f}, {"Shop", 500.0f}, {"Load File", 550.0f}, {"Settings", 650.0f}, {"Ranking", 750.0f}, {"Quit", 850.0f}};
 
     menu_options_.clear();
     for (const auto &data : menu_data)
@@ -152,18 +154,22 @@ void HomeState::executeChoice(int index)
         context_->state_machine->push(std::make_unique<PlayingState>(context_));
         break;
     case 1:
+        std::cout << "Transition to: Shop\n"; // <--- CASE NÀY LÀ CỦA SHOP
+        context_->state_machine->push(std::make_unique<ShopState>(context_));
+        break;
+    case 2:
         std::cout << "Transition to: Load File\n";
         context_->state_machine->push(std::make_unique<LoadState>(context_));
         break;
-    case 2:
+    case 3:
         std::cout << "Transition to: Settings\n";
         context_->state_machine->push(std::make_unique<SettingState>(context_));
         break;
-    case 3:
+    case 4:
         std::cout << "Transition to: Ranking\n";
         context_->state_machine->push(std::make_unique<RankingState>(context_));
         break;
-    case 4:
+    case 5:
         std::cout << "Exit game!\n";
         context_->window->close();
         break;

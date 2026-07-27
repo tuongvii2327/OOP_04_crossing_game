@@ -1,13 +1,14 @@
 #include "states/playing_state.h"
+#include "../include/utils/serialization.h"
 #include "states/game_over_state.h"
 #include "states/pause_state.h"
 #include "utils/audio_system.h"
 #include "utils/constants.h"
 #include "utils/resource_manager.h"
 #include "utils/serialization.h"
-#include <iostream>
 #include <cstdio>
-#include "../include/utils/serialization.h"
+#include <iostream>
+
 
 PlayingState* PlayingState::active_instance_ = nullptr;
 
@@ -71,8 +72,25 @@ void PlayingState::init()
 	const sf::Texture &player_tex = Resource().getDynamicObjectTexture(Constants::DynamicObjectType::People);
 	std::cout << "4. Load Texture Player thanh cong\n";
 
-	player_ = std::make_unique<People>();
-	std::cout << "5. Khoi tao Player thanh cong\n";
+    Constants::ObjectColor selected_color = Constants::ObjectColor::None;
+    switch (context_->data->selected_character)
+    {
+    case 1:
+        selected_color = Constants::ObjectColor::Blue;
+        break;
+    case 2:
+        selected_color = Constants::ObjectColor::Green;
+        break;
+    case 3:
+        selected_color = Constants::ObjectColor::Grey;
+        break;
+    default:
+        selected_color = Constants::ObjectColor::None;
+        break;
+    }
+
+    player_ = std::make_unique<People>(selected_color);
+    std::cout << "5. Khoi tao Player thanh cong\n";
 
 	if (load_slot_ > 0)
 	{
@@ -281,8 +299,8 @@ void PlayingState::update(float dt)
 		context_->data->total_coins += newly_collected;
 		coin_text_->setString("Coins: " + std::to_string(context_->data->total_coins));
 
-		// Audio().playSFX(AudioSystem::SFX::Coin);
-	}
+        // Audio().playSFX(AudioSystem::SFX::Coin); 
+    }
 
 	if (map_.checkLethalCollision(player_->getHitBox()) ||
 		(player_->getPosition().y + player_->getHeightSprite() * 0.5f) >=
@@ -340,10 +358,10 @@ void PlayingState::render(sf::RenderWindow &window)
 		window.draw(*score_text_);
 	}
 
-	if (coin_text_)
-	{
-		window.draw(*coin_text_);
-	}
+    if (coin_text_)
+    {
+        window.draw(*coin_text_);
+    }
 }
 
 void PlayingState::pause()

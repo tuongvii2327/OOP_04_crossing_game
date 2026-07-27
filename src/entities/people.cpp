@@ -3,16 +3,17 @@
 #include "utils/constants.h"
 #include "utils/serialization.h"
 
-People::People()
-    : DynamicObject(Constants::DynamicObjectType::People, Constants::ObjectColor::None, nullptr),
+People::People(Constants::ObjectColor color)
+    : DynamicObject(Constants::DynamicObjectType::People, color, nullptr), // Truyền color cho lớp cha
       is_dead(false),
-      step_size(static_cast<float>(Constants::LANE_HEIGHT))
+      step_size(static_cast<float>(Constants::LANE_HEIGHT)),
+      people_color(color) // Lưu lại màu
 {
     resetPosition();
 }
 
-People::People(float x, float y)
-    : People()
+People::People(float x, float y, Constants::ObjectColor color)
+    : People(color)
 {
     setPosition(sf::Vector2f(x, y));
 }
@@ -24,7 +25,7 @@ Constants::DynamicObjectType People::getType() const
 
 Constants::ObjectColor People::getColor() const
 {
-    return Constants::ObjectColor::None;
+    return people_color;
 }
 
 void People::updateState(float delta_time)
