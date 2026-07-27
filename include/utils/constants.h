@@ -49,8 +49,14 @@ namespace Constants
 	}
 #pragma endregion
 
+#pragma region CAMERA
+	constexpr float CAMERA_SAFE_DISTANCE = 4.f * LANE_HEIGHT;
+	constexpr float CAMERA_FOLLOW_LANES_PER_SEC = 3.f;
+	constexpr float AUTO_SCROLL_BASE_SPEED = 60.f;
+	constexpr float AUTO_SCROLL_LEVEL_FACTOR = 0.5f;
+#pragma endregion
+
 #pragma region OBJECT
-	// coefficients in the 'speed' formula above
 	constexpr float SPEED_LEVEL_FACTOR = 0.2f;
 
 	enum class DynamicObjectType

@@ -24,6 +24,7 @@ public:
 
 	void die();
 	bool isDead() const;
+	sf::Vector2f getStartPosition(int init_cell = 6, int init_lane = 10) const;
 	void resetPosition();
 
 	sf::FloatRect getBounds() const;

@@ -81,14 +81,16 @@ bool People::isDead() const
 {
     return is_dead;
 }
-
-void People::resetPosition()
+sf::Vector2f People::getStartPosition(int init_cell, int init_lane) const // init_cell là ô people sẽ xuất hiện trong lane
 {
-    float start_x = (Constants::WINDOW_WIDTH - sprite.getGlobalBounds().size.x) / 2.f;
+    float start_x = Constants::WINDOW_WIDTH - (Constants::NUMBER_OF_CELLS - init_cell + 1) * Constants::CELL_SIZE + (Constants::CELL_SIZE - getWidthSprite()) / 2.f;
+    float start_y = (Constants::WINDOW_HEIGHT - (Constants::NUMBER_OF_LANES - init_lane + 1) * Constants::LANE_HEIGHT) + (Constants::LANE_HEIGHT - getHeightSprite()) / 2.f; // luon xuat hien o lane cuoi cung
+    return sf::Vector2f(start_x, start_y);
+}
 
-    float start_y = Constants::WINDOW_HEIGHT - (Constants::LANE_HEIGHT * 1.5f) - (sprite.getGlobalBounds().size.y / 2.f);
-
-    setPosition(sf::Vector2f(start_x, start_y));
+void People::resetPosition() 
+{
+    setPosition(getStartPosition());
     is_dead = false;
     is_active = true;
 }

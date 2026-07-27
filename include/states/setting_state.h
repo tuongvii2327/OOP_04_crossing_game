@@ -14,6 +14,8 @@ private:
 	std::vector<std::unique_ptr<sf::Text>> setting_texts_;
 	int selected_index_;
 
+	std::vector<std::string> buildDisplayStrings() const;
+
 	void setupUI(const sf::Font &font);
 	void updateUI();
 	void moveUp();

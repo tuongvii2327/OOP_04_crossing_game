@@ -22,8 +22,6 @@ private:
     // Manage coordinates to know when to create/delete lanes.
     float highest_y;
     float lane_height;
-    // current level
-    int current_level;
     int duplicate_lane = 0;
 
     int total_lanes_spawned = 0;

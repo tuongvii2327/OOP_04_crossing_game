@@ -20,6 +20,15 @@ void SettingState::init()
     setupUI(font);
 }
 
+std::vector<std::string> SettingState::buildDisplayStrings() const
+{
+    return {
+        "MUSIC VOLUME: < " + std::to_string(context_->config->music_volume * 10) + "% >",
+        "SFX VOLUME: < " + std::to_string(context_->config->sfx_volume * 10) + "% >",
+        "AUTO SCROLL: < " + std::string(context_->config->auto_scroll ? "ON" : "OFF") + " >",
+        "BACK TO MENU" }; // phai luon de back o cuoi
+}
+
 void SettingState::setupUI(const sf::Font &font)
 {
     title_text_->setString("SETTINGS");
@@ -31,7 +40,8 @@ void SettingState::setupUI(const sf::Font &font)
     title_text_->setPosition({title_x, 150.0f});
 
     setting_texts_.clear();
-    for (int i = 0; i < 3; ++i)
+    size_t item_count = buildDisplayStrings().size();
+    for (int i = 0; i < item_count; ++i)
     {
         setting_texts_.push_back(std::make_unique<sf::Text>(font));
     }
@@ -43,11 +53,9 @@ void SettingState::updateUI()
 {
     int mus = context_->config->music_volume;
     int sfx = context_->config->sfx_volume;
+    bool auto_scr = context_->config->auto_scroll;
 
-    std::vector<std::string> display_strings = {
-        "MUSIC VOLUME: < " + std::to_string(mus * 10) + "% >",
-        "SFX VOLUME: < " + std::to_string(sfx * 10) + "% >",
-        "BACK TO MENU"};
+    std::vector<std::string> display_strings = buildDisplayStrings();
 
     float initial_y = 350.0f;
     float spacing = 80.0f;
@@ -95,7 +103,7 @@ void SettingState::handleEvent(const sf::Event &event)
         }
         else if (key_pressed->code == sf::Keyboard::Key::Enter)
         {
-            if (selected_index_ == 2)
+            if (selected_index_ == static_cast<int>(setting_texts_.size()) - 1)
             {
                 context_->state_machine->pop();
             }
@@ -140,7 +148,7 @@ void SettingState::handleEvent(const sf::Event &event)
                 if (setting_texts_[i]->getGlobalBounds().contains(mouse_pos))
                 {
                     selected_index_ = static_cast<int>(i);
-                    if (selected_index_ == 2)
+                    if (selected_index_ == static_cast<int>(setting_texts_.size()) - 1)
                     {
                         context_->state_machine->pop();
                     }
@@ -206,7 +214,9 @@ void SettingState::increaseSetting()
     case 1:
         context_->config->sfx_volume = (context_->config->sfx_volume + 1) % 11;
         Audio().setSFXVolume(context_->config->sfx_volume);
-
+        break;
+    case 2:
+        context_->config->auto_scroll = !context_->config->auto_scroll;
         break;
     }
     updateUI();
@@ -223,7 +233,9 @@ void SettingState::decreaseSetting()
     case 1:
         context_->config->sfx_volume = (context_->config->sfx_volume - 1 + 11) % 11;
         Audio().setSFXVolume(context_->config->sfx_volume);
-
+        break;
+    case 2:
+        context_->config->auto_scroll = !context_->config->auto_scroll;
         break;
     }
     updateUI();

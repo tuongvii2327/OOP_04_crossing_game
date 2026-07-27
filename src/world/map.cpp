@@ -17,7 +17,7 @@ std::unique_ptr<Lane> Map::createLane(Constants::LaneType type, const sf::Vector
     }
 }
 
-Map::Map(SharedContext *context) : lane_height(Constants::LANE_HEIGHT), highest_y(0.f), current_level(1),context_(context){}
+Map::Map(SharedContext *context) : lane_height(Constants::LANE_HEIGHT), highest_y(0.f),context_(context){}
 
 Map::~Map()
 {
@@ -44,6 +44,7 @@ void Map::spawnLane()
 
     std::vector<double> weights; // Thứ tự trọng số tương ứng: [Grass, Road, Safe]
 
+    int current_level = context_->data->current_level;
     if (current_level >= 10)
     {
         weights = {30.0, 65.0, 5.0}; // 30% grass, 65% road, 5% safe lane
@@ -111,7 +112,7 @@ void Map::spawnLaneAsRequire(Constants::LaneType type)
     int direction = (Rand(gen) == 0) ? 1 : -1;
 
     sf::Vector2f spawn_position(0.f, highest_y);
-    auto new_lane = createLane(type, spawn_position, current_level, direction);
+    auto new_lane = createLane(type, spawn_position, context_->data->current_level, direction);
 
     if (!lanes.empty() && type == lanes.front()->getType())
     {
@@ -155,12 +156,6 @@ void Map::update(float camera_top_y, float camera_bottom_y, float delta_time)
         spawnLane();
     }
 
-    if (context_ && context_->data)
-    {
-        int player_score = context_->data->current_score;
-        current_level = player_score / 10;
-    }
-
     // Cập nhật xe chạy
     for (const auto &lane : lanes)
     {
@@ -192,7 +187,6 @@ void Map::reset(float start_y)
 {
     lanes.clear();
 
-    current_level = 0;
     total_lanes_spawned = 0;
     initMap(start_y);
 }
@@ -203,7 +197,6 @@ void Map::serialize(std::ostream &os) const
     // 1. Write map management properties
     Serialization::write(os, highest_y);
     Serialization::write(os, lane_height);
-    Serialization::write(os, current_level);
     Serialization::write(os, total_lanes_spawned);
 
     // 2. Write lane count
@@ -223,7 +216,6 @@ void Map::deserialize(std::istream &is)
     // 1. Read map management properties
     Serialization::read(is, highest_y);
     Serialization::read(is, lane_height);
-    Serialization::read(is, current_level);
     Serialization::read(is, total_lanes_spawned);
 
     // 2. Read lane count

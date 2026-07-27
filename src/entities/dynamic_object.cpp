@@ -213,7 +213,7 @@ float DynamicObject::randomSpeed(const Constants::DynamicObjectType &type) const
 	Constants::SpeedRange range = Constants::getSpeedRange(type);
 	std::uniform_int_distribution<int> dist(range.min_speed, range.max_speed);
 	float base = static_cast<float>(dist(rng));
-	float factor = 1.f + static_cast<float>(level - 1) * Constants::SPEED_LEVEL_FACTOR;
+	float factor = 1.f + static_cast<float>(level) * Constants::SPEED_LEVEL_FACTOR;
 	return base * factor;
 }
 
