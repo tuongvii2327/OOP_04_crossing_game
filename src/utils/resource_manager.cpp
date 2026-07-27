@@ -266,6 +266,8 @@ static sf::Texture makeTrafficTexture(Constants::TrafficLightColor active)
 	rt.display();
 	return rt.getTexture();
 }
+
+
 #pragma endregion
 
 // ==========================================
@@ -382,6 +384,9 @@ const sf::Texture &ResourceManager::getStaticObjectTexture(const Constants::Stat
 	case Constants::StaticObjectType::Traffic:
 		type_name = "traffic";
 		break;
+    case Constants::StaticObjectType::Coin:
+        type_name = "coin";
+        break;
 	default:
 		type_name = "rock";
 		break;
@@ -400,6 +405,9 @@ const sf::Texture &ResourceManager::getStaticObjectTexture(const Constants::Stat
 	case Constants::ObjectColor::Grey:
 		color_name = "grey";
 		break;
+    case Constants::ObjectColor::Yellow:
+        color_name = "yellow";
+        break;
 	case Constants::ObjectColor::None:
 		color_name = "none";
 		break;

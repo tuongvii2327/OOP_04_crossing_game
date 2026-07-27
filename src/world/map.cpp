@@ -37,7 +37,7 @@ void Map::initMap(float start_y)
     }
 }
 
-void Map::spawnLane()
+void Map::spawnLane() 
 {
     static std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
     std::uniform_int_distribution<> DirRand(0, 1);
@@ -261,4 +261,14 @@ void Map::deserialize(std::istream &is)
 
         lanes.push_back(std::move(lane));
     }
+}
+
+int Map::checkCoinCollision(const sf::FloatRect &player_hitbox)
+{
+    int coins_collected = 0;
+    for (const auto &lane : lanes)
+    {
+        coins_collected += lane->checkCoinCollision(player_hitbox);
+    }
+    return coins_collected;
 }

@@ -2,7 +2,7 @@
 
 #include <deque>
 #include <memory>
-
+#include "../entities/coin.h"
 #include "../utils/constants.h"
 #include <SFML/Graphics.hpp>
 
@@ -22,6 +22,8 @@ protected:
     bool is_active = 0;
     int num_active_object = 0;
     std::deque<std::unique_ptr<DynamicObject>> list_dynamic;
+    std::deque<std::unique_ptr<StaticObject>> list_static;
+    void seedCoins();
 
     void moveBy(sf::Vector2f offset);                                                   // move position by offset, update sprite position
     void adjustSprite();                                                                // scale sprite to fit LANE_WIDTH x LANE_HEIGHT
@@ -77,4 +79,6 @@ public:
 
     virtual void serialize(std::ostream &os) const;
     virtual void deserialize(std::istream &is);
+
+    int checkCoinCollision(const sf::FloatRect &player_hitbox);
 };

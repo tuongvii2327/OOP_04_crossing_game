@@ -80,6 +80,9 @@ namespace Constants
 		Bush,
 
 		// River object
+
+		// Coin
+		Coin
 	};
 
 	enum class ObjectColor
@@ -88,6 +91,7 @@ namespace Constants
 		Blue,
 		Green,
 		Grey,
+		Yellow,
 		None // ke ep last: used as the color count in random pickers
 	};
 

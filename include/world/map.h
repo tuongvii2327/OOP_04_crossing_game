@@ -54,4 +54,6 @@ public:
     // ---- Serialization & Deserialization functions ----
     void serialize(std::ostream &os) const;
     void deserialize(std::istream &is);
+
+    int checkCoinCollision (const sf::FloatRect &player_hitbox);
 };

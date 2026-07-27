@@ -90,6 +90,7 @@ void People::resetPosition()
 
     setPosition(sf::Vector2f(start_x, start_y));
     is_dead = false;
+    is_active = true;
 }
 
 sf::FloatRect People::getBounds() const

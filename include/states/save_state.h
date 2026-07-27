@@ -4,25 +4,32 @@
 #include "core/state_machine.h"
 #include "states/state.h"
 #include "utils/shared_context.h"
+#include "utils/resource_manager.h"
 #include <SFML/Graphics.hpp>
 #include <vector>
+#include <string>
+#include <memory>
 
 class SaveState : public State
 {
 private:
+	enum class Mode { SelectSlot, ConfirmOverwrite, NamingMode };
+	Mode current_mode_= Mode::SelectSlot;
+
 	std::unique_ptr<sf::Text> title_text_;
 	std::vector<std::unique_ptr<sf::Text>> save_slot_texts_;
-	int selected_index_;
-	bool is_saved_;
-	float save_timer_;
+	int selected_index_ = 0;
+	bool is_saved_ = false;
+	float save_timer_ = 0.0f;
 
-	bool is_naming_mode_ = false;
 	std::string input_name_ = "";
 	int target_slot_ = 0;
+
 
 	std::unique_ptr <sf::Text> prompt_text_;
 	std::unique_ptr <sf::Text> input_display_text_;
 	std::unique_ptr <sf::Text> error_text_;
+	std::unique_ptr <sf::Text> overwrite_prompt_text_;
 
 	// Setup save slot UI
 	void setupUI(const sf::Font &font);

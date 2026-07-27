@@ -22,6 +22,8 @@ private:
     void update(float dt);
     void render();
 
+    void loadPlayerData();
+    void savePlayerData();
 public:
     Game();
     ~Game();

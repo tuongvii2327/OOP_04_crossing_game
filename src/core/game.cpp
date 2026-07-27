@@ -3,6 +3,7 @@
 #include "utils/audio_system.h"
 #include "utils/constants.h"
 #include "utils/resource_manager.h"
+#include "utils/serialization.h"
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -43,12 +44,14 @@ Game::Game()
 
     std::sort(data_.high_scores.begin(), data_.high_scores.end(), std::greater<int>());
 
-    // Start with the HomeState
+    loadPlayerData();
     state_machine.push(std::make_unique<HomeState>(&context_));
 }
 
 Game::~Game()
 {
+    savePlayerData();
+
     state_machine.resetTo(nullptr);
     state_machine.processTransitions();
 
@@ -110,4 +113,30 @@ void Game::render()
     window.clear(sf::Color::Black);
     state_machine.render(window);
     window.display();
+}
+
+void Game::loadPlayerData()
+{
+    std::ifstream file("data/player_data.bin", std::ios::binary);
+    if (file.is_open())
+    {
+        Serialization::read(file, data_.total_coins);
+        file.close();
+        std::cout << "[Game] Loaded Total Coins: " << data_.total_coins << "\n";
+    }
+    else
+    {
+        data_.total_coins = 0; // Mặc định là 0 nếu chưa có file dữ liệu
+    }
+}
+
+void Game::savePlayerData()
+{
+    std::ofstream file("data/player_data.bin", std::ios::binary);
+    if (file.is_open())
+    {
+        Serialization::write(file, data_.total_coins);
+        file.close();
+        std::cout << "[Game] Saved Total Coins: " << data_.total_coins << "\n";
+    }
 }

@@ -10,6 +10,7 @@
 #include "entities/truck.h"
 
 #include <limits>
+#include "../include/utils/serialization.h"
 
 #pragma region PROTECTED
 // move position by offset, update sprite position
@@ -41,6 +42,23 @@ int Lane::pickTextureVariant(const Constants::LaneType& type)
 {
     return randomRange(1, Constants::getNumberOfTextureVariant(type));
 }
+
+void Lane::seedCoins()
+{
+    // Tỷ lệ 50% mỗi làn đường xuất hiện 1 đồng xu
+    if (randomRange(0, 9) >= 5)
+        return;
+
+        int total_cols = static_cast<int>(Constants::LANE_WIDTH / Constants::CELL_SIZE);
+        int col = randomRange(1, std::max(1, total_cols - 2)); 
+    
+        // Truyền tọa độ góc trên-bên trái của ô Cell
+        float cell_x = position.x + (col * Constants::CELL_SIZE);
+        float cell_y = position.y;
+
+    auto coin = std::make_unique<Coin>(sf::Vector2f{cell_x, cell_y}, this);
+    list_static.push_back(std::move(coin));
+}
 #pragma endregion
 
 #pragma region PUBLIC
@@ -54,6 +72,8 @@ Lane::Lane(const sf::Vector2f& init_position, const int& init_level, const int& 
     setLevel(init_level);
     setPosition(init_position);
     setActiveState(1);
+
+    seedCoins();
 }
 
 Lane::~Lane() = default;
@@ -176,6 +196,10 @@ void Lane::updateState(float delta_time)
 void Lane::render(sf::RenderWindow &window) const
 {
     window.draw(sprite);
+    for (const auto &s : list_static) 
+    {
+        s->render(window);
+    }
     for (const auto &o : list_dynamic)
     {
         o->render(window);
@@ -214,6 +238,23 @@ bool Lane::checkLethalCollision(const sf::FloatRect &player_hitbox) const
     }
     return false;
 }
+
+int Lane::checkCoinCollision(const sf::FloatRect &player_hitbox) 
+{
+    int collected_count = 0;
+    for (auto &s : list_static)
+    {
+        if (auto coin = dynamic_cast<Coin *>(s.get()))
+        {
+            if (!coin->isCollected() && coin->isColliding(player_hitbox))
+            {
+                coin->collect(); // Đánh dấu đã nhặt
+                collected_count++;
+            }
+        }
+    }
+    return collected_count;
+}
 #pragma endregion
 
 #pragma region SAVE-LOAD
@@ -246,6 +287,21 @@ void Lane::serialize(std::ostream &os) const
         Serialization::write(os, obj->getVelocity().x);
         Serialization::write(os, obj->getVelocity().y);
         Serialization::write(os, obj->isActive());
+    }
+
+    // 4. Lưu danh sách STATIC OBJECTS
+    size_t static_count = list_static.size();
+    Serialization::write(os, static_count);
+    for (const auto &s : list_static)
+    {
+        Serialization::write(os, s->getType());
+        Serialization::write(os, s->getPosition().x);
+        Serialization::write(os, s->getPosition().y);
+
+        if (auto coin = dynamic_cast<Coin *>(s.get()))
+        {
+            Serialization::write(os, coin->isCollected()); // Lưu trạng thái đã bị ăn hay chưa
+        }
     }
 }
 
@@ -314,6 +370,31 @@ void Lane::deserialize(std::istream &is)
             obj->setVelocity({vx, vy});
             obj->setActiveState(obj_active);
             list_dynamic.push_back(std::move(obj));
+        }
+    }
+
+    // 4. Nạp lại danh sách static object
+    list_static.clear();
+    size_t static_count = 0;
+    Serialization::read(is, static_count);
+    for (size_t i = 0; i < static_count; ++i)
+    {
+        Constants::StaticObjectType s_type;
+        float px = 0.f, py = 0.f;
+        Serialization::read(is, s_type);
+        Serialization::read(is, px);
+        Serialization::read(is, py);
+
+        if (s_type == Constants::StaticObjectType::Coin)
+        {
+            bool is_collected = false;
+            Serialization::read(is, is_collected);
+            auto coin = std::make_unique<Coin>(sf::Vector2f{px, py}, this);
+            if (is_collected)
+            {
+                coin->collect();
+            }
+            list_static.push_back(std::move(coin));
         }
     }
 }

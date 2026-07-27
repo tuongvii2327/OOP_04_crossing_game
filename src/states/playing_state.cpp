@@ -6,6 +6,8 @@
 #include "utils/resource_manager.h"
 #include "utils/serialization.h"
 #include <iostream>
+#include <cstdio>
+#include "../include/utils/serialization.h"
 
 PlayingState *PlayingState::active_instance_ = nullptr;
 
@@ -39,14 +41,47 @@ void PlayingState::init()
     score_text_->setPosition({20.f, 20.f});
     std::cout << "3. Tao Score Text thanh cong\n";
 
+    // Coin text
+    coin_text_ = std::make_unique<sf::Text>(font);
+    coin_text_->setString("Coins: " + std::to_string(context_->data->total_coins));
+    coin_text_->setCharacterSize(40);
+    coin_text_->setFillColor(sf::Color::Yellow);
+    coin_text_->setOutlineColor(sf::Color::Black);
+    coin_text_->setOutlineThickness(2.f);
+    coin_text_->setPosition({20.f, 70.f});
+
+
     const sf::Texture &player_tex = Resource().getDynamicObjectTexture(Constants::DynamicObjectType::People);
     std::cout << "4. Load Texture Player thanh cong\n";
 
     player_ = std::make_unique<People>();
     std::cout << "5. Khoi tao Player thanh cong\n";
 
-    setupWorld();
-    std::cout << "6. Setup World (Map) thanh cong\n";
+    if (load_slot_ > 0)
+    {
+        std::ifstream file("data/saves/slot_" + std::to_string(load_slot_) + ".bin", std::ios::binary);
+        if (file.is_open())
+        {
+            deserialize(file);
+            file.close();
+            std::cout << "[PlayingState] Loaded successfully from slot " << load_slot_ << "\n";
+        }
+        else
+        {
+            std::cerr << "[PlayingState] Failed to open save file for slot " << load_slot_ << "! Starting fresh.\n";
+            context_->data->current_score = 0; // Reset điểm về 0
+            setupWorld();
+            std::cout << "6. Setup World (Map) thanh cong\n";
+
+        }
+    }
+    else
+    {
+        context_->data->current_score = 0; // ĐẢM BẢO reset điểm về 0 khi chơi New Game hoàn toàn
+        setupWorld(); 
+        std::cout << "6. Setup World (Map) thanh cong\n";
+
+    }
 }
 
 void PlayingState::setupWorld()
@@ -115,6 +150,15 @@ void PlayingState::update(float dt)
 
     map_.update(camera_top_y, camera_bottom_y, dt);
 
+    int newly_collected = map_.checkCoinCollision(player_->getHitBox());
+    if (newly_collected > 0)
+    {
+        context_->data->total_coins += newly_collected;
+        coin_text_->setString("Coins: " + std::to_string(context_->data->total_coins));
+
+        // Audio().playSFX(AudioSystem::SFX::Coin); 
+    }
+
     if (map_.checkLethalCollision(player_->getHitBox()) ||
         (player_->getPosition().y + player_->getHeightSprite() * 0.5f) >= camera_bottom_y)
     {
@@ -148,6 +192,11 @@ void PlayingState::render(sf::RenderWindow &window)
     if (score_text_)
     {
         window.draw(*score_text_);
+    }
+
+    if (coin_text_)
+    {
+        window.draw(*coin_text_); 
     }
 }
 
@@ -218,4 +267,9 @@ void PlayingState::deserialize(std::istream &is)
     // 4. Yêu cầu Player và Map tự phục hồi dữ liệu
     player_->deserialize(is);
     map_.deserialize(is);
+    
+    if (coin_text_)
+    {
+        coin_text_->setString("Coins: " + std::to_string(context_->data->total_coins));
+    }
 }

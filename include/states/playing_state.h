@@ -8,11 +8,13 @@
 
 #include <SFML/Graphics.hpp>
 #include <memory>
+#include <fstream>
 
 class PlayingState : public State
 {
 private:
     std::unique_ptr<sf::Text> score_text_;
+    std::unique_ptr<sf::Text> coin_text_;
 
     // Integrate your original entity system here
     std::unique_ptr<People> player_;
@@ -24,7 +26,6 @@ private:
 
     static PlayingState *active_instance_; // Con trỏ tĩnh toàn cục cục bộ
     int load_slot_ = 0;                    // Slot cần nạp khi khởi tạo
-
 public:
     PlayingState(SharedContext *context, int load_slot = 0);
     ~PlayingState() override;
@@ -49,4 +50,6 @@ public:
 
     void serialize(std::ostream &os, const std::string &slot_name) const;
     void deserialize(std::istream &is);
+
+    void setLoadSlot(int slot) { load_slot_ = slot; }
 };
