@@ -10,9 +10,6 @@ protected:
     float base_speed;    // max speed of this vehicle
     float safe_distance; // distance to brake or accelerate
 
-    float anim_timer = 0.f;
-    int current_frame = 0;
-
     float sound_timer_ = 0.f;
     float next_sound_time_ = 0.f;
     float randomSoundInterval() const;

@@ -405,9 +405,6 @@ const sf::Texture &ResourceManager::getStaticObjectTexture(const Constants::Stat
 	case Constants::ObjectColor::Grey:
 		color_name = "grey";
 		break;
-    case Constants::ObjectColor::Yellow:
-        color_name = "yellow";
-        break;
 	case Constants::ObjectColor::None:
 		color_name = "none";
 		break;

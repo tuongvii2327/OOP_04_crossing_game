@@ -38,9 +38,9 @@ namespace Constants
 		switch (type)
 		{
 		case LaneType::Grass:
-			return 2;
+			return 21;
 		case LaneType::Safe:
-			return 2;
+			return 21;
 		case LaneType::Road:
 			return 3;
 		default:
@@ -91,7 +91,6 @@ namespace Constants
 		Blue,
 		Green,
 		Grey,
-		Yellow,
 		None // ke ep last: used as the color count in random pickers
 	};
 
@@ -146,6 +145,8 @@ namespace Constants
 			return { 80, 55 };
 		case StaticObjectType::Bush:
 			return { 90, 69 };
+		case StaticObjectType::Coin:
+			return { 65, 60 };
 		default:
 			return { 90, 90 };
 		}
