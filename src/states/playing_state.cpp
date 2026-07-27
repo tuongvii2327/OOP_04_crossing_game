@@ -27,6 +27,9 @@ PlayingState::~PlayingState()
 
 void PlayingState::init()
 {
+    Audio().pauseMusic();
+    context_->data->current_score = 0;
+
     std::cout << "1. Bat dau PlayingState::init()\n";
 
     const sf::Font &font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
@@ -39,6 +42,16 @@ void PlayingState::init()
     score_text_->setOutlineColor(sf::Color::Black);
     score_text_->setOutlineThickness(2.f);
     score_text_->setPosition({20.f, 20.f});
+
+    if (!context_->data->high_scores.empty())
+    {
+        current_top_score_ = context_->data->high_scores[0];
+    }
+    else
+    {
+        current_top_score_ = 0; // neu khong co high score, > 50 thi duoc chuc mung
+    }
+    has_beaten_highscore_ = false;
     std::cout << "3. Tao Score Text thanh cong\n";
 
     // Coin text
@@ -82,6 +95,10 @@ void PlayingState::init()
         std::cout << "6. Setup World (Map) thanh cong\n";
 
     }
+
+    flash_overlay_.setSize({static_cast<float>(Constants::WINDOW_WIDTH),
+                            static_cast<float>(Constants::WINDOW_HEIGHT)});
+    flash_overlay_.setFillColor(sf::Color(255, 0, 0, 0));
 }
 
 void PlayingState::setupWorld()
@@ -120,8 +137,34 @@ void PlayingState::handleEvent(const sf::Event &event)
 
 void PlayingState::update(float dt)
 {
-    if (!player_ || player_->isDead())
+    if (!player_)
         return;
+    // 1. NẾU NHÂN VẬT ĐÃ CHẾT -> BẮT ĐẦU ĐẾM GIỜ
+    if (player_->isDead())
+    {
+        death_timer_ += dt;
+        if (shake_timer_ > 0.0f)
+        {
+            shake_timer_ -= dt;
+        }
+
+        // Hiệu ứng mờ dần (Fade out) của lớp flash đỏ
+        sf::Color flash_color = flash_overlay_.getFillColor();
+        if (flash_color.a > 0)
+        {
+            // Tốc độ tan biến: giảm ~600 alpha mỗi giây
+            int new_alpha = flash_color.a - static_cast<int>(600 * dt);
+            flash_overlay_.setFillColor(sf::Color(255, 0, 0, std::max(0, new_alpha)));
+        }
+
+        // Chờ 0.5 giây để tiếng Crash phát xong
+        if (death_timer_ >= 0.5f)
+        {
+            death_timer_ = 0.0f; // Reset lại để dùng cho lần chơi "Try Again"
+            context_->state_machine->push(std::make_unique<GameOverState>(context_));
+        }
+        return; // Đóng băng game, ngừng update map và camera khi đang chờ
+    }
 
     player_->updateState(dt);
 
@@ -137,6 +180,13 @@ void PlayingState::update(float dt)
         context_->data->current_score = distance_score;
         score_text_->setString("Score: " +
                                std::to_string(context_->data->current_score));
+    }
+
+    if (current_top_score_ > 0 && distance_score > current_top_score_ && !has_beaten_highscore_)
+    {
+        has_beaten_highscore_ = true;                 // Đánh dấu là đã vượt kỷ lục
+        Audio().playSFX(AudioSystem::SFX::HighScore); // Phát tiếng ăn mừng
+        score_text_->setFillColor(sf::Color::Yellow); // Đổi màu điểm số sang màu Vàng cho ngầu!
     }
 
     float current_center_y = view_.getCenter().y;
@@ -160,10 +210,16 @@ void PlayingState::update(float dt)
     }
 
     if (map_.checkLethalCollision(player_->getHitBox()) ||
-        (player_->getPosition().y + player_->getHeightSprite() * 0.5f) >= camera_bottom_y)
+        (player_->getPosition().y + player_->getHeightSprite() * 0.5f) >=
+            camera_bottom_y)
     {
-        Audio().playSFX(AudioSystem::SFX::Crash); // <--- Đã sửa
+        Audio().stopAllSFX(); // Dọn sạch mọi tạp âm (tiếng còi xe, tiếng chim...) đang dở dang
+        Audio().playSFX(AudioSystem::SFX::Crash);
         player_->die();
+
+        // Kích hoạt rung và nháy đỏ
+        shake_timer_ = 0.4f;                                    // Rung mạnh trong 0.4 giây
+        flash_overlay_.setFillColor(sf::Color(255, 0, 0, 160)); // Lóe đỏ tức thì (Alpha 160)
 
         // ---- LOGIC: Xóa sạch file Save trên đĩa khi chết ----
         if (load_slot_ > 0)
@@ -173,14 +229,24 @@ void PlayingState::update(float dt)
             std::cout << "[PlayingState] Deleted save file " << file_path << " due to player death.\n";
             load_slot_ = 0; // Đưa trạng thái slot về không
         }
-        context_->state_machine->push(std::make_unique<GameOverState>(context_));
+        // context_->state_machine->push(std::make_unique<GameOverState>(context_));
         return;
     }
 }
 
 void PlayingState::render(sf::RenderWindow &window)
 {
-    window.setView(view_);
+    if (shake_timer_ > 0.0f)
+    {
+        sf::View shake_view = view_;
+        // Tạo độ lệch ngẫu nhiên từ -8 đến +8 pixels
+        float offset_x = static_cast<float>(rand() % 16 - 8);
+        float offset_y = static_cast<float>(rand() % 16 - 8);
+        shake_view.move({offset_x, offset_y});
+        window.setView(shake_view);
+    }
+    else
+        window.setView(view_);
     map_.render(window);
 
     if (player_)
@@ -189,6 +255,11 @@ void PlayingState::render(sf::RenderWindow &window)
     }
 
     window.setView(window.getDefaultView());
+
+    if (flash_overlay_.getFillColor().a > 0)
+    {
+        window.draw(flash_overlay_);
+    }
     if (score_text_)
     {
         window.draw(*score_text_);
@@ -207,6 +278,7 @@ void PlayingState::pause()
 
 void PlayingState::resume()
 {
+    Audio().pauseMusic();
     std::cout << "[PlayingState] Resumed\n";
     if (player_ && player_->isDead())
     {
@@ -221,6 +293,22 @@ void PlayingState::restart()
     load_slot_ = 0;
     context_->data->current_score = 0;
     score_text_->setString("Score: 0");
+    score_text_->setFillColor(
+        sf::Color::White); // Trả lại màu chữ trắng ban đầu
+
+    if (!context_->data->high_scores.empty())
+    {
+        current_top_score_ = context_->data->high_scores[0];
+    }
+    else
+    {
+        current_top_score_ = 0;
+    }
+    has_beaten_highscore_ = false;
+
+    death_timer_ = 0.0f;
+    shake_timer_ = 0.0f;
+    flash_overlay_.setFillColor(sf::Color(255, 0, 0, 0));
 
     player_->resetPosition();
 

@@ -26,6 +26,13 @@ private:
 
     static PlayingState *active_instance_; // Con trỏ tĩnh toàn cục cục bộ
     int load_slot_ = 0;                    // Slot cần nạp khi khởi tạo
+    float death_timer_ = 0.0f;
+    float shake_timer_ = 0.0f;
+    sf::RectangleShape flash_overlay_;
+
+    int current_top_score_ = 0;
+    bool has_beaten_highscore_ = false;
+
 public:
     PlayingState(SharedContext *context, int load_slot = 0);
     ~PlayingState() override;

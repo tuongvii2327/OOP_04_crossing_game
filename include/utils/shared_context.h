@@ -13,9 +13,13 @@ struct GameData
 {
     int current_score = 0;
     int total_coins = 0;
-    
+
     // max 5 high scores
     std::vector<int> high_scores;
+
+    // for shop
+    int selected_character = 0;
+    std::vector<bool> unlocked_characters = {true, false, false, false};
 };
 
 class StateMachine; // Forward declaration

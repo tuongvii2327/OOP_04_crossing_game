@@ -14,6 +14,25 @@ GameOverState::GameOverState(SharedContext *context)
 
 void GameOverState::init()
 {
+    Audio().pauseMusic();
+    int top_score_before = 0;
+    if (!context_->data->high_scores.empty())
+    {
+        top_score_before = context_->data->high_scores[0];
+    }
+
+    bool is_new_highscore = (top_score_before > 0) &&
+                            (context_->data->current_score > top_score_before);
+    if (is_new_highscore)
+    {
+        Audio().resumeMusic();
+    }
+    else
+    {
+        // Audio().pauseMusic();
+        Audio().playSFX(AudioSystem::SFX::GameOver);
+    }
+
     // save highscore when die
     saveHighScore();
 
@@ -22,6 +41,16 @@ void GameOverState::init()
     score_text_ = std::make_unique<sf::Text>(font);
 
     setupUI(font);
+
+    if (is_new_highscore)
+    {
+        title_text_->setString("NEW HIGHSCORE!");
+        title_text_->setFillColor(sf::Color::Magenta); // Đổi thành màu Cyan (hoặc Green/Magenta) cho ngầu
+
+        // Canh giữa lại tọa độ X vì độ dài chữ "NEW HIGHSCORE!" khác với "GAME OVER"
+        sf::FloatRect title_bounds = title_text_->getLocalBounds();
+        title_text_->setPosition({(Constants::WINDOW_WIDTH - title_bounds.size.x) / 2.f, 220.f});
+    }
 }
 
 void GameOverState::saveHighScore()

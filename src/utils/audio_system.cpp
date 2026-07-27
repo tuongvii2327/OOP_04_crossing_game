@@ -4,14 +4,22 @@
 
 // Khởi tạo đường dẫn cho các âm thanh
 const std::unordered_map<AudioSystem::SFX, std::string> AudioSystem::sfx_paths_ = {
-    {SFX::Click, "assets/audio/select.wav"}, // https://pixabay.com/sound-effects/film-special-effects-90s-game-ui-6-185099/
-    {SFX::Hover, "assets/audio/hover.wav"},  // https://pixabay.com/sound-effects/film-special-effects-ui-sounds-pack-3-15-359713/
-    {SFX::Back, "assets/audio/back.wav"},    // https://pixabay.com/sound-effects/film-special-effects-ui-sound-374228/
-    {SFX::Jump, "assets/audio/jump.wav"},    // https://pixabay.com/sound-effects/film-special-effects-pixel-sound-effect-4-82881/
-    {SFX::Crash, "assets/audio/crash.wav"},  // https://pixabay.com/sound-effects/film-special-effects-sound-effect-car-crash-394903/
-    {SFX::Bird, "assets/audio/horn.wav"},    // tam
-    {SFX::Rabbit, "assets/audio/horn.wav"},  // tam
-    {SFX::Horn, "assets/audio/horn.wav"}};   // https://pixabay.com/sound-effects/city-car-horn-6408/
+    {SFX::Click,
+     "assets/audio/select.wav"}, // https://pixabay.com/sound-effects/film-special-effects-90s-game-ui-6-185099/
+    {SFX::Hover,
+     "assets/audio/hover.wav"}, // https://pixabay.com/sound-effects/film-special-effects-ui-sounds-pack-3-15-359713/
+    {SFX::Back,
+     "assets/audio/back.wav"}, // https://pixabay.com/sound-effects/film-special-effects-ui-sound-374228/
+    {SFX::Jump,
+     "assets/audio/jump.wav"}, // https://pixabay.com/sound-effects/film-special-effects-pixel-sound-effect-4-82881/
+    {SFX::Crash,
+     "assets/audio/crash.wav"}, // https://pixabay.com/sound-effects/film-special-effects-sound-effect-car-crash-394903/
+    {SFX::GameOver, "assets/audio/game_over.wav"},
+    {SFX::HighScore, "assets/audio/new_highscore.wav"}, // https://www.youtube.com/watch?v=pg360fNMDAw
+    {SFX::Bird, "assets/audio/bird.wav"},               // https://pixabay.com/sound-effects/nature-bird-chirping-482865/
+    //{SFX::Rabbit, "assets/audio/car_horn.wav"},       // tam vi khong bat tieng con tho
+    {SFX::CarHorn, "assets/audio/car_horn.wav"},      // https://pixabay.com/sound-effects/city-car-horn-6408/
+    {SFX::TruckHorn, "assets/audio/truck_horn.wav"}}; // https://pixabay.com/sound-effects/city-truck-horn-153263/
 
 const std::unordered_map<AudioSystem::Music, std::string> AudioSystem::music_paths_ = {
     {Music::Background, "assets/audio/bg_music.ogg"}}; // https://pixabay.com/music/upbeat-game-8-bit-399898/
@@ -86,6 +94,29 @@ void AudioSystem::playMusic(Music music)
     bg_music_->setVolume(music_volume_);
     bg_music_->setLooping(true);
     bg_music_->play();
+}
+
+void AudioSystem::pauseMusic()
+{
+    if (bg_music_->getStatus() == sf::Music::Status::Playing)
+    {
+        bg_music_->pause();
+    }
+}
+
+void AudioSystem::resumeMusic()
+{
+    if (bg_music_->getStatus() != sf::Music::Status::Playing)
+    {
+        bg_music_->play();
+    }
+}
+
+void AudioSystem::stopAllSFX()
+{
+    // Lệnh clear() sẽ hủy toàn bộ các con trỏ std::unique_ptr<sf::Sound> đang tồn tại,
+    // khiến tất cả các âm thanh SFX đang phát bị tắt ngay lập tức.
+    active_sounds_.clear();
 }
 
 void AudioSystem::update()

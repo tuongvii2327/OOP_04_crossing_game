@@ -33,6 +33,7 @@ void HomeState::setupMenuOption(sf::Text &text, const std::string &str, float y_
 // Load font and initialize menu UI
 void HomeState::init()
 {
+    Audio().resumeMusic();
     const sf::Font &font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
 
     title_text_ = std::make_unique<sf::Text>(font);

@@ -14,6 +14,7 @@ PauseState::PauseState(SharedContext *context)
 // Load font and initialize UI
 void PauseState::init()
 {
+    Audio().resumeMusic();
     const sf::Font &font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
     title_text_ = std::make_unique<sf::Text>(font);
 

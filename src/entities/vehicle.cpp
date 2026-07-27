@@ -23,9 +23,25 @@ Vehicle::Vehicle(const Constants::DynamicObjectType &init_type,
 	Lane* init_lane)
 	: DynamicObject(init_type, init_color, init_lane)
 {
-	setBaseSpeed(randomSpeed(init_type));     // set safe_distance automatically here
-	setVelocity({base_speed * direction, 0}); // direction is already set by DynamicObject
+    setBaseSpeed(randomSpeed(init_type)); // set safe_distance automatically here
+    setVelocity({base_speed * direction,
+                 0}); // direction is already set by DynamicObject
+
+    next_sound_time_ = randomSoundInterval();
+
+    static std::mt19937 rng(std::random_device{}()); // khoi tao tieng xe tu khi vo game
+    std::uniform_real_distribution<float> start_dist(0.0f, next_sound_time_);
+    sound_timer_ = start_dist(rng);
 }
+
+float Vehicle::randomSoundInterval() const
+{
+    static std::mt19937 rng(std::random_device{}());
+    // Random từ 2.0s đến 5.0s
+    std::uniform_real_distribution<float> dist(15.0f, 35.0f);
+    return dist(rng);
+}
+
 #pragma endregion
 
 #pragma region GET, SET
@@ -50,17 +66,34 @@ float Vehicle::getSafeDistance() const
 #pragma region OTHER
 void Vehicle::playHornSound()
 {
-	Audio().playSFX(AudioSystem::SFX::Horn);
+    if (getType() == Constants::DynamicObjectType::Car)
+    {
+        Audio().playSFX(AudioSystem::SFX::CarHorn);
+    }
+    else if (getType() == Constants::DynamicObjectType::Truck)
+    {
+        Audio().playSFX(AudioSystem::SFX::TruckHorn);
+    }
 }
 
 // check if object out of map, check the nearest traffic or vehicle to reduce current speed, move object to new position
 void Vehicle::updateState(float delta_time)
 {
-	if (isOutOfLane() || !is_active)
-		return;
-	float v_light = base_speed;
-	float v_vehicle = base_speed;
-	bool is_blocked = false;
+    if (isOutOfLane() || !is_active)
+        return;
+
+    // bóp còi mỗi 2-5s
+    sound_timer_ += delta_time;
+    if (sound_timer_ >= next_sound_time_)
+    {
+        playHornSound();
+        sound_timer_ = 0.f;                       // Reset lại bộ đếm
+        next_sound_time_ = randomSoundInterval(); // Random thời gian chờ cho lần kêu tiếp theo
+    }
+
+    float v_light = base_speed;
+    float v_vehicle = base_speed;
+    bool is_blocked = false;
 
 	LaneRoad* road = dynamic_cast<LaneRoad*>(current_lane);
 	Traffic* nearest_traffic = road ? road->getNearestTrafficAhead(*this) : nullptr;
@@ -86,14 +119,14 @@ void Vehicle::updateState(float delta_time)
 			is_blocked = true;
 	}
 
-	if (is_blocked && (velocity.x * direction) < (base_speed * 0.5f))
-	{
-		// Random tỷ lệ 1% mỗi frame để bóp còi (tránh spam âm thanh gây chói tai)
-		if ((rand() % 100) < 1)
-		{
-			playHornSound();
-		}
-	}
+    // if (is_blocked && (velocity.x * direction) < (base_speed * 0.5f))
+    // {
+    //     // Random tỷ lệ 1% mỗi frame để bóp còi (tránh spam âm thanh gây chói tai)
+    //     if ((rand() % 250) < 1)
+    //     {
+    //         playHornSound();
+    //     }
+    // }
 
 	float v_target = std::min(std::min(base_speed, v_light), v_vehicle);
 	float acceleration = std::pow(base_speed, 2.0) / (safe_distance);

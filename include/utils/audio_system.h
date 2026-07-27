@@ -17,9 +17,12 @@ public:
         Back,
         Jump,
         Crash,
+        GameOver,
+        HighScore,
         Bird,
         Rabbit,
-        Horn
+        CarHorn,
+        TruckHorn
     };
 
     enum class Music
@@ -59,6 +62,10 @@ public:
     // Phát âm thanh sử dụng Enum thay vì String
     void playSFX(SFX sfx);
     void playMusic(Music music);
+
+    void pauseMusic();  // Tạm dừng nhạc
+    void resumeMusic(); //  Tiếp tục phát nhạc
+    void stopAllSFX();  // khi thua
 
     void update();
     void clearAll();

@@ -14,6 +14,10 @@ protected:
 
     float randomDuration() const; // pick a random duration for new state between MIN_DURATION_ANIMAL & MAX_DURATION_ANIMAL
 
+    float sound_timer_ = 0.f;
+    float next_sound_time_ = 0.f;
+    float randomSoundInterval() const;
+
 public:
     // contructor, destructor
     Animal(const Constants::DynamicObjectType &init_type,
