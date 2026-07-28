@@ -81,4 +81,5 @@ public:
     virtual void deserialize(std::istream &is);
 
     int checkCoinCollision(const sf::FloatRect &player_hitbox);
+    bool checkBlockedCollision(const sf::FloatRect &target_hitbox) const;
 };

@@ -20,34 +20,44 @@ Constants::LaneType LaneSafe::getType() const
 
 void LaneSafe::seedObjects()
 {
-    // Generate 0 to 4 rocks per safe lane
-    int count = randomRange(0, 4);
+    int min_rocks = 0;
+    int max_rocks = 1;
+ 
+    if (level >= 10) {min_rocks = 3; max_rocks = Constants::MAX_OBJECT_PER_LANE;}
+    else if (level >= 6) {min_rocks = 2; max_rocks = 3;}
+    else if (level >= 3) {min_rocks = 1; max_rocks = 2; }
+    else {min_rocks = 0; max_rocks = 1;}
+
+    int count = randomRange(min_rocks, max_rocks);
     if (count == 0) return;
 
-    std::vector<int> available_k;
-    for (int k = -4; k <= 6; ++k)
-    {
-        available_k.push_back(k);
-    }
+    int total_cols = static_cast<int>(Constants::LANE_WIDTH / Constants::CELL_SIZE);
 
     for (int i = 0; i < count; ++i)
     {
-        if (available_k.empty()) break;
-        
-        // Pick a random distinct column
-        int idx = randomRange(0, available_k.size() - 1);
-        int k = available_k[idx];
-        available_k.erase(available_k.begin() + idx);
+        for (int tryy = 0; tryy < 10; ++tryy)
+        {
+            int col = randomRange(1, std::max(1, total_cols - 2));
+            float cell_x = position.x + (col * Constants::CELL_SIZE);
+            float cell_y = position.y;
 
-        auto rock = std::make_unique<Rock>(this);
-        
-        // Player center starts at WINDOW_WIDTH / 2 (700) and moves by LANE_HEIGHT (105).
-        // Align the rock center perfectly with the player's center.
-        float player_center = (Constants::WINDOW_WIDTH / 2.f) + k * static_cast<float>(Constants::LANE_HEIGHT);
-        float x = player_center - (rock->getWidthSprite() / 2.f);
+            bool overlap = false;
+            for (const auto &existing : list_static)
+            {
+                if (std::abs(cell_x - existing->getPosition().x) < Constants::CELL_SIZE * 0.9f)
+                {
+                    overlap = true;
+                    break;
+                }
+            }
 
-        rock->setPosition({x, 0}); // position.y is handled by StaticObject
-        list_static.push_back(std::move(rock));
+            if (!overlap)
+            {
+                auto rock = std::make_unique<Rock>(this, sf::Vector2f{cell_x, cell_y});
+                list_static.push_back(std::move(rock));
+                break;
+            }
+        }
     }
 }
 
@@ -59,19 +69,11 @@ void LaneSafe::spawnObject()
 void LaneSafe::updateState(float delta_time)
 {
     Lane::updateState(delta_time);
-    for (auto &o : list_static)
-    {
-        o->updateState(delta_time);
-    }
 }
 
 void LaneSafe::render(sf::RenderWindow &window) const
 {
     Lane::render(window);
-    for (const auto &o : list_static)
-    {
-        o->render(window);
-    }
 }
 
 void LaneSafe::spawnLane(const sf::Vector2f &new_position, const int &new_level, const int &new_direction)
@@ -82,40 +84,9 @@ void LaneSafe::spawnLane(const sf::Vector2f &new_position, const int &new_level,
 void LaneSafe::serialize(std::ostream &os) const
 {
     Lane::serialize(os);
-    
-    size_t obj_count = list_static.size();
-    Serialization::write(os, obj_count);
-    
-    for (const auto &obj : list_static)
-    {
-        Serialization::write(os, obj->getType());
-        Serialization::write(os, obj->getPosition().x);
-        Serialization::write(os, obj->getPosition().y);
-    }
 }
 
 void LaneSafe::deserialize(std::istream &is)
 {
     Lane::deserialize(is);
-    
-    list_static.clear();
-    size_t obj_count = 0;
-    Serialization::read(is, obj_count);
-    
-    for (size_t i = 0; i < obj_count; ++i)
-    {
-        Constants::StaticObjectType obj_type;
-        float px = 0.f, py = 0.f;
-        
-        Serialization::read(is, obj_type);
-        Serialization::read(is, px);
-        Serialization::read(is, py);
-        
-        if (obj_type == Constants::StaticObjectType::Rock)
-        {
-            auto rock = std::make_unique<Rock>(this);
-            rock->setPosition({px, py});
-            list_static.push_back(std::move(rock));
-        }
-    }
 }

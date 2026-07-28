@@ -293,3 +293,15 @@ int Map::checkCoinCollision(const sf::FloatRect &player_hitbox)
     }
     return coins_collected;
 }
+
+bool Map::checkBlockedCollision(const sf::FloatRect &target_hitbox) const
+{
+    for (const auto &lane : lanes)
+    {
+        if (lane->checkBlockedCollision(target_hitbox))
+        {
+            return true; // Có vật cản trên map
+        }
+    }
+    return false;
+}

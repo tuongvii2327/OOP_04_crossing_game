@@ -153,7 +153,7 @@ void PlayingState::handleEvent(const sf::Event &event)
 		return;
 
 	float cam_top = view_.getCenter().y - (view_.getSize().y / 2.f);
-	if (player_->handleEvent(event, cam_top))
+	if (player_->handleEvent(event, cam_top, map_))
 	{
 		scroll_armed_ = true;
 		score_text_->setString("Score: " +

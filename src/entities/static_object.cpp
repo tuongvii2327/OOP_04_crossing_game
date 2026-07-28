@@ -95,26 +95,20 @@ sf::Vector2f StaticObject::getPosition() const
 
 void StaticObject::setPosition(const sf::Vector2f &pos)
 {
-	float new_center_x = pos.x + getWidthSprite() / 2.f;
-	int column = 0;
-	float min_distance = abs(new_center_x - (0 * Constants::CELL_SIZE + Constants::GAME_PLAY_BAR_WIDTH));
-	for (int i = 1; i < Constants::NUMBER_OF_LANES; i++)
-	{
-		float cur_distance = abs(new_center_x - (i * Constants::CELL_SIZE + Constants::GAME_PLAY_BAR_WIDTH));
-		if (cur_distance < min_distance)
-		{
-			min_distance = cur_distance;
-			column = i;
-		}
-	}
-	position.x = Constants::GAME_PLAY_BAR_WIDTH + column * Constants::CELL_SIZE + (Constants::CELL_SIZE - getWidthSprite()) / 2.f;
-	if (current_lane != nullptr)
-	{
-		position.y = current_lane->getPosition().y + (Constants::LANE_HEIGHT - getHeightSprite()) / 2.f;
-	}
-	sprite.setPosition(position);
-	updateHitbox();
+    int column = std::max(0, static_cast<int>((pos.x - Constants::GAME_PLAY_BAR_WIDTH) / Constants::CELL_SIZE));
+
+    // Đặt X vào chính giữa Cột đó
+    position.x = Constants::GAME_PLAY_BAR_WIDTH + column * Constants::CELL_SIZE + (Constants::CELL_SIZE - getWidthSprite()) / 2.f;
+
+    if (current_lane != nullptr)
+    {
+        position.y = current_lane->getPosition().y + (Constants::LANE_HEIGHT - getHeightSprite()) / 2.f;
+    }
+
+    sprite.setPosition(position);
+    updateHitbox();
 }
+
 
 sf::Sprite StaticObject::getSprite() const
 {

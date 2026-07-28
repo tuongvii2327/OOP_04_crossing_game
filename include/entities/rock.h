@@ -14,6 +14,7 @@ public:
 
 	// get, set
 	Constants::StaticObjectType getType() const override;
+	void setPosition(const sf::Vector2f &pos) override;
 
 	// Other
 	Constants::ObjectEffect getEffect() const override { return Constants::ObjectEffect::Blocked; }

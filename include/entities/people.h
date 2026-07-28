@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dynamic_object.h"
+#include "world/map.h"
 #include <SFML/Graphics.hpp>
 #include <iostream>
 
@@ -22,7 +23,7 @@ public:
     void updateState(float delta_time) override;
     bool isColliding(const sf::FloatRect &other_hitbox) const override;
 
-    bool tryToMove(float dx, float dy, float camera_top_y);
+    bool tryToMove(float dx, float dy, float camera_top_y, const Map &map);
 
     void die();
     bool isDead() const;
@@ -30,7 +31,7 @@ public:
     void resetPosition();
 
     sf::FloatRect getBounds() const;
-    bool handleEvent(const sf::Event &event, float camera_top_y);
+    bool handleEvent(const sf::Event &event, float camera_top_y, const Map &map);
 
     // ---- Serialization & Deserialzation functions
     void serialize(std::ostream &os) const;

@@ -44,7 +44,7 @@ bool People::isColliding(const sf::FloatRect &other_hitbox) const
     return hitbox.findIntersection(other_hitbox).has_value();
 }
 
-bool People::tryToMove(float dx, float dy, float camera_top_y)
+bool People::tryToMove(float dx, float dy, float camera_top_y, const Map& map)
 {
     if (is_dead)
         return false;
@@ -63,10 +63,17 @@ bool People::tryToMove(float dx, float dy, float camera_top_y)
         future_hitbox_right > right_bound ||
         future_hitbox_top < camera_top_y ||
         future_hitbox_bottom > (camera_top_y + Constants::WINDOW_HEIGHT))
+        {
+            return false;
+        }
+        
+        
+    sf::FloatRect future_hitbox({future_hitbox_left, future_hitbox_top}, {hitbox.size.x, hitbox.size.y});
+    if (map.checkBlockedCollision(future_hitbox)) 
     {
         return false;
     }
-
+    
     // if valid, move the People object
     moveBy(sf::Vector2f(dx, dy));
     Audio().playSFX(AudioSystem::SFX::Jump);
@@ -101,7 +108,7 @@ sf::FloatRect People::getBounds() const
     return sprite.getGlobalBounds();
 }
 
-bool People::handleEvent(const sf::Event &event, float camera_top_y)
+bool People::handleEvent(const sf::Event &event, float camera_top_y, const Map& map)
 {
     if (is_dead || !is_active)
         return false;
@@ -112,22 +119,22 @@ bool People::handleEvent(const sf::Event &event, float camera_top_y)
 
     if (key->code == sf::Keyboard::Key::W || key->code == sf::Keyboard::Key::Up)
     {
-        if (tryToMove(0.f, -step_size, camera_top_y))
+        if (tryToMove(0.f, -step_size, camera_top_y, map))
         {
             return true;
         }
     }
     else if (key->code == sf::Keyboard::Key::S || key->code == sf::Keyboard::Key::Down)
     {
-        return tryToMove(0.f, step_size, camera_top_y);
+        return tryToMove(0.f, step_size, camera_top_y, map);
     }
     else if (key->code == sf::Keyboard::Key::A || key->code == sf::Keyboard::Key::Left)
     {
-        return tryToMove(-step_size, 0.f, camera_top_y);
+        return tryToMove(-step_size, 0.f, camera_top_y, map);
     }
     else if (key->code == sf::Keyboard::Key::D || key->code == sf::Keyboard::Key::Right)
     {
-        return tryToMove(step_size, 0.f, camera_top_y);
+        return tryToMove(step_size, 0.f, camera_top_y, map);
     }
 
     return false;

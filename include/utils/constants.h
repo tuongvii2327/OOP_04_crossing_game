@@ -102,7 +102,7 @@ namespace Constants
 		Blue,
 		Green,
 		Grey,
-		None // ke ep last: used as the color count in random pickers
+		None // keep last: used as the color count in random pickers
 	};
 
     // effect of an object (dynamic or static) on People when colliding with it

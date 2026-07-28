@@ -46,20 +46,38 @@ int Lane::pickTextureVariant(const Constants::LaneType& type)
 
 void Lane::seedCoins()
 {
-    // Tỷ lệ 50% mỗi làn đường xuất hiện 1 đồng xu
-    if (randomRange(0, 9) >= 5)
+    // Tỷ lệ 40% mỗi làn đường xuất hiện 1 đồng xu
+    if (randomRange(0, 9) >= 4)
         return;
-
         int total_cols = static_cast<int>(Constants::LANE_WIDTH / Constants::CELL_SIZE);
-        int col = randomRange(1, std::max(1, total_cols - 2)); 
     
-        // Truyền tọa độ góc trên-bên trái của ô Cell
-        float cell_x = position.x + (col * Constants::CELL_SIZE);
-        float cell_y = position.y;
-
-    auto coin = std::make_unique<Coin>(sf::Vector2f{cell_x, cell_y}, this);
-    list_static.push_back(std::move(coin));
-}
+        // Thử tối đa 10 lần để tìm ô trống chưa bị Rock / Bush chiếm chỗ
+        for (int tryy = 0; tryy < 10; ++tryy)
+        {
+            int col = randomRange(1, std::max(1, total_cols - 2));
+            float cell_x = position.x + (col * Constants::CELL_SIZE);
+            float cell_y = position.y;
+    
+            // KIỂM TRA CHỒNG LẤP: Duyệt qua các vật thể tĩnh (Rock, Bush) đã có trên làn
+            bool overlap = false;
+            for (const auto &existing : list_static)
+            {
+                if (std::abs(cell_x - existing->getPosition().x) < Constants::CELL_SIZE * 0.8f)
+                {
+                    overlap = true;
+                    break;
+                }
+            }
+    
+            // Nếu ô hoàn toàn trống -> Tạo Coin và kết thúc
+            if (!overlap)
+            {
+                auto coin = std::make_unique<Coin>(this, sf::Vector2f{cell_x, cell_y}, Constants::ObjectColor::None);
+                list_static.push_back(std::move(coin));
+                break; 
+            }
+        }
+    }
 #pragma endregion
 
 #pragma region PUBLIC
@@ -101,6 +119,11 @@ void Lane::setPosition(const sf::Vector2f &pos)
     position = pos;
     position.x = Constants::WINDOW_WIDTH - Constants::LANE_WIDTH; // lane is always right of the sidebar
     sprite.setPosition(position);
+
+    for (auto &s : list_static)
+    {
+        s ->setPosition(s->getPosition());
+    }
 }
 
 int Lane::getLevel() const
@@ -256,6 +279,19 @@ int Lane::checkCoinCollision(const sf::FloatRect &player_hitbox)
     }
     return collected_count;
 }
+
+bool Lane::checkBlockedCollision(const sf::FloatRect &target_hitbox) const
+{
+    for (const auto &obj : list_static)
+    {
+        // Kiểm tra vật thể tĩnh có hiệu ứng Blocked (Rock) và bị chạm vào Hitbox đích
+        if (obj->getEffect() == Constants::ObjectEffect::Blocked && obj->isColliding(target_hitbox))
+        {
+            return true; // Bị chặn!
+        }
+    }
+    return false;
+}
 #pragma endregion
 
 #pragma region SAVE-LOAD
@@ -393,7 +429,8 @@ void Lane::deserialize(std::istream &is)
         {
             bool is_collected = false;
             Serialization::read(is, is_collected);
-            auto coin = std::make_unique<Coin>(sf::Vector2f{px, py}, this);
+            auto coin = std::make_unique<Coin>(this, sf::Vector2f{px, py}, Constants::ObjectColor::None);
+
             if (is_collected)
             {
                 coin->collect();
