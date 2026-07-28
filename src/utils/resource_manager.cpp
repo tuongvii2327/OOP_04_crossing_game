@@ -501,24 +501,96 @@ const sf::Texture &ResourceManager::getLaneTexture(const Constants::LaneType &ty
 
 const sf::Texture &ResourceManager::getTrafficTexture(const Constants::TrafficLightColor &color)
 {
-    std::string color_name;
+    std::string final_path = "assets/textures/traffic/traffic.png";
+    return getInstance().getTexture(final_path);
+}
+
+const sf::IntRect ResourceManager::getTrafficTextureRect(const Constants::TrafficLightColor &color)
+{
+    const int FRAME_WIDTH = 800;
+    const int FRAME_HEIGHT = 800;
+    int column;
     switch (color)
     {
     case Constants::TrafficLightColor::Red:
-        color_name = "red";
-        break;
-    case Constants::TrafficLightColor::Green:
-        color_name = "green";
+        column = 0;
         break;
     case Constants::TrafficLightColor::Yellow:
-        color_name = "yellow";
+        column = 1;
+        break;
+    case Constants::TrafficLightColor::Green:
+        column = 2;
         break;
     default:
-        color_name = "green";
+        column = 2;
         break;
     }
-    std::string final_path = "assets/textures/traffic/" + color_name + ".png";
-    return getInstance().getTexture(final_path);
+    return sf::IntRect(sf::Vector2i(column * FRAME_WIDTH, 0), sf::Vector2i(FRAME_WIDTH, FRAME_HEIGHT));
+}
+
+bool ResourceManager::hasSpritesheet(const Constants::DynamicObjectType &type) const
+{
+    return type == Constants::DynamicObjectType::Truck
+        || type == Constants::DynamicObjectType::Car
+        || type == Constants::DynamicObjectType::Rabbit
+        || type == Constants::DynamicObjectType::Bird;
+}
+
+const sf::Texture &ResourceManager::getDynamicObjectSpritesheet(const Constants::DynamicObjectType &type, const Constants::ObjectColor &color)
+{
+    (void)color;
+    std::string type_name;
+    switch (type)
+    {
+    case Constants::DynamicObjectType::Truck:
+        type_name = "truck";
+        break;
+    case Constants::DynamicObjectType::Car:
+        type_name = "car";
+        break;
+    case Constants::DynamicObjectType::Rabbit:
+        type_name = "rabbit";
+        break;
+    case Constants::DynamicObjectType::Bird:
+        type_name = "bird";
+        break;
+    default:
+        type_name = "truck";
+        break;
+    }
+    std::string path = "assets/textures/" + type_name + "/none_1.png";
+    return getTexture(path);
+}
+
+sf::IntRect ResourceManager::getDynamicObjectSpritesheetRect(const Constants::DynamicObjectType &type, int frame)
+{
+    const int FRAME_SIZE = 800;
+    int numFrames = Constants::getNumberOfFrames(type);
+    int idx = (frame / 4) % numFrames;
+    const sf::Texture &tex = getDynamicObjectSpritesheet(type, Constants::ObjectColor::None);
+    int cols = tex.getSize().x / FRAME_SIZE;
+    int row = idx / cols;
+    int col = idx % cols;
+
+    int contentW, contentH;
+    switch (type)
+    {
+    case Constants::DynamicObjectType::Car:
+        contentW = 750; contentH = 425; break;
+    case Constants::DynamicObjectType::Rabbit:
+        contentW = 700; contentH = 700; break;
+    case Constants::DynamicObjectType::Bird:
+        contentW = 725; contentH = 643; break;
+    case Constants::DynamicObjectType::Truck:
+        contentW = 725; contentH = 675; break;
+    default:
+        contentW = FRAME_SIZE; contentH = FRAME_SIZE; break;
+    }
+    int offsetX = (FRAME_SIZE - contentW) / 2;
+    int offsetY = (FRAME_SIZE - contentH) / 2;
+
+    return sf::IntRect(sf::Vector2i(col * FRAME_SIZE + offsetX, row * FRAME_SIZE + offsetY),
+                       sf::Vector2i(contentW, contentH));
 }
 
 void ResourceManager::clearAll()

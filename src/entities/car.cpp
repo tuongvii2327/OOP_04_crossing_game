@@ -22,7 +22,14 @@ Constants::ObjectColor Car::getColor() const
 void Car::setColor(const Constants::ObjectColor &new_color)
 {
     car_color = new_color;
-    setSprite(Resource().getDynamicObjectTexture(Constants::DynamicObjectType::Car, new_color, current_frame), Constants::DynamicObjectType::Car);
+    if (Resource().hasSpritesheet(Constants::DynamicObjectType::Car))
+    {
+        setTextureRect(Resource().getDynamicObjectSpritesheetRect(Constants::DynamicObjectType::Car, current_frame));
+    }
+    else
+    {
+        setSprite(Resource().getDynamicObjectTexture(Constants::DynamicObjectType::Car, new_color, current_frame), Constants::DynamicObjectType::Car);
+    }
 }
 
 Constants::DynamicObjectType Car::getType() const

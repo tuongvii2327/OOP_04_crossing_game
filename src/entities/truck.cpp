@@ -22,7 +22,12 @@ Constants::ObjectColor Truck::getColor() const
 void Truck::setColor(const Constants::ObjectColor &new_color)
 {
     truck_color = new_color;
-    setSprite(Resource().getDynamicObjectTexture(Constants::DynamicObjectType::Truck, new_color, current_frame), Constants::DynamicObjectType::Truck);
+    const sf::Texture& tex = Resource().getDynamicObjectSpritesheet(Constants::DynamicObjectType::Truck, new_color);
+    sprite.setTexture(tex, true);
+    setTextureRect(Resource().getDynamicObjectSpritesheetRect(Constants::DynamicObjectType::Truck, current_frame));
+    adjustSprite(Constants::DynamicObjectType::Truck);
+    applyFacing();
+    setHitbox();
 }
 
 Constants::DynamicObjectType Truck::getType() const

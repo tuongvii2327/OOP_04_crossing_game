@@ -27,12 +27,15 @@ Traffic::Traffic(Lane* init_lane,
 	const float &init_timer)
 	: StaticObject(init_lane, Constants::StaticObjectType::Traffic, init_position, Constants::ObjectColor::None)
 {
-	setTrafficColor(init_color); // set random duration & timer = 0 automatically here
+	color = init_color;
 	setTimer(init_timer);
 	setDuration(randomDuration(init_color));
-	// make sure the lamp shows the right colour from the very first frame
-	// (setTrafficColor above skips the sprite update when init_color == default)
-	setSprite(Resource().getTrafficTexture(color), Constants::StaticObjectType::Traffic);
+	const sf::Texture& tex = Resource().getTrafficTexture(color);
+	sprite.setTexture(tex, false);
+	sprite.setTextureRect(Resource().getTrafficTextureRect(color));
+	adjustSprite(Constants::StaticObjectType::Traffic);
+	setDirection(direction);
+	setHitbox();
 }
 #pragma endregion
 
@@ -50,7 +53,12 @@ void Traffic::setTrafficColor(const Constants::TrafficLightColor &new_color)
 		color = new_color;
 		setTimer(0.f);
 		setDuration(randomDuration(new_color));
-		setSprite(Resource().getTrafficTexture(new_color), Constants::StaticObjectType::Traffic); // repaint the lamp
+		const sf::Texture& tex = Resource().getTrafficTexture(color);
+		sprite.setTexture(tex, false);
+		sprite.setTextureRect(Resource().getTrafficTextureRect(color));
+		adjustSprite(Constants::StaticObjectType::Traffic);
+		setDirection(direction);
+		setHitbox();
 	}
 }
 

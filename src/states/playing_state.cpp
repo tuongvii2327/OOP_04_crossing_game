@@ -294,10 +294,14 @@ void PlayingState::update(float dt)
 	map_.update(camera_top_y, camera_bottom_y, dt);
 
 	// ---River: drift player with Wood they're standing on---
-	sf::Vector2f wood_vel = map_.getWoodVelocityAt(player_->getHitBox());
-	if (wood_vel.x != 0.f)
+	// Chỉ apply drift khi player đang đứng yên (không nhảy)
+	if (!player_->isAnimating())
 	{
-		player_->moveBy({ wood_vel.x * dt, 0.f });
+		sf::Vector2f wood_vel = map_.getWoodVelocityAt(player_->getHitBox());
+		if (wood_vel.x != 0.f)
+		{
+			player_->moveBy({ wood_vel.x * dt, 0.f });
+		}
 	}
 
 	int newly_collected = map_.checkCoinCollision(player_->getHitBox());
@@ -309,7 +313,9 @@ void PlayingState::update(float dt)
         // Audio().playSFX(AudioSystem::SFX::Coin); 
     }
 
-	if (map_.checkLethalCollision(player_->getHitBox()) ||
+	// Chỉ kiểm tra va chạm chết người khi player đã đặt chân xuống (không đang nhảy)
+	// Khi nhảy, player "đang bay" nên miễn nhiễm — giống Crossy Road gốc
+	if ((!player_->isAnimating() && map_.checkLethalCollision(player_->getHitBox())) ||
 		(player_->getPosition().y + player_->getHeightSprite() * 0.5f) >=
 			camera_bottom_y)
 	{

@@ -76,15 +76,21 @@ void DynamicObject::adjustSprite(const Constants::DynamicObjectType &type)
 DynamicObject::DynamicObject(const Constants::DynamicObjectType &init_type,
 	const Constants::ObjectColor &init_color,
 	Lane* init_lane)
-	: sprite(Resource().getDynamicObjectTexture(init_type, init_color, 1))
+	: sprite(Resource().hasSpritesheet(init_type)
+		? Resource().getDynamicObjectSpritesheet(init_type, init_color)
+		: Resource().getDynamicObjectTexture(init_type, init_color, 1))
 {
 	setCurFrame(1);
+	if (Resource().hasSpritesheet(init_type))
+	{
+		setTextureRect(Resource().getDynamicObjectSpritesheetRect(init_type, 1));
+	}
 	adjustSprite(init_type);
 	setLane(init_lane);
-	setDirection(calcDirection()); // direction from lane, then flips the sprite when moving left
+	setDirection(calcDirection());
 	setPosition(calcSpawnPosition());
 	setHitbox();
-	setVelocity(sf::Vector2f(0.f, 0.f)); // subclasses set the real velocity once they know their speed
+	setVelocity(sf::Vector2f(0.f, 0.f));
 	setActiveState(true);
 }
 #pragma endregion
@@ -129,6 +135,11 @@ void DynamicObject::setSprite(const sf::Texture &texture, const Constants::Dynam
 	adjustSprite(type);
 	applyFacing();
 	setHitbox(); // new texture may differ in size from the old one
+}
+
+void DynamicObject::setTextureRect(const sf::IntRect &rect)
+{
+	sprite.setTextureRect(rect);
 }
 
 sf::FloatRect DynamicObject::getHitBox() const

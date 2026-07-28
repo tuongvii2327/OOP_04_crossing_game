@@ -13,9 +13,9 @@ class DynamicObject
 {
 private:
 	void updateHitbox(); // update hitbox_position using position and hitbox_offset
-	void applyFacing();  // flip sprite depending on direction.
 
 protected:
+	void applyFacing();  // flip sprite depending on direction.
 	sf::Vector2f position; // top left point of sprite
 	sf::Vector2f velocity;
 	sf::Sprite sprite;
@@ -49,6 +49,7 @@ public:
 
 	sf::Sprite getSprite() const;
 	void setSprite(const sf::Texture &texture, const Constants::DynamicObjectType& type);
+	void setTextureRect(const sf::IntRect &rect);
 
 	sf::FloatRect getHitBox() const;
 	// set hitbox in protected

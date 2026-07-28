@@ -138,7 +138,15 @@ void Vehicle::updateState(float delta_time)
 	moveBy(velocity * delta_time);
 
 	current_frame++;
-	setSprite(Resource().getDynamicObjectTexture(getType(), getColor(), current_frame), getType());
+
+	if (Resource().hasSpritesheet(getType()))
+	{
+		setTextureRect(Resource().getDynamicObjectSpritesheetRect(getType(), current_frame));
+	}
+	else
+	{
+		setSprite(Resource().getDynamicObjectTexture(getType(), getColor(), current_frame), getType());
+	}
 }
 #pragma endregion
 #pragma endregion

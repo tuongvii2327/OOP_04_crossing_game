@@ -22,7 +22,14 @@ Constants::ObjectColor Rabbit::getColor() const
 void Rabbit::setColor(const Constants::ObjectColor &new_color)
 {
     rabbit_color = new_color;
-    setSprite(Resource().getDynamicObjectTexture(Constants::DynamicObjectType::Rabbit, new_color, current_frame), Constants::DynamicObjectType::Rabbit);
+    if (Resource().hasSpritesheet(Constants::DynamicObjectType::Rabbit))
+    {
+        setTextureRect(Resource().getDynamicObjectSpritesheetRect(Constants::DynamicObjectType::Rabbit, current_frame));
+    }
+    else
+    {
+        setSprite(Resource().getDynamicObjectTexture(Constants::DynamicObjectType::Rabbit, new_color, current_frame), Constants::DynamicObjectType::Rabbit);
+    }
 }
 
 Constants::DynamicObjectType Rabbit::getType() const

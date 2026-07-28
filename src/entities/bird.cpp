@@ -22,7 +22,14 @@ Constants::ObjectColor Bird::getColor() const
 void Bird::setColor(const Constants::ObjectColor &new_color)
 {
     bird_color = new_color;
-    setSprite(Resource().getDynamicObjectTexture(Constants::DynamicObjectType::Bird, new_color, current_frame), Constants::DynamicObjectType::Bird);
+    if (Resource().hasSpritesheet(Constants::DynamicObjectType::Bird))
+    {
+        setTextureRect(Resource().getDynamicObjectSpritesheetRect(Constants::DynamicObjectType::Bird, current_frame));
+    }
+    else
+    {
+        setSprite(Resource().getDynamicObjectTexture(Constants::DynamicObjectType::Bird, new_color, current_frame), Constants::DynamicObjectType::Bird);
+    }
 }
 
 Constants::DynamicObjectType Bird::getType() const

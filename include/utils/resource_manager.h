@@ -25,7 +25,12 @@ public:
 	const sf::Texture &getDynamicObjectTexture(const Constants::DynamicObjectType &type, const Constants::ObjectColor &color = Constants::ObjectColor::None, int cur_frame = 1); // cached procedural texture for a DynamicObject type+color
 	const sf::Texture &getStaticObjectTexture(const Constants::StaticObjectType &type, const Constants::ObjectColor &color = Constants::ObjectColor::None);   // cached procedural texture for a StaticObject type+color
 	const sf::Texture &getLaneTexture(const Constants::LaneType &type, int texture_variant);                                         // cached procedural texture for a lane type+direction
-	const sf::Texture &getTrafficTexture(const Constants::TrafficLightColor &color);                                           // cached procedural texture for a traffic light color
+	const sf::Texture &getTrafficTexture(const Constants::TrafficLightColor &color);                                           // cached texture for the traffic light spritesheet
+	const sf::IntRect getTrafficTextureRect(const Constants::TrafficLightColor &color);                                        // texture rect for the given color frame in the spritesheet
+
+	bool hasSpritesheet(const Constants::DynamicObjectType &type) const;
+	const sf::Texture &getDynamicObjectSpritesheet(const Constants::DynamicObjectType &type, const Constants::ObjectColor &color);
+	sf::IntRect getDynamicObjectSpritesheetRect(const Constants::DynamicObjectType &type, int frame);
 
 	void clearAll(); // drops file-loaded caches (textures/fonts/sounds); every live sf::Sprite/sf::Text referencing them becomes dangling, so only call this on program exit
 

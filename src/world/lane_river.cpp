@@ -1,7 +1,7 @@
 #include "world/lane_river.h"
 
 #include "entities/wood.h"
-
+#include <algorithm>
 #include <limits>
 
 LaneRiver::LaneRiver(const sf::Vector2f &init_position, const int &init_level,
