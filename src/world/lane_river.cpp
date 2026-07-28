@@ -1,5 +1,5 @@
 #include "world/lane_river.h"
-
+#include "utils/resource_manager.h"
 #include "entities/wood.h"
 
 #include <limits>
@@ -222,12 +222,9 @@ Wood *LaneRiver::getNearestWoodAhead(const Wood &wood) {
   return nullptr;
 }
 
-void LaneRiver::serialize(std::ostream &os) const {
-  // River lanes have no extra data beyond what the base class writes
-  Lane::serialize(os);
-}
-
-void LaneRiver::deserialize(std::istream &is) {
-  // River lanes have no extra data beyond what the base class reads
-  Lane::deserialize(is);
+void LaneRiver::updateState(float delta_time)
+{
+    Lane::updateState(delta_time);
+    texture_variant++;
+    setSprite(Resource().getLaneTexture(Constants::LaneType::River, texture_variant));
 }

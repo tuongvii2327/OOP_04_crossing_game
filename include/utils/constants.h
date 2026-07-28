@@ -21,6 +21,9 @@ namespace Constants
     // hitbox size as a fraction of the sprite size (applies to every dynamic object)
     constexpr float HITBOX_SIZE_RATIO = 0.95f;
 
+    // mot frame hinh trong animation keo dai bao nhieu lan dt (time 1 frame = dt * NUM_OF_DT_PER_FRAME)
+    const int NUM_OF_DT_PER_FRAME = 4;
+
 #pragma region LANE
     const unsigned int LANE_HEIGHT = 105;
     const unsigned int LANE_WIDTH = 1260;
@@ -45,7 +48,7 @@ namespace Constants
 		case LaneType::Road:
 			return 3;
 		case LaneType::River:
-			return 1;
+			return 7;
 		default:
 			return 1;
 		}
