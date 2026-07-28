@@ -58,14 +58,14 @@ int StaticObject::calcDirection() const
 }
 
 // scale size of sprite if its size is larger than CELL_SIZE
-void StaticObject::adjustSprite(const Constants::StaticObjectType& type)
+void StaticObject::adjustSprite(const Constants::StaticObjectType &type)
 {
 	if (sprite.getLocalBounds().size.x == 0.f || sprite.getLocalBounds().size.y == 0.f)
 		return;
 	float scaleX = Constants::getSizeInGame(type).width / sprite.getLocalBounds().size.x;
 	float scaleY = Constants::getSizeInGame(type).height / sprite.getLocalBounds().size.y;
-	float finalScale = std::min(scaleX, scaleY);
-	sprite.setScale({finalScale, finalScale});
+	// float finalScale = std::min(scaleX, scaleY);
+	sprite.setScale({scaleX, scaleY});
 }
 #pragma endregion
 
@@ -76,7 +76,7 @@ void StaticObject::adjustSprite(const Constants::StaticObjectType& type)
 StaticObject::StaticObject(Lane* init_lane,
 	const Constants::StaticObjectType &init_type,
 	const sf::Vector2f &init_position,
-	const Constants::ObjectColor& init_color)
+	const Constants::ObjectColor &init_color)
 	: sprite(Resource().getStaticObjectTexture(init_type, init_color))
 {
 	adjustSprite(init_type);
@@ -95,7 +95,19 @@ sf::Vector2f StaticObject::getPosition() const
 
 void StaticObject::setPosition(const sf::Vector2f &pos)
 {
-	position = pos;
+	float new_center_x = pos.x + getWidthSprite() / 2.f;
+	int column = 0;
+	float min_distance = abs(new_center_x - (0 * Constants::CELL_SIZE + Constants::GAME_PLAY_BAR_WIDTH));
+	for (int i = 1; i < Constants::NUMBER_OF_LANES; i++)
+	{
+		float cur_distance = abs(new_center_x - (i * Constants::CELL_SIZE + Constants::GAME_PLAY_BAR_WIDTH));
+		if (cur_distance < min_distance)
+		{
+			min_distance = cur_distance;
+			column = i;
+		}
+	}
+	position.x = Constants::GAME_PLAY_BAR_WIDTH + column * Constants::CELL_SIZE + (Constants::CELL_SIZE - getWidthSprite()) / 2.f;
 	if (current_lane != nullptr)
 	{
 		position.y = current_lane->getPosition().y + (Constants::LANE_HEIGHT - getHeightSprite()) / 2.f;
@@ -109,7 +121,7 @@ sf::Sprite StaticObject::getSprite() const
 	return sprite;
 }
 
-void StaticObject::setSprite(const sf::Texture &texture, const Constants::StaticObjectType& type)
+void StaticObject::setSprite(const sf::Texture &texture, const Constants::StaticObjectType &type)
 {
 	sprite.setTexture(texture, 1);
 	adjustSprite(type);

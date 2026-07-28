@@ -17,7 +17,8 @@ protected:
 public:
     LaneSafe(const sf::Vector2f &init_position = {0, 0},
              const int &init_level = 1,
-             const int &init_direction = 1);
+             const int &init_direction = 1,
+             bool spawn_obstacles = true);
     ~LaneSafe() override;
 
     Constants::LaneType getType() const override;

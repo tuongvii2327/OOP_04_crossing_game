@@ -293,6 +293,13 @@ void PlayingState::update(float dt)
 
 	map_.update(camera_top_y, camera_bottom_y, dt);
 
+	// ---River: drift player with Wood they're standing on---
+	sf::Vector2f wood_vel = map_.getWoodVelocityAt(player_->getHitBox());
+	if (wood_vel.x != 0.f)
+	{
+		player_->moveBy({ wood_vel.x * dt, 0.f });
+	}
+
 	int newly_collected = map_.checkCoinCollision(player_->getHitBox());
 	if (newly_collected > 0)
 	{

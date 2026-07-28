@@ -133,6 +133,11 @@ void HomeState::update(float dt) {}
 // Draw title and menu options
 void HomeState::render(sf::RenderWindow &window)
 {
+    if (background_sprite_)
+    {
+        window.draw(*background_sprite_);
+    }
+
     if (title_text_)
     {
         window.draw(*title_text_);

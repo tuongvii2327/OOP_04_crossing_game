@@ -13,6 +13,7 @@
 #include "lane_road.h"
 #include "lane_grass.h"
 #include "lane_safe.h"
+#include "lane_river.h"
 
 class Map
 {
@@ -31,14 +32,15 @@ private:
     std::mt19937 rng;
 
     void spawnLane();                                  // Generate random one lane in the top of map
-    void spawnLaneAsRequire(Constants::LaneType type); // Generate type lane as required
+    void spawnLaneAsRequire(Constants::LaneType type, bool spawn_obstacles = true); // Generate type lane as required
     void popLane();                                    // Delete the oldest lane in the map
 
     // Factory: create the correct Lane subclass for the given type
     static std::unique_ptr<Lane> createLane(Constants::LaneType type,
                                             const sf::Vector2f &position,
                                             int level,
-                                            int direction);
+                                            int direction,
+                                            bool spawn_obstacles = true);
 
 public:
     explicit Map(SharedContext *context = nullptr);
@@ -47,6 +49,7 @@ public:
     void update(float camera_top_y, float camera_bottom_y, float delta_time);
     void render(sf::RenderWindow &window) const;
     bool checkLethalCollision(const sf::FloatRect &player_hitbox) const;
+    sf::Vector2f getWoodVelocityAt(const sf::FloatRect &player_hitbox) const;    
     void reset(float start_y);
 
     // ---- Serialization & Deserialization functions ----

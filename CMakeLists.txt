@@ -22,7 +22,7 @@ file(GLOB_RECURSE HEADERS "include/*.h" "include/*.hpp")
 # CHỈ TRUYỀN 2 BIẾN QUÉT TỰ ĐỘNG VÀO ĐÂY, KHÔNG ĐIỀN TÊN FILE THỦ CÔNG
 add_executable(CrossyRoad ${SOURCES} ${HEADERS}
     src/states/game_over_state.cpp
-    include/states/shop_state.h)
+    include/states/shop_state.h "src/world/lane_river.cpp" "include/world/lane_river.h" "include/entities/wood.h" "src/entities/wood.cpp")
 
 if(MSVC)
     target_include_directories(CrossyRoad PRIVATE include)

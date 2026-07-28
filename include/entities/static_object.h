@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <random>
+#include <cmath>
 
 #include "../utils/constants.h"
 #include <SFML/Graphics.hpp>

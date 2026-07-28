@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <iostream>
 #include <random>
@@ -30,7 +30,6 @@ protected:
 	void setHitboxSize();   // hitbox.size = sprite size * HITBOX_SIZE_RATIO
 	void setHitboxOffset(); // hitbox_offset = (sprite size - hitbox.size) / 2
 
-	void moveBy(sf::Vector2f offset);                                                                                    // move position by offset, update sprite position
 	int calcDirection() const;                                                                                           // direction taken from current_lane
 	void adjustSprite(const Constants::DynamicObjectType& type);                                                                                                 // scale sprite down to fit it size
 
@@ -77,6 +76,7 @@ public:
 	virtual Constants::ObjectEffect getEffect() const { return Constants::ObjectEffect::None; } // effect on People when colliding (Vehicle/Animal override to Lethal)
 
 	// Other
+	void moveBy(sf::Vector2f offset);                                                                                    // move position by offset, update sprite position
 	float randomSpeed(const Constants::DynamicObjectType &type) const;                        // pick a random speed from SpeedRange depending on type
 	sf::Vector2f calcSpawnPosition() const;                                                    // calculate object position depending on current_lane's position
 	bool isOutOfLane();                                                                        // true (and deactivates) once the object scrolls off the playable width

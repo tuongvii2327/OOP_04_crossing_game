@@ -7,8 +7,8 @@ class Vehicle : public DynamicObject
 protected:
 	// sf::Sound horn_sound;
 
-    float base_speed;    // max speed of this vehicle
-    float safe_distance; // distance to brake or accelerate
+	float base_speed;    // max speed of this vehicle
+	float safe_distance; // distance to brake or accelerate
 
     float sound_timer_ = 0.f;
     float next_sound_time_ = 0.f;

@@ -51,12 +51,6 @@ void DynamicObject::setHitboxOffset()
 	hitbox_offset = (sprite.getGlobalBounds().size - hitbox.size) / 2.f;
 }
 
-// move position by offset
-void DynamicObject::moveBy(sf::Vector2f offset)
-{
-	setPosition(position + offset);
-}
-
 // direction taken from current_lane (1 if no lane attached)
 int DynamicObject::calcDirection() const
 {
@@ -70,8 +64,8 @@ void DynamicObject::adjustSprite(const Constants::DynamicObjectType &type)
 		return;
 	float scaleX = Constants::getSizeInGame(type).width / sprite.getLocalBounds().size.x;
 	float scaleY = Constants::getSizeInGame(type).height / sprite.getLocalBounds().size.y;
-	float finalScale = std::min(scaleX, scaleY);
-	sprite.setScale({finalScale, finalScale});
+	// float finalScale = std::min(scaleX, scaleY);
+	sprite.setScale({scaleX, scaleY});
 }
 #pragma endregion
 
@@ -79,8 +73,9 @@ void DynamicObject::adjustSprite(const Constants::DynamicObjectType &type)
 
 #pragma region CONSTRUCTOR, DESTRUCTOR
 // position, hitbox, is_active, direction are calculated & set automactically, sprite will be adjusted & apply facing, subclass must setVelocity
-DynamicObject::DynamicObject(const Constants::DynamicObjectType &init_type, 
-	const Constants::ObjectColor &init_color, Lane* init_lane)
+DynamicObject::DynamicObject(const Constants::DynamicObjectType &init_type,
+	const Constants::ObjectColor &init_color,
+	Lane* init_lane)
 	: sprite(Resource().getDynamicObjectTexture(init_type, init_color, 1))
 {
 	setCurFrame(1);
@@ -128,7 +123,7 @@ sf::Sprite DynamicObject::getSprite() const
 }
 
 // swap texture, re-adjust scale/facing, and rebuild the hitbox
-void DynamicObject::setSprite(const sf::Texture &texture, const Constants::DynamicObjectType& type)
+void DynamicObject::setSprite(const sf::Texture &texture, const Constants::DynamicObjectType &type)
 {
 	sprite.setTexture(texture, 1);
 	adjustSprite(type);
@@ -204,6 +199,13 @@ float DynamicObject::getHeightSprite() const
 #pragma endregion
 
 #pragma region OTHER
+
+// move position by offset
+void DynamicObject::moveBy(sf::Vector2f offset)
+{
+	setPosition(position + offset);
+}
+
 // pick a random speed from SpeedRange depending on type
 // speed = random number in [min_speed, max_speed] * (1 + (level - 1) * SPEED_LEVEL_FACTOR)
 float DynamicObject::randomSpeed(const Constants::DynamicObjectType &type) const

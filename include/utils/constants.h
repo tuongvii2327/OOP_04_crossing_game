@@ -19,19 +19,20 @@ namespace Constants
     const int VISUAL_DISTANCE = 15;
 
     // hitbox size as a fraction of the sprite size (applies to every dynamic object)
-    constexpr float HITBOX_SIZE_RATIO = 0.9f;
+    constexpr float HITBOX_SIZE_RATIO = 0.95f;
 
 #pragma region LANE
     const unsigned int LANE_HEIGHT = 105;
     const unsigned int LANE_WIDTH = 1260;
     const unsigned int MAX_OBJECT_PER_LANE = 4;
 
-    enum class LaneType
-    {
-        Grass,
-        Road,
-        Safe
-    };
+	enum class LaneType
+	{
+		Grass,
+		Road,
+		Safe,
+		River
+	};
 
 	inline int getNumberOfTextureVariant(const LaneType &type)
 	{
@@ -43,6 +44,8 @@ namespace Constants
 			return 21;
 		case LaneType::Road:
 			return 3;
+		case LaneType::River:
+			return 1;
 		default:
 			return 1;
 		}
@@ -50,10 +53,10 @@ namespace Constants
 #pragma endregion
 
 #pragma region CAMERA
-	constexpr float CAMERA_SAFE_DISTANCE = 4.f * LANE_HEIGHT;
+	constexpr float CAMERA_SAFE_DISTANCE = 3.f * LANE_HEIGHT;
 	constexpr float CAMERA_FOLLOW_LANES_PER_SEC = 3.f;
 	constexpr float AUTO_SCROLL_BASE_SPEED = 60.f;
-	constexpr float AUTO_SCROLL_LEVEL_FACTOR = 0.5f;
+	constexpr float AUTO_SCROLL_LEVEL_FACTOR = 0.3f;
 #pragma endregion
 
 #pragma region OBJECT
@@ -72,8 +75,9 @@ namespace Constants
         Bird,
         Rabbit,
 
-        // River object
-    };
+		// River object
+		Wood
+	};
 
     enum class StaticObjectType
     {
@@ -131,6 +135,8 @@ namespace Constants
             return {20, 60};
         case DynamicObjectType::Rabbit:
             return {35, 70};
+		case DynamicObjectType::Wood:
+			return {35, 80};
         default:
             return {0, 0};
         }
@@ -173,8 +179,10 @@ namespace Constants
             return {53, 47};
         case DynamicObjectType::Rabbit:
             return {60, 60};
+		case DynamicObjectType::Wood:
+			return {210, 60};
         default:
-            return {90, 90};
+            return {80, 200};
         }
     }
 

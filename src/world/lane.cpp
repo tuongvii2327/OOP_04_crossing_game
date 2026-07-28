@@ -8,6 +8,7 @@
 #include "entities/car.h"
 #include "entities/rabbit.h"
 #include "entities/truck.h"
+#include "entities/wood.h"
 
 #include <limits>
 #include "../include/utils/serialization.h"
@@ -359,6 +360,9 @@ void Lane::deserialize(std::istream &is)
             break;
         case Constants::DynamicObjectType::Rabbit:
             obj = std::make_unique<Rabbit>(obj_color, this);
+            break;
+        case Constants::DynamicObjectType::Wood:
+            obj = std::make_unique<Wood>(obj_color, this);
             break;
         default:
             continue;

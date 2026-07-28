@@ -8,10 +8,10 @@
 // pick a random duration for new state between MIN_DURATION_ANIMAL & MAX_DURATION_ANIMAL
 float Animal::randomDuration() const
 {
-    static std::mt19937 rng(std::random_device{}());
-    std::uniform_int_distribution<int> dist(Constants::MIN_DURATION_ANIMAL, Constants::MAX_DURATION_ANIMAL);
-    float base = static_cast<float>(dist(rng));
-    return base;
+	static std::mt19937 rng(std::random_device{}());
+	std::uniform_int_distribution<int> dist(Constants::MIN_DURATION_ANIMAL, Constants::MAX_DURATION_ANIMAL);
+	float base = static_cast<float>(dist(rng));
+	return base;
 }
 #pragma endregion
 
@@ -51,47 +51,47 @@ float Animal::randomSoundInterval() const
 #pragma region GET, SET
 float Animal::getSpeed() const
 {
-    return speed;
+	return speed;
 }
 
 void Animal::setSpeed(const float &new_speed)
 {
-    speed = new_speed;
+	speed = new_speed;
 }
 
 float Animal::getTimer() const
 {
-    return timer;
+	return timer;
 }
 
 void Animal::setTimer(const float &new_timer)
 {
-    timer = new_timer;
+	timer = new_timer;
 }
 
 float Animal::getDuration() const
 {
-    return duration;
+	return duration;
 }
 
 void Animal::setDuration(const float &new_duration)
 {
-    duration = new_duration;
+	duration = new_duration;
 }
 
 bool Animal::isMove() const
 {
-    return is_move;
+	return is_move;
 }
 
 // set new duration and timer = 0 if new state != current state
 void Animal::setMoveState(const bool &state)
 {
-    if (state != is_move)
-    {
-        is_move = state;
-        setDuration(randomDuration());
-        setTimer(0.f);
+	if (state != is_move)
+	{
+		is_move = state;
+		setDuration(randomDuration());
+		setTimer(0.f);
 
         // Thỉnh thoảng phát âm thanh khi chúng bắt đầu di chuyển
         // if (is_move && randomDuration() > (Constants::MAX_DURATION_ANIMAL / 2.0f))

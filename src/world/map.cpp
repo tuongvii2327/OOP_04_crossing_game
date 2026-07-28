@@ -3,7 +3,7 @@
 #include "utils/serialization.h"
 
 // Factory: create the correct Lane subclass for the given type
-std::unique_ptr<Lane> Map::createLane(Constants::LaneType type, const sf::Vector2f &position, int level, int direction)
+std::unique_ptr<Lane> Map::createLane(Constants::LaneType type, const sf::Vector2f &position, int level, int direction, bool spawn_obstacles)
 {
     switch (type)
     {
@@ -11,9 +11,11 @@ std::unique_ptr<Lane> Map::createLane(Constants::LaneType type, const sf::Vector
         return std::make_unique<LaneGrass>(position, level, direction);
     case Constants::LaneType::Road:
         return std::make_unique<LaneRoad>(position, level, direction);
+    case Constants::LaneType::River:
+        return std::make_unique<LaneRiver>(position, level, direction);
     case Constants::LaneType::Safe:
     default:
-        return std::make_unique<LaneSafe>(position, level, direction);
+        return std::make_unique<LaneSafe>(position, level, direction, spawn_obstacles);
     }
 }
 
@@ -29,7 +31,7 @@ void Map::initMap(float start_y)
     highest_y = start_y;
     for (int i = 0; i < 3; i++)
     {
-        spawnLaneAsRequire(Constants::LaneType::Safe); // Initialize 3 safe lanes at first
+        spawnLaneAsRequire(Constants::LaneType::Safe, false); // Initialize 3 safe lanes at first without obstacles (rocks)
     }
     for (int i = 3; i < Constants::NUMBER_OF_LANES; i++)
     {
@@ -42,24 +44,24 @@ void Map::spawnLane()
     static std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
     std::uniform_int_distribution<> DirRand(0, 1);
 
-    std::vector<double> weights; // Thứ tự trọng số tương ứng: [Grass, Road, Safe]
+    std::vector<double> weights; // Thứ tự trọng số tương ứng: [Grass, Road, Safe, River]
 
     int current_level = context_->data->current_level;
     if (current_level >= 10)
     {
-        weights = {30.0, 65.0, 5.0}; // 30% grass, 65% road, 5% safe lane
+        weights = {25.0, 50.0, 5.0, 20.0}; // 25% grass, 50% road, 5% safe, 20% river
     }
     else if (current_level >= 6)
     {
-        weights = {30.0, 55.0, 15.0}; // 30% grass, 55% road, 15% safe lane
+        weights = {25.0, 45.0, 10.0, 20.0}; // 25% grass, 45% road, 10% safe, 20% river
     }
     else if (current_level >= 3)
     {
-        weights = {35.0, 45.0, 20.0}; // 35% grass, 45% road, 20% safe lane
+        weights = {30.0, 35.0, 15.0, 20.0}; // 30% grass, 35% road, 15% safe, 20% river
     }
     else
     {
-        weights = {40.0, 40.0, 20.0}; // 40% grass, 40% road, 20% safe lane
+        weights = {35.0, 30.0, 20.0, 15.0}; // 35% grass, 30% road, 20% safe, 15% river
     }
 
     std::discrete_distribution<int> dist(weights.begin(), weights.end());
@@ -67,7 +69,8 @@ void Map::spawnLane()
     const Constants::LaneType lane_mapping[] = {
         Constants::LaneType::Grass, // 0
         Constants::LaneType::Road,  // 1
-        Constants::LaneType::Safe   // 2
+        Constants::LaneType::Safe,  // 2
+        Constants::LaneType::River  // 3
     };
 
     Constants::LaneType type;
@@ -87,10 +90,17 @@ void Map::spawnLane()
             duplicate_lane = 1;
         }
 
-        if (duplicate_lane <= 3)
+        /*if (duplicate_lane == 1 && type == Constants::LaneType::Safe)
         {
             break;
         }
+        else if ()*/
+        if ((type == Constants::LaneType::Safe && duplicate_lane == 1) || 
+            (type != Constants::LaneType::Safe && duplicate_lane <= 3)) {
+            break;
+        }
+        
+        
 
     } while (true);
 
@@ -104,15 +114,16 @@ void Map::spawnLane()
     total_lanes_spawned++;
 }
 
-void Map::spawnLaneAsRequire(Constants::LaneType type)
+void Map::spawnLaneAsRequire(Constants::LaneType type, bool spawn_obstacles)
 {
+    
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<int> Rand(0, 1);
     int direction = (Rand(gen) == 0) ? 1 : -1;
 
     sf::Vector2f spawn_position(0.f, highest_y);
-    auto new_lane = createLane(type, spawn_position, context_->data->current_level, direction);
+    auto new_lane = createLane(type, spawn_position, context_->data->current_level, direction, false);
 
     if (!lanes.empty() && type == lanes.front()->getType())
     {
@@ -122,7 +133,6 @@ void Map::spawnLaneAsRequire(Constants::LaneType type)
     {
         duplicate_lane = 1;
     }
-
     lanes.push_front(std::move(new_lane));
     highest_y -= lane_height;
 }
@@ -183,6 +193,22 @@ bool Map::checkLethalCollision(const sf::FloatRect &player_hitbox) const
     return false;
 }
 
+sf::Vector2f Map::getWoodVelocityAt(const sf::FloatRect& player_hitbox) const
+{
+    for (const auto& lane : lanes)
+    {
+        if (lane->getType() != Constants::LaneType::River)
+            continue;
+        const LaneRiver* river = dynamic_cast<const LaneRiver*>(lane.get());
+        if (!river)
+            continue;
+        sf::Vector2f v = river->getWoodVelocityAt(player_hitbox);
+        if (v.x != 0.f || v.y != 0.f)
+            return v;
+    }
+    return { 0.f, 0.f };
+}
+
 void Map::reset(float start_y)
 {
     lanes.clear();
@@ -241,6 +267,9 @@ void Map::deserialize(std::istream &is)
             break;
         case Constants::LaneType::Road:
             lane = std::make_unique<LaneRoad>();
+            break;
+        case Constants::LaneType::River:
+            lane = std::make_unique<LaneRiver>();
             break;
         case Constants::LaneType::Safe:
         default:

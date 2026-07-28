@@ -2,10 +2,13 @@
 #include "entities/rock.h"
 #include "utils/serialization.h"
 
-LaneSafe::LaneSafe(const sf::Vector2f &init_position, const int &init_level, const int &init_direction)
+LaneSafe::LaneSafe(const sf::Vector2f &init_position, const int &init_level, const int &init_direction, bool spawn_obstacles)
     : Lane(init_position, init_level, init_direction, Constants::LaneType::Safe)
 {
-    seedObjects();
+    if (spawn_obstacles)
+    {
+        seedObjects();
+    }
 }
 
 LaneSafe::~LaneSafe() = default;
@@ -17,7 +20,7 @@ Constants::LaneType LaneSafe::getType() const
 
 void LaneSafe::seedObjects()
 {
-    // Generate 0 to 2 rocks per safe lane
+    // Generate 0 to 4 rocks per safe lane
     int count = randomRange(0, 4);
     if (count == 0) return;
 
