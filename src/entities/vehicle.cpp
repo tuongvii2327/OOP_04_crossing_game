@@ -129,7 +129,7 @@ void Vehicle::updateState(float delta_time)
     // }
 
 	float v_target = std::min(std::min(base_speed, v_light), v_vehicle);
-	float acceleration = std::pow(base_speed, 2.0) / (safe_distance);
+	float acceleration = (base_speed * base_speed) / (safe_distance);
 	if (v_target > velocity.x * direction && (velocity.x * direction + acceleration * delta_time) <= base_speed)
 	{
 		v_target = std::min(v_target, velocity.x * direction + acceleration * delta_time);

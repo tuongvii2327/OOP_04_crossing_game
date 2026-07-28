@@ -191,7 +191,7 @@ void Lane::updateState(float delta_time)
 
     checkActive();
     spawnObject();
-}
+} 
 
 // draw lane sprite, then every object
 void Lane::render(sf::RenderWindow &window) const

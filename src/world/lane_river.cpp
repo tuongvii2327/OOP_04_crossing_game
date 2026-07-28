@@ -116,19 +116,21 @@ void LaneRiver::spawnObject() {
   bool is_spawn = false;
 
   // reuse an inactive Wood object sitting in the exit prefix
-  for (auto o = list_dynamic.begin();
-       o != list_dynamic.end() && !(*o)->isActive();) {
+  for (auto o = list_dynamic.begin(); o != list_dynamic.end() && !(*o)->isActive();) {
     if ((*o)->getType() == Constants::DynamicObjectType::Wood) {
       Wood *target = dynamic_cast<Wood *>(o->get());
       if (target) {
         target->setActiveState(true);
         target->setPosition(target->calcSpawnPosition());
-        float new_speed =
-            target->randomSpeed(Constants::DynamicObjectType::Wood);
+        
+        float new_speed = target->randomSpeed(Constants::DynamicObjectType::Wood);
+        target->setBaseSpeed(target->randomSpeed(Constants::DynamicObjectType::Wood));
         target->setVelocity({new_speed * direction, 0.f});
+        
         std::unique_ptr<DynamicObject> moved = std::move(*o);
         o = list_dynamic.erase(o);
         list_dynamic.push_back(std::move(moved));
+        
         is_spawn = true;
       }
       break;
