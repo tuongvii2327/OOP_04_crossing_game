@@ -38,15 +38,15 @@ static sf::Color toSFColor(const Constants::ObjectColor &color)
 
 static sf::Color toTrafficColor(const Constants::TrafficLightColor &color)
 {
-	switch (color)
-	{
-	case Constants::TrafficLightColor::Red:
-		return {225, 55, 50};
-	case Constants::TrafficLightColor::Yellow:
-		return {240, 200, 45};
-	default:
-		return {60, 205, 85};
-	}
+    switch (color)
+    {
+    case Constants::TrafficLightColor::Red:
+        return {225, 55, 50};
+    case Constants::TrafficLightColor::Yellow:
+        return {240, 200, 45};
+    default:
+        return {60, 205, 85};
+    }
 }
 
 static sf::Texture makeRoadTexture(sf::Color asphalt)
@@ -55,19 +55,19 @@ static sf::Texture makeRoadTexture(sf::Color asphalt)
     (void)rt.resize({Constants::LANE_WIDTH, Constants::LANE_HEIGHT});
     rt.clear(asphalt);
 
-	float w = static_cast<float>(Constants::LANE_WIDTH);
-	float h = static_cast<float>(Constants::LANE_HEIGHT);
+    float w = static_cast<float>(Constants::LANE_WIDTH);
+    float h = static_cast<float>(Constants::LANE_HEIGHT);
 
-	sf::Color edgeColor(210, 205, 190, 150);
-	sf::RectangleShape topEdge({w, 3.f});
-	topEdge.setPosition({0.f, 5.f});
-	topEdge.setFillColor(edgeColor);
-	rt.draw(topEdge);
+    sf::Color edgeColor(210, 205, 190, 150);
+    sf::RectangleShape topEdge({w, 3.f});
+    topEdge.setPosition({0.f, 5.f});
+    topEdge.setFillColor(edgeColor);
+    rt.draw(topEdge);
 
-	sf::RectangleShape bottomEdge({w, 3.f});
-	bottomEdge.setPosition({0.f, h - 8.f});
-	bottomEdge.setFillColor(edgeColor);
-	rt.draw(bottomEdge);
+    sf::RectangleShape bottomEdge({w, 3.f});
+    bottomEdge.setPosition({0.f, h - 8.f});
+    bottomEdge.setFillColor(edgeColor);
+    rt.draw(bottomEdge);
 
     sf::Color dashColor(230, 205, 60, 210);
     const float dashWidth = 26.f;
@@ -81,20 +81,20 @@ static sf::Texture makeRoadTexture(sf::Color asphalt)
         rt.draw(dash);
     }
 
-	rt.display();
-	return rt.getTexture();
+    rt.display();
+    return rt.getTexture();
 }
 
 static sf::Texture makeGrassTexture(sf::Color base)
 {
-	sf::RenderTexture rt;
-	(void)rt.resize({Constants::LANE_WIDTH, Constants::LANE_HEIGHT});
-	rt.clear(base);
+    sf::RenderTexture rt;
+    (void)rt.resize({Constants::LANE_WIDTH, Constants::LANE_HEIGHT});
+    rt.clear(base);
 
-	float w = static_cast<float>(Constants::LANE_WIDTH);
-	float h = static_cast<float>(Constants::LANE_HEIGHT);
-	sf::Color tuftDark = shade(base, 0.8f);
-	sf::Color tuftLight = shade(base, 1.25f);
+    float w = static_cast<float>(Constants::LANE_WIDTH);
+    float h = static_cast<float>(Constants::LANE_HEIGHT);
+    sf::Color tuftDark = shade(base, 0.8f);
+    sf::Color tuftLight = shade(base, 1.25f);
 
     const float spacingX = 34.f;
     const float spacingY = 26.f;
@@ -112,21 +112,21 @@ static sf::Texture makeGrassTexture(sf::Color base)
         ++row;
     }
 
-	rt.display();
-	return rt.getTexture();
+    rt.display();
+    return rt.getTexture();
 }
 
 static sf::Texture makeVehicleTexture(unsigned w, unsigned h, sf::Color body, bool isTruck)
 {
-	sf::RenderTexture rt;
-	(void)rt.resize({w, h});
-	rt.clear(sf::Color::Transparent);
+    sf::RenderTexture rt;
+    (void)rt.resize({w, h});
+    rt.clear(sf::Color::Transparent);
 
-	float fw = static_cast<float>(w);
-	float fh = static_cast<float>(h);
-	sf::Color darkBody = shade(body, 0.75f);
-	sf::Color windowColor(180, 220, 235, 235);
-	sf::Color wheelColor(25, 25, 28);
+    float fw = static_cast<float>(w);
+    float fh = static_cast<float>(h);
+    sf::Color darkBody = shade(body, 0.75f);
+    sf::Color windowColor(180, 220, 235, 235);
+    sf::Color wheelColor(25, 25, 28);
 
     sf::RectangleShape chassis({fw, fh * 0.55f});
     chassis.setPosition({0.f, fh * 0.35f});
@@ -158,11 +158,11 @@ static sf::Texture makeVehicleTexture(unsigned w, unsigned h, sf::Color body, bo
         roof.setFillColor(darkBody);
         rt.draw(roof);
 
-		sf::RectangleShape window({fw * 0.4f, fh * 0.22f});
-		window.setPosition({fw * 0.31f, fh * 0.05f});
-		window.setFillColor(windowColor);
-		rt.draw(window);
-	}
+        sf::RectangleShape window({fw * 0.4f, fh * 0.22f});
+        window.setPosition({fw * 0.31f, fh * 0.05f});
+        window.setFillColor(windowColor);
+        rt.draw(window);
+    }
 
     float wheelRadius = fh * 0.17f;
     auto drawWheelAt = [&](float centerX)
@@ -175,56 +175,56 @@ static sf::Texture makeVehicleTexture(unsigned w, unsigned h, sf::Color body, bo
     drawWheelAt(fw * 0.22f);
     drawWheelAt(fw * 0.78f);
 
-	rt.display();
-	return rt.getTexture();
+    rt.display();
+    return rt.getTexture();
 }
 
 static sf::Texture makeBushTexture(unsigned w, unsigned h, sf::Color body)
 {
-	sf::RenderTexture rt;
-	(void)rt.resize({w, h});
-	rt.clear(sf::Color::Transparent);
+    sf::RenderTexture rt;
+    (void)rt.resize({w, h});
+    rt.clear(sf::Color::Transparent);
 
-	float fw = static_cast<float>(w);
-	float fh = static_cast<float>(h);
-	sf::Color darker = shade(body, 0.75f);
-	sf::Color lighter = shade(body, 1.2f);
+    float fw = static_cast<float>(w);
+    float fh = static_cast<float>(h);
+    sf::Color darker = shade(body, 0.75f);
+    sf::Color lighter = shade(body, 1.2f);
 
-	struct Lump
-	{
-		float cx, cy, r;
-	};
-	const Lump lumps[] = {
-		{fw * 0.30f, fh * 0.55f, fh * 0.32f},
-		{fw * 0.62f, fh * 0.50f, fh * 0.38f},
-		{fw * 0.45f, fh * 0.30f, fh * 0.30f},
-		{fw * 0.78f, fh * 0.62f, fh * 0.24f},
-		{fw * 0.18f, fh * 0.68f, fh * 0.22f},
-	};
+    struct Lump
+    {
+        float cx, cy, r;
+    };
+    const Lump lumps[] = {
+        {fw * 0.30f, fh * 0.55f, fh * 0.32f},
+        {fw * 0.62f, fh * 0.50f, fh * 0.38f},
+        {fw * 0.45f, fh * 0.30f, fh * 0.30f},
+        {fw * 0.78f, fh * 0.62f, fh * 0.24f},
+        {fw * 0.18f, fh * 0.68f, fh * 0.22f},
+    };
 
-	for (const auto &lump : lumps)
-	{
-		sf::CircleShape leaf(lump.r);
-		leaf.setFillColor(darker);
-		leaf.setPosition({lump.cx - lump.r, lump.cy - lump.r});
-		rt.draw(leaf);
-	}
-	for (const auto &lump : lumps)
-	{
-		float r = lump.r * 0.8f;
-		sf::CircleShape leaf(r);
-		leaf.setFillColor(body);
-		leaf.setPosition({lump.cx - r, lump.cy - r - lump.r * 0.15f});
-		rt.draw(leaf);
-	}
+    for (const auto &lump : lumps)
+    {
+        sf::CircleShape leaf(lump.r);
+        leaf.setFillColor(darker);
+        leaf.setPosition({lump.cx - lump.r, lump.cy - lump.r});
+        rt.draw(leaf);
+    }
+    for (const auto &lump : lumps)
+    {
+        float r = lump.r * 0.8f;
+        sf::CircleShape leaf(r);
+        leaf.setFillColor(body);
+        leaf.setPosition({lump.cx - r, lump.cy - r - lump.r * 0.15f});
+        rt.draw(leaf);
+    }
 
-	sf::CircleShape speck(fh * 0.06f);
-	speck.setFillColor(lighter);
-	speck.setPosition({fw * 0.4f, fh * 0.2f});
-	rt.draw(speck);
+    sf::CircleShape speck(fh * 0.06f);
+    speck.setFillColor(lighter);
+    speck.setPosition({fw * 0.4f, fh * 0.2f});
+    rt.draw(speck);
 
-	rt.display();
-	return rt.getTexture();
+    rt.display();
+    return rt.getTexture();
 }
 
 static sf::Texture makeTrafficTexture(Constants::TrafficLightColor active)
@@ -235,40 +235,38 @@ static sf::Texture makeTrafficTexture(Constants::TrafficLightColor active)
     (void)rt.resize({w, h});
     rt.clear(sf::Color::Transparent);
 
-	float fw = static_cast<float>(w);
-	float fh = static_cast<float>(h);
+    float fw = static_cast<float>(w);
+    float fh = static_cast<float>(h);
 
-	sf::Color poleColor(150, 155, 160);
-	float poleHeight = fh * 0.28f;
-	float housingSize = fh;
+    sf::Color poleColor(150, 155, 160);
+    float poleHeight = fh * 0.28f;
+    float housingSize = fh;
 
-	sf::RectangleShape pole({fw - housingSize, poleHeight});
-	pole.setPosition({0.f, (fh - poleHeight) * 0.5f});
-	pole.setFillColor(poleColor);
-	rt.draw(pole);
+    sf::RectangleShape pole({fw - housingSize, poleHeight});
+    pole.setPosition({0.f, (fh - poleHeight) * 0.5f});
+    pole.setFillColor(poleColor);
+    rt.draw(pole);
 
-	sf::RectangleShape endCap({poleHeight * 0.6f, poleHeight * 1.6f});
-	endCap.setPosition({0.f, (fh - endCap.getSize().y) * 0.5f});
-	endCap.setFillColor(poleColor);
-	rt.draw(endCap);
+    sf::RectangleShape endCap({poleHeight * 0.6f, poleHeight * 1.6f});
+    endCap.setPosition({0.f, (fh - endCap.getSize().y) * 0.5f});
+    endCap.setFillColor(poleColor);
+    rt.draw(endCap);
 
-	sf::RectangleShape housing({housingSize, housingSize});
-	housing.setPosition({fw - housingSize, 0.f});
-	housing.setFillColor(sf::Color(35, 35, 40));
-	rt.draw(housing);
+    sf::RectangleShape housing({housingSize, housingSize});
+    housing.setPosition({fw - housingSize, 0.f});
+    housing.setFillColor(sf::Color(35, 35, 40));
+    rt.draw(housing);
 
-	float radius = housingSize * 0.32f;
-	sf::CircleShape lamp(radius);
-	lamp.setFillColor(toTrafficColor(active));
-	lamp.setPosition({fw - housingSize * 0.5f - radius, housingSize * 0.5f - radius});
-	rt.draw(lamp);
+    float radius = housingSize * 0.32f;
+    sf::CircleShape lamp(radius);
+    lamp.setFillColor(toTrafficColor(active));
+    lamp.setPosition({fw - housingSize * 0.5f - radius, housingSize * 0.5f - radius});
+    rt.draw(lamp);
 
-	rt.display();
-	return rt.getTexture();
+    rt.display();
+    return rt.getTexture();
 }
 
-
-// brown rectangle with darker edges and horizontal grain lines
 static sf::Texture makeWoodTexture(unsigned w, unsigned h, sf::Color body)
 {
     sf::RenderTexture rt;
@@ -325,47 +323,47 @@ static sf::Texture makeWoodTexture(unsigned w, unsigned h, sf::Color body)
 
 ResourceManager &ResourceManager::getInstance()
 {
-	static ResourceManager instance;
-	return instance;
+    static ResourceManager instance;
+    return instance;
 }
 
 const sf::Texture &ResourceManager::getTexture(const std::string &filepath)
 {
-	auto it = textures_.find(filepath);
-	if (it != textures_.end())
-		return *(it->second);
+    auto it = textures_.find(filepath);
+    if (it != textures_.end())
+        return *(it->second);
 
-	auto texture = std::make_unique<sf::Texture>();
-	if (!texture->loadFromFile(filepath))
-		throw std::runtime_error("[ResourceManager] FATAL: Cannot load Texture -> " + filepath);
+    auto texture = std::make_unique<sf::Texture>();
+    if (!texture->loadFromFile(filepath))
+        throw std::runtime_error("[ResourceManager] FATAL: Cannot load Texture -> " + filepath);
 
-	return *(textures_.emplace(filepath, std::move(texture)).first->second);
+    return *(textures_.emplace(filepath, std::move(texture)).first->second);
 }
 
 const sf::Font &ResourceManager::getFont(const std::string &filepath)
 {
-	auto it = fonts_.find(filepath);
-	if (it != fonts_.end())
-		return *(it->second);
+    auto it = fonts_.find(filepath);
+    if (it != fonts_.end())
+        return *(it->second);
 
-	auto font = std::make_unique<sf::Font>();
-	if (!font->openFromFile(filepath))
-		throw std::runtime_error("[ResourceManager] FATAL: Cannot load Font -> " + filepath);
+    auto font = std::make_unique<sf::Font>();
+    if (!font->openFromFile(filepath))
+        throw std::runtime_error("[ResourceManager] FATAL: Cannot load Font -> " + filepath);
 
-	return *(fonts_.emplace(filepath, std::move(font)).first->second);
+    return *(fonts_.emplace(filepath, std::move(font)).first->second);
 }
 
 const sf::SoundBuffer &ResourceManager::getSoundBuffer(const std::string &filepath)
 {
-	auto it = sound_buffers_.find(filepath);
-	if (it != sound_buffers_.end())
-		return *(it->second);
+    auto it = sound_buffers_.find(filepath);
+    if (it != sound_buffers_.end())
+        return *(it->second);
 
-	auto buffer = std::make_unique<sf::SoundBuffer>();
-	if (!buffer->loadFromFile(filepath))
-		throw std::runtime_error("[ResourceManager] FATAL: Cannot load SoundBuffer -> " + filepath);
+    auto buffer = std::make_unique<sf::SoundBuffer>();
+    if (!buffer->loadFromFile(filepath))
+        throw std::runtime_error("[ResourceManager] FATAL: Cannot load SoundBuffer -> " + filepath);
 
-	return *(sound_buffers_.emplace(filepath, std::move(buffer)).first->second);
+    return *(sound_buffers_.emplace(filepath, std::move(buffer)).first->second);
 }
 
 const sf::Texture &ResourceManager::getDynamicObjectTexture(const Constants::DynamicObjectType &type, const Constants::ObjectColor &color, int cur_frame)
@@ -390,9 +388,9 @@ const sf::Texture &ResourceManager::getDynamicObjectTexture(const Constants::Dyn
     case Constants::DynamicObjectType::People:
         type_name = "people";
         break;
-	case Constants::DynamicObjectType::Wood:
-		type_name = "wood";
-		break;
+    case Constants::DynamicObjectType::Wood:
+        type_name = "wood";
+        break;
     default:
         type_name = "car";
         break;
