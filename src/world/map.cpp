@@ -1,6 +1,10 @@
 #include "world/map.h"
 #include "utils/resource_manager.h"
 #include "utils/serialization.h"
+#include "entities/people.h"
+#include "entities/wood.h"
+#include <cmath>
+#include <algorithm>
 
 // Factory: create the correct Lane subclass for the given type
 std::unique_ptr<Lane> Map::createLane(Constants::LaneType type, const sf::Vector2f &position, int level, int direction, bool spawn_obstacles)
@@ -207,6 +211,64 @@ sf::Vector2f Map::getWoodVelocityAt(const sf::FloatRect& player_hitbox) const
             return v;
     }
     return { 0.f, 0.f };
+}
+
+void Map::snapPlayerToGrid(People* player) const
+{
+    if (!player || player->isDead()) return;
+
+    sf::FloatRect hitbox = player->getHitBox();
+    float player_y = hitbox.position.y;
+    
+    const Lane* current_lane = nullptr;
+    for (const auto& lane : lanes)
+    {
+        float lane_top = lane->getPosition().y;
+        float lane_bottom = lane_top + Constants::LANE_HEIGHT;
+        if (player_y >= lane_top && player_y <= lane_bottom)
+        {
+            current_lane = lane.get();
+            break;
+        }
+    }
+
+    if (!current_lane) return;
+    //
+    float current_center_x = player->getPosition().x + player->getWidthSprite() / 2.f;
+
+    if (current_lane->getType() == Constants::LaneType::River)
+    {
+        const LaneRiver* river = dynamic_cast<const LaneRiver*>(current_lane);
+        if (river)
+        {
+            Wood* wood = river->getWoodAt(hitbox);
+            if (wood)
+            {
+                float wood_x = wood->getPosition().x;
+                float cell0_center = wood_x + Constants::CELL_SIZE / 2.f;
+                float cell1_center = wood_x + Constants::CELL_SIZE + Constants::CELL_SIZE / 2.f;
+                
+                float dist0 = std::abs(current_center_x - cell0_center);
+                float dist1 = std::abs(current_center_x - cell1_center);
+                
+                float target_center_x = (dist0 < dist1) ? cell0_center : cell1_center;
+                float new_x = target_center_x - player->getWidthSprite() / 2.f;
+                
+                player->setPosition(sf::Vector2f(new_x, player->getPosition().y));
+                return;
+            }
+        }
+    }
+
+    // Default static grid snap
+    float relative_x = player->getPosition().x - Constants::GAME_PLAY_BAR_WIDTH;
+    int column = static_cast<int>(std::round(relative_x / Constants::CELL_SIZE));
+    
+    int total_cols = static_cast<int>(Constants::LANE_WIDTH / Constants::CELL_SIZE);
+    column = std::max(0, std::min(column, total_cols - 1));
+
+    float new_x = Constants::GAME_PLAY_BAR_WIDTH + column * Constants::CELL_SIZE + (Constants::CELL_SIZE - player->getWidthSprite()) / 2.f;
+    player->setPosition(sf::Vector2f(new_x, player->getPosition().y));
 }
 
 void Map::reset(float start_y)

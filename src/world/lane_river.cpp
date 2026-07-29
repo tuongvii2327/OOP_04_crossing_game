@@ -1,6 +1,6 @@
 #include "world/lane_river.h"
-#include "utils/resource_manager.h"
 #include "entities/wood.h"
+#include "utils/resource_manager.h"
 
 #include <limits>
 
@@ -36,7 +36,7 @@ void LaneRiver::seedObjects() {
   int count = std::min(randomRange(min_spawn, max_spawn),
                        static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
 
-  const float min_gap = Constants::CELL_SIZE * 1.5f;
+  const float min_gap = Constants::CELL_SIZE * 0.5f;
 
   for (int i = 0; i < count; ++i) {
     Constants::ObjectColor color = Constants::ObjectColor::None;
@@ -69,6 +69,8 @@ void LaneRiver::seedObjects() {
         break;
       }
     }
+
+    if (!placed) continue;
 
     obj->setPosition({x, 0});
     list_dynamic.push_back(std::move(obj));
@@ -116,21 +118,24 @@ void LaneRiver::spawnObject() {
   bool is_spawn = false;
 
   // reuse an inactive Wood object sitting in the exit prefix
-  for (auto o = list_dynamic.begin(); o != list_dynamic.end() && !(*o)->isActive();) {
+  for (auto o = list_dynamic.begin();
+       o != list_dynamic.end() && !(*o)->isActive();) {
     if ((*o)->getType() == Constants::DynamicObjectType::Wood) {
       Wood *target = dynamic_cast<Wood *>(o->get());
       if (target) {
         target->setActiveState(true);
         target->setPosition(target->calcSpawnPosition());
-        
-        float new_speed = target->randomSpeed(Constants::DynamicObjectType::Wood);
-        target->setBaseSpeed(target->randomSpeed(Constants::DynamicObjectType::Wood));
+
+        float new_speed =
+            target->randomSpeed(Constants::DynamicObjectType::Wood);
+        target->setBaseSpeed(
+            target->randomSpeed(Constants::DynamicObjectType::Wood));
         target->setVelocity({new_speed * direction, 0.f});
-        
+
         std::unique_ptr<DynamicObject> moved = std::move(*o);
         o = list_dynamic.erase(o);
         list_dynamic.push_back(std::move(moved));
-        
+
         is_spawn = true;
       }
       break;
@@ -203,6 +208,23 @@ LaneRiver::getWoodVelocityAt(const sf::FloatRect &player_hitbox) const {
   return {0.f, 0.f};
 }
 
+Wood *LaneRiver::getWoodAt(const sf::FloatRect& player_hitbox) const {
+    float lane_top = position.y;
+    float lane_bottom = position.y + Constants::LANE_HEIGHT;
+    float player_y = player_hitbox.position.y;
+    if (player_y < lane_top || player_y > lane_bottom)
+        return nullptr;
+    for (const auto& obj : list_dynamic) {
+        if (!obj->isActive())
+            continue;
+        if (obj->getType() != Constants::DynamicObjectType::Wood)
+            continue;
+        if (isPlayerOnWood(player_hitbox, obj.get()))
+            return dynamic_cast<Wood*>(obj.get());
+    }
+    return nullptr;
+}
+
 // the wood immediately ahead of wood in list_dynamic, if it is slower
 Wood *LaneRiver::getNearestWoodAhead(const Wood &wood) {
   for (auto it = list_dynamic.begin(); it != list_dynamic.end(); ++it) {
@@ -222,9 +244,9 @@ Wood *LaneRiver::getNearestWoodAhead(const Wood &wood) {
   return nullptr;
 }
 
-void LaneRiver::updateState(float delta_time)
-{
-    Lane::updateState(delta_time);
-    texture_variant++;
-    setSprite(Resource().getLaneTexture(Constants::LaneType::River, texture_variant));
+void LaneRiver::updateState(float delta_time) {
+  Lane::updateState(delta_time);
+  texture_variant++;
+  setSprite(
+      Resource().getLaneTexture(Constants::LaneType::River, texture_variant));
 }

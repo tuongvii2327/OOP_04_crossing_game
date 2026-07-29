@@ -89,6 +89,23 @@ void Lane::setSprite(const sf::Texture &texture)
 {
     sprite.setTexture(texture, 1);
     adjustSprite();
+
+    //apply facing, logic same as object texture
+    sf::Vector2f currentScale = sprite.getScale();
+    float absX = std::abs(currentScale.x);
+
+    float width = sprite.getLocalBounds().size.x;
+
+    if (direction == -1)
+    {
+        sprite.setScale({ -absX, currentScale.y });
+        sprite.setOrigin({ width, 0.f });
+    }
+    else
+    {
+        sprite.setScale({ absX, currentScale.y });
+        sprite.setOrigin({ 0.f, 0.f });
+    }
 }
 
 sf::Vector2f Lane::getPosition() const

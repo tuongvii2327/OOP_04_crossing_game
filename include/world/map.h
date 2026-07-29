@@ -57,4 +57,5 @@ public:
     void deserialize(std::istream &is);
 
     int checkCoinCollision (const sf::FloatRect &player_hitbox);
+    void snapPlayerToGrid(class People* player) const;
 };
