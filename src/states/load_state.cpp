@@ -14,6 +14,16 @@ LoadState::LoadState(SharedContext *context)
 // Load font and initialize load screen
 void LoadState::init()
 {
+    const sf::Texture &bg_tex = Resource().getTexture("assets/textures/ui/load.png");
+    background_sprite_ = std::make_unique<sf::Sprite>(bg_tex);
+    background_sprite_->setTexture(bg_tex, true);
+    background_sprite_->setTextureRect(sf::IntRect({0, 0}, sf::Vector2i(static_cast<int>(bg_tex.getSize().x), static_cast<int>(bg_tex.getSize().y))));
+    background_sprite_->setPosition({0.f, 0.f});
+
+    float scale_x = static_cast<float>(Constants::WINDOW_WIDTH) / static_cast<float>(bg_tex.getSize().x);
+    float scale_y = static_cast<float>(Constants::WINDOW_HEIGHT) / static_cast<float>(bg_tex.getSize().y);
+    background_sprite_->setScale({scale_x, scale_y});
+
     const sf::Font &font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
     title_text_ = std::make_unique<sf::Text>(font);
     setupUI(font);
@@ -47,7 +57,7 @@ void LoadState::setupUI(const sf::Font &font)
     std::vector<std::string> save_options = {"SAVE SLOT 1", "SAVE SLOT 2",
                                              "SAVE SLOT 3", "BACK TO MENU"};
 
-    float initial_y = 350.0f;
+    float initial_y = 420.0f;
     float spacing = 80.0f;
 
     save_slot_texts_.clear();
@@ -202,10 +212,15 @@ void LoadState::render(sf::RenderWindow &window)
 {
     window.clear(sf::Color(25, 25, 25));
 
-    if (title_text_)
+    if (background_sprite_)
     {
-        window.draw(*title_text_);
+        window.draw(*background_sprite_);
     }
+
+    // if (title_text_)
+    // {
+    //     window.draw(*title_text_);
+    // }
 
     for (const auto &slot_text : save_slot_texts_)
     {

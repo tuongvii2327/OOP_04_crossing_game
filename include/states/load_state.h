@@ -9,6 +9,7 @@
 class LoadState : public State
 {
 private:
+	std::unique_ptr<sf::Sprite> background_sprite_;
 	std::unique_ptr<sf::Text> title_text_;
 	std::vector<sf::Text> save_slot_texts_;
 	int selected_index_;

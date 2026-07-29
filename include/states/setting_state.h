@@ -10,6 +10,7 @@
 class SettingState : public State
 {
 private:
+	std::unique_ptr<sf::Sprite> background_sprite_;
 	std::unique_ptr<sf::Text> title_text_;
 	std::vector<std::unique_ptr<sf::Text>> setting_texts_;
 	int selected_index_;

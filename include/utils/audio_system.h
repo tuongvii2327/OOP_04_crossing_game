@@ -56,6 +56,9 @@ public:
     void setSFXVolume(int volume_level);
     void setMusicVolume(int volume_level);
 
+    float getSFXVolume() const { return sfx_volume_; }
+    float getMusicVolume() const { return music_volume_; }
+
     // Tải trước tất cả SFX vào RAM để chống giật lag khi chơi
     void preloadAll();
 

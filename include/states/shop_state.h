@@ -11,16 +11,22 @@
 class ShopState : public State
 {
 private:
+    std::unique_ptr<sf::Sprite> background_sprite_;
     std::unique_ptr<sf::Text> title_text_;
     std::unique_ptr<sf::Text> coin_text_;
-    std::vector<std::unique_ptr<sf::Text>> menu_texts_;
+    std::unique_ptr<sf::Sprite> coin_sprite_; // Icon đồng xu (top-left)
+    std::vector<std::unique_ptr<sf::Text>> menu_texts_; // [0]=Action, [1]=Back
 
-    int selected_index_;     // 0: Chọn Skin, 1: Nút Mua/Dùng, 2: Back
+    // Mũi tên đổi nhân vật (hai bên ảnh)
+    std::unique_ptr<sf::Text> arrow_left_;
+    std::unique_ptr<sf::Text> arrow_right_;
+
+    int selected_index_;     // 0: Nút Mua/Dùng, 1: Back
     int viewing_char_index_; // ID của Skin đang được xem trên màn hình
 
     sf::Sprite char_sprite_;
 
-    // Dữ liệu giả lập cho 4 nhân vật, sẽ sửa sau (nếu rảnh)
+    // Dữ liệu 4 nhân vật
     const int NUM_CHARS = 4;
     const int char_prices_[4] = {0, 50, 100, 200};
     const std::string char_names_[4] = {"DEFAULT", "BLUE SKIN", "GREEN SKIN", "GREY SKIN"};

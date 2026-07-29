@@ -16,6 +16,7 @@ private:
 	enum class Mode { SelectSlot, ConfirmOverwrite, NamingMode };
 	Mode current_mode_= Mode::SelectSlot;
 
+	std::unique_ptr<sf::Sprite> background_sprite_;
 	std::unique_ptr<sf::Text> title_text_;
 	std::vector<std::unique_ptr<sf::Text>> save_slot_texts_;
 	int selected_index_ = 0;
