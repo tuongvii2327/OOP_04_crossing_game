@@ -8,12 +8,11 @@
 
 namespace Serialization
 {
-// DATA ENCRYPTION: SYMMETRIC XOR CIPHER WITH SECRET KEY
-// ─── BẢO MẬT: KHÓA MÃ HÓA BÍ MẬT (SECRET KEY) ───
+// Bảo mật: Khóa mã hóa bí mật (Secret Key) để dùng cho thuật toán XOR Cipher
 inline constexpr std::string_view SECRET_KEY = "SixSeven67";
 inline constexpr size_t KEY_LEN = SECRET_KEY.size();
 
-// ─── THUẬT TOÁN XỬ LÝ MÃ HÓA / GIẢI MÃ XOR ───
+// Thuật toán xử lý mã hóa / giải mã XOR
 inline void processXOR(char* data, size_t size)
 {
     for (size_t i = 0; i < size; ++i)
@@ -23,7 +22,7 @@ inline void processXOR(char* data, size_t size)
     }
 }
 
-// ─── GHI DỮ LIỆU MÃ HÓA (Primitive Types) ───
+// Ghi dữ liệu đã mã hóa (Primitive Types) ra luồng dữ liệu
 template <typename T> inline void write(std::ostream& os, const T& value)
 {
     T encrypted_val = value;
@@ -35,7 +34,7 @@ template <typename T> inline void write(std::ostream& os, const T& value)
     os.write(ptr, sizeof(T));
 }
 
-// ─── ĐỌC VÀ GIẢI MÃ DỮ LIỆU (Primitive Types) ───
+// Đọc và giải mã dữ liệu (Primitive Types) từ luồng dữ liệu
 template <typename T> inline void read(std::istream& is, T& value)
 {
     is.read(reinterpret_cast<char*>(&value), sizeof(T));
@@ -44,7 +43,7 @@ template <typename T> inline void read(std::istream& is, T& value)
     processXOR(ptr, sizeof(T));
 }
 
-// ─── GHI CHUỖI KÝ TỰ MÃ HÓA (std::string) ───
+// Ghi chuỗi ký tự (std::string) sau khi đã mã hóa
 inline void writeString(std::ostream& os, const std::string& str)
 {
     size_t size = str.size();
@@ -58,7 +57,7 @@ inline void writeString(std::ostream& os, const std::string& str)
     }
 }
 
-// ─── ĐỌC VÀ GIẢI MÃ CHUỖI KÝ TỰ (std::string) ───
+// Đọc và giải mã chuỗi ký tự (std::string)
 inline void readString(std::istream& is, std::string& str)
 {
     size_t size = 0;
@@ -78,7 +77,7 @@ inline void readString(std::istream& is, std::string& str)
     }
 }
 
-// ─── HÀM ĐỌC METADATA ĐÃ ĐƯỢC TỰ ĐỘNG GIẢI MÃ ───
+// Hàm đọc Metadata của một save slot, dữ liệu đọc ra đã được giải mã tự động
 inline bool getSlotMetadata(int slot_index, std::string& out_name, int& out_score)
 {
     try

@@ -2,32 +2,22 @@
 #include "utils/resource_manager.h"
 #include <iostream>
 
-// Khởi tạo đường dẫn cho các âm thanh
+// Khởi tạo map liên kết giữa Enum và đường dẫn file âm thanh tương ứng
 const std::unordered_map<AudioSystem::SFX, std::string> AudioSystem::sfx_paths_ = {
-    {SFX::Click,
-     "assets/audio/select.wav"}, // https://pixabay.com/sound-effects/film-special-effects-90s-game-ui-6-185099/
-    {SFX::Hover,
-     "assets/audio/hover.wav"}, // https://pixabay.com/sound-effects/film-special-effects-ui-sounds-pack-3-15-359713/
-    {SFX::Back,
-     "assets/audio/back.wav"}, // https://pixabay.com/sound-effects/film-special-effects-ui-sound-374228/
-    {SFX::Jump,
-     "assets/audio/jump.wav"}, // https://pixabay.com/sound-effects/film-special-effects-pixel-sound-effect-4-82881/
-    {SFX::Crash,
-     "assets/audio/crash.wav"}, // https://pixabay.com/sound-effects/film-special-effects-sound-effect-car-crash-394903/
+    {SFX::Click, "assets/audio/select.wav"},
+    {SFX::Hover, "assets/audio/hover.wav"},
+    {SFX::Back, "assets/audio/back.wav"},
+    {SFX::Jump, "assets/audio/jump.wav"},
+    {SFX::Crash, "assets/audio/crash.wav"},
     {SFX::GameOver, "assets/audio/game_over.wav"},
-    {SFX::HighScore,
-     "assets/audio/new_highscore.wav"}, // https://www.youtube.com/watch?v=pg360fNMDAw
-    {SFX::Bird,
-     "assets/audio/bird.wav"}, // https://pixabay.com/sound-effects/nature-bird-chirping-482865/
-    //{SFX::Rabbit, "assets/audio/car_horn.wav"},       // tam vi khong bat tieng con tho
-    {SFX::CarHorn,
-     "assets/audio/car_horn.wav"}, // https://pixabay.com/sound-effects/city-car-horn-6408/
-    {SFX::TruckHorn,
-     "assets/audio/truck_horn.wav"}}; // https://pixabay.com/sound-effects/city-truck-horn-153263/
+    {SFX::HighScore, "assets/audio/new_highscore.wav"},
+    {SFX::Bird, "assets/audio/bird.wav"},
+    // {SFX::Rabbit, "assets/audio/car_horn.wav"}, // TODO: Tạm thời không bật tiếng thỏ nhảy
+    {SFX::CarHorn, "assets/audio/car_horn.wav"},
+    {SFX::TruckHorn, "assets/audio/truck_horn.wav"}};
 
 const std::unordered_map<AudioSystem::Music, std::string> AudioSystem::music_paths_ = {
-    {Music::Background,
-     "assets/audio/bg_music.ogg"}}; // https://pixabay.com/music/upbeat-game-8-bit-399898/
+    {Music::Background, "assets/audio/bg_music.ogg"}};
 
 AudioSystem::AudioSystem() : bg_music_(std::make_unique<sf::Music>()) {}
 
@@ -73,10 +63,12 @@ void AudioSystem::playSFX(SFX sfx)
 
         const sf::SoundBuffer& buffer = Resource().getSoundBuffer(it->second);
 
-        // Cấp phát âm thanh độc lập trên Heap để đảm bảo nó luôn sống cho tới khi phát xong
+        // Cấp phát đối tượng âm thanh độc lập trên Heap để đảm bảo nó luôn sống cho tới khi phát xong
         auto sound = std::make_unique<sf::Sound>(buffer);
         sound->setVolume(sfx_volume_);
         sound->play();
+        
+        // Đẩy vào danh sách các âm thanh đang phát để quản lý
         active_sounds_.push_back(std::move(sound));
     }
     catch (const std::exception& e)
@@ -126,6 +118,7 @@ void AudioSystem::stopAllSFX()
 
 void AudioSystem::update()
 {
+    // Dọn dẹp các con trỏ âm thanh đã phát xong hoặc bị lỗi để giải phóng bộ nhớ
     active_sounds_.remove_if(
         [](const std::unique_ptr<sf::Sound>& sound)
         { return !sound || sound->getStatus() == sf::Sound::Status::Stopped; });

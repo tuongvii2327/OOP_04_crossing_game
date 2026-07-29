@@ -10,17 +10,18 @@
 
 Game::Game()
 {
+    // Khởi tạo cửa sổ game với kích thước và tiêu đề cố định
     window.create(sf::VideoMode({Constants::WINDOW_WIDTH, Constants::WINDOW_HEIGHT}),
                   Constants::GAME_TITLE, sf::Style::Titlebar | sf::Style::Close);
 
-    // set FPS for game
+    // Giới hạn FPS để đảm bảo trò chơi chạy mượt mà mà không tiêu tốn quá nhiều tài nguyên
     window.setFramerateLimit(Constants::FPS_LIMIT);
 
-    // Thêm hàm preload
+    // Tải trước toàn bộ âm thanh để tránh giật lag khi đang chơi
     Audio().preloadAll();
     Audio().setMusicVolume(config_.music_volume);
     Audio().setSFXVolume(config_.sfx_volume);
-    // Thay thế gọi String bằng Enum
+    // Phát nhạc nền mặc định ngay khi vào game
     Audio().playMusic(AudioSystem::Music::Background);
 
     context_.window = &window;
@@ -28,6 +29,7 @@ Game::Game()
     context_.config = &config_;
     context_.data = &data_;
 
+    // Đọc danh sách điểm cao (High score) đã được mã hóa ở dạng binary
     std::ifstream file("data/highscore.bin", std::ios::binary);
     if (file.is_open())
     {
@@ -36,14 +38,19 @@ Game::Game()
         file.close();
     }
 
+    // Đảm bảo danh sách luôn có 5 giá trị để hiển thị
     while (data_.high_scores.size() < 5)
     {
         data_.high_scores.push_back(0);
     }
 
+    // Sắp xếp lại bảng điểm từ cao đến thấp để tiện hiển thị
     std::sort(data_.high_scores.begin(), data_.high_scores.end(), std::greater<int>());
 
+    // Tải dữ liệu tiến trình (số lượng coin, nhân vật hiện tại) của người chơi
     loadPlayerData();
+    
+    // Thêm màn hình chính (Home) làm state đầu tiên của stack
     state_machine.push(std::make_unique<HomeState>(&context_));
 }
 
@@ -60,18 +67,15 @@ Game::~Game()
 
 void Game::run()
 {
-    // std::cout << "Game is running..." << std::endl;
     while (window.isOpen())
     {
-        // std::cout << "Looping..." << std::endl;
         if (state_machine.processTransitions())
         {
-            // Reset clock when a state change occurs to avoid large delta time on the first update
-            // of the new state
+            // Reset đồng hồ khi có sự chuyển đổi state để delta time không bị tính dư từ các xử lý trước đó
             clock.restart();
         }
 
-        // If there are no states left, close the window and exit the game loop
+        // Thoát vòng lặp nếu stack state trống (Người dùng đã thoát hoàn toàn ra khỏi game)
         if (state_machine.isEmpty())
         {
             window.close();
@@ -123,7 +127,8 @@ void Game::loadPlayerData()
         Serialization::read(file, data_.total_coins);
         Serialization::read(file, data_.selected_character);
 
-        // Đọc trạng thái mở khóa của 3 nhân vật
+        // Đọc tuần tự trạng thái mở khóa của 3 nhân vật hiện tại
+        // TODO: Sẽ mở rộng nếu thêm nhân vật mới
         for (int i = 0; i < 3; ++i)
         {
             bool is_unlocked;
@@ -136,9 +141,10 @@ void Game::loadPlayerData()
     }
     else
     {
-        data_.total_coins = 0; // Mặc định là 0 nếu chưa có file dữ liệu
+        // Gán các giá trị mặc định cho người chơi mới nếu không tìm thấy file lưu
+        data_.total_coins = 0;
         data_.selected_character = 0;
-        data_.unlocked_characters = {true, false, false};
+        data_.unlocked_characters = {true, false, false}; // Mặc định chỉ nhân vật đầu tiên được mở
     }
 }
 

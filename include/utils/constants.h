@@ -7,7 +7,7 @@ const unsigned int WINDOW_HEIGHT = 1050;
 const char* const GAME_TITLE = "Crossy Road";
 const unsigned int FPS_LIMIT = 24;
 
-// number of cell
+// Số lượng ô grid trên bản đồ
 const unsigned int NUMBER_OF_LANES = 10;
 const unsigned int NUMBER_OF_CELLS = 12;
 
@@ -15,14 +15,13 @@ const unsigned int GAME_PLAY_BAR_HEIGHT = 1050;
 const unsigned int GAME_PLAY_BAR_WIDTH = 140;
 const unsigned int CELL_SIZE = 105;
 
-// min distance between sprites of objects to avoid collision in visual (UI)
+// Khoảng cách tối thiểu giữa các sprite của object để tránh va chạm trực quan (trên UI)
 const int VISUAL_DISTANCE = 15;
 
-// hitbox size as a fraction of the sprite size (applies to every dynamic
-// object)
+// Tỷ lệ hitbox so với kích thước thật của sprite (áp dụng cho mọi đối tượng có thể di chuyển)
 constexpr float HITBOX_SIZE_RATIO = 0.95f;
 
-// mot frame hinh trong animation keo dai bao nhieu lan dt (time 1 frame = dt * NUM_OF_DT_PER_FRAME)
+// Một frame hình trong animation kéo dài bao nhiêu lần dt (thời gian 1 frame = dt * NUM_OF_DT_PER_FRAME)
 const int NUM_OF_DT_PER_FRAME = 4;
 
 #pragma region LANE
@@ -64,7 +63,7 @@ constexpr float AUTO_SCROLL_LEVEL_FACTOR = 0.3f;
 #pragma endregion
 
 #pragma region OBJECT
-// coefficients in the 'speed' formula above
+// Hệ số nhân tốc độ theo level (speed_multiplier)
 constexpr float SPEED_LEVEL_FACTOR = 0.2f;
 
 enum class DynamicObjectType
@@ -109,26 +108,24 @@ enum class ObjectColor
     None // keep last: used as the color count in random pickers
 };
 
-// effect of an object (dynamic or static) on People when colliding with it
+// Hiệu ứng của một đối tượng (động hoặc tĩnh) tác động lên nhân vật (People) khi xảy ra va chạm
 enum class ObjectEffect
 {
-    None,       // can be touched, nothing happens
-    Blocked,    // blocks movement, cannot walk into it
-    Lethal,     // can be touched, touching it kills the player
-    Collectible // can be touched, touching it accumulates a special score (e.g.
-                // coin)
+    None,       // Có thể đi xuyên qua, không có chuyện gì xảy ra
+    Blocked,    // Chặn đường đi, nhân vật không thể đi qua
+    Lethal,     // Gây chết người nếu nhân vật chạm vào
+    Collectible // Có thể thu thập để cộng điểm (vd: Coin)
 };
 
-// the usable speed range of an object
+// Khoảng tốc độ có thể sử dụng của một đối tượng
 struct SpeedRange
 {
     int min_speed;
     int max_speed;
 };
 
-// Base speed range (px/s) for each object type before the level multiplier is
-// applied speed = random int in [min_speed, max_speed] * (1 + (level - 1) *
-// SPEED_LEVEL_FACTOR)
+// Lấy khoảng tốc độ cơ bản (px/s) cho mỗi loại đối tượng trước khi áp dụng hệ số nhân của level.
+// Công thức: speed = random int trong [min_speed, max_speed] * (1 + (level - 1) * SPEED_LEVEL_FACTOR)
 inline SpeedRange getSpeedRange(const DynamicObjectType& type)
 {
     switch (type)
@@ -211,8 +208,7 @@ inline int getNumberOfFrames(const DynamicObjectType& type)
     }
 }
 #pragma region VEHICLE
-// factor to calculate safe_distance (safe_distance = base_speed *
-// SAFE_DISTANCE_FACTOR)
+// Hệ số dùng để tính toán khoảng cách an toàn (safe_distance = base_speed * SAFE_DISTANCE_FACTOR)
 const unsigned int SAFE_DISTANCE_FACTOR = 2;
 #pragma endregion
 

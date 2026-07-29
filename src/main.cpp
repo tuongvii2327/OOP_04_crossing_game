@@ -6,6 +6,7 @@ int main(int argc, char* argv[])
 {
     try
     {
+        // Khởi tạo đối tượng Game và bắt đầu vòng lặp chính
         Game game;
         game.run();
     }

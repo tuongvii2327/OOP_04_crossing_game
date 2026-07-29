@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <iostream>
 
+// Phân vùng dùng tạm thời để vẽ các Texture dự phòng trong trường hợp không tải được ảnh
 #pragma region DEMO PROCEDURAL DRAWING (FALLBACK)
 
 // Hàm phụ trợ tạo màu (Không dùng std::clamp để tránh lỗi trên compiler C++ cũ)
@@ -276,13 +277,13 @@ static sf::Texture makeWoodTexture(unsigned w, unsigned h, sf::Color body)
     sf::Color darker = shade(body, 0.7f);
     sf::Color lighter = shade(body, 1.2f);
 
-    // main body
+    // Phần thân chính
     sf::RectangleShape main_body({fw, fh});
     main_body.setPosition({0.f, 0.f});
     main_body.setFillColor(body);
     rt.draw(main_body);
 
-    // darker edges (top and bottom)
+    // Các cạnh viền đậm hơn (trên và dưới)
     sf::RectangleShape top_edge({fw, fh * 0.12f});
     top_edge.setPosition({0.f, 0.f});
     top_edge.setFillColor(darker);
@@ -293,7 +294,7 @@ static sf::Texture makeWoodTexture(unsigned w, unsigned h, sf::Color body)
     bottom_edge.setFillColor(darker);
     rt.draw(bottom_edge);
 
-    // horizontal wood grain lines
+    // Các đường vân gỗ ngang
     sf::Color grainColor = shade(body, 0.85f);
     for (float y = fh * 0.25f; y < fh * 0.85f; y += fh * 0.18f)
     {
@@ -303,7 +304,7 @@ static sf::Texture makeWoodTexture(unsigned w, unsigned h, sf::Color body)
         rt.draw(grain);
     }
 
-    // light highlight on top-left
+    // Điểm nhấn sáng ở góc trên bên trái
     sf::RectangleShape highlight({fw * 0.3f, fh * 0.06f});
     highlight.setPosition({fw * 0.08f, fh * 0.15f});
     highlight.setFillColor(lighter);
@@ -316,7 +317,7 @@ static sf::Texture makeWoodTexture(unsigned w, unsigned h, sf::Color body)
 #pragma endregion
 
 // ==========================================
-// CLASS IMPLEMENTATION
+// CÀI ĐẶT CÁC PHƯƠNG THỨC CỦA LỚP
 // ==========================================
 
 ResourceManager& ResourceManager::getInstance()
@@ -491,7 +492,8 @@ const sf::Texture& ResourceManager::getStaticObjectTexture(const Constants::Stat
 const sf::Texture& ResourceManager::getLaneTexture(const Constants::LaneType& type,
                                                    int texture_variant)
 {
-    if (type == Constants::LaneType::River) // special casse, variant of River work as current_frame
+    // Trường hợp đặc biệt: Đối với Sông (River), biến thể texture sẽ đóng vai trò như current_frame để tạo animation
+    if (type == Constants::LaneType::River)
     {
         texture_variant = (texture_variant / 3) % Constants::getNumberOfTextureVariant(type) + 1;
     }

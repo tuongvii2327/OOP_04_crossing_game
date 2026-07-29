@@ -16,33 +16,36 @@ public:
     ResourceManager(const ResourceManager&) = delete;
     ResourceManager& operator=(const ResourceManager&) = delete;
 
-    static ResourceManager& getInstance(); // singleton accessor
+    static ResourceManager& getInstance(); // Sử dụng Singleton pattern để truy cập
 
-    const sf::Texture&
-    getTexture(const std::string& filepath); // load-or-return the cached texture for a file path
-    const sf::Font&
-    getFont(const std::string& filepath); // load-or-return the cached font for a file path
-    const sf::SoundBuffer& getSoundBuffer(
-        const std::string& filepath); // load-or-return the cached sound buffer for a file path
+    // Các hàm tải (hoặc trả về nếu đã cache) tài nguyên từ đường dẫn file tương ứng
+    const sf::Texture& getTexture(const std::string& filepath); 
+    const sf::Font& getFont(const std::string& filepath);
+    const sf::SoundBuffer& getSoundBuffer(const std::string& filepath);
 
+    // Lấy texture cho các đối tượng động (dynamic objects) dựa trên loại, màu sắc và frame hiện tại
     const sf::Texture& getDynamicObjectTexture(
         const Constants::DynamicObjectType& type,
         const Constants::ObjectColor& color = Constants::ObjectColor::None,
-        int cur_frame = 1); // cached procedural texture for a DynamicObject type+color
-    const sf::Texture&
-    getStaticObjectTexture(const Constants::StaticObjectType& type,
-                           const Constants::ObjectColor& color =
-                               Constants::ObjectColor::None); // cached procedural texture for a
-                                                              // StaticObject type+color
-    const sf::Texture&
-    getLaneTexture(const Constants::LaneType& type,
-                   int texture_variant); // cached procedural texture for a lane type+direction
-    const sf::Texture&
-    getTrafficTexture(const Constants::TrafficLightColor&
-                          color); // cached texture for the traffic light spritesheet
-    const sf::IntRect
-    getTrafficTextureRect(const Constants::TrafficLightColor&
-                              color); // texture rect for the given color frame in the spritesheet
+        int cur_frame = 1); 
+
+    // Lấy texture cho các đối tượng tĩnh (static objects) dựa trên loại và màu sắc
+    const sf::Texture& getStaticObjectTexture(
+        const Constants::StaticObjectType& type,
+        const Constants::ObjectColor& color = Constants::ObjectColor::None); 
+
+    // Lấy texture cho các loại làn đường (lane)
+    const sf::Texture& getLaneTexture(
+        const Constants::LaneType& type,
+        int texture_variant); 
+
+    // Lấy texture gốc của đèn giao thông (spritesheet)
+    const sf::Texture& getTrafficTexture(
+        const Constants::TrafficLightColor& color); 
+
+    // Lấy khung hinh (IntRect) ứng với màu đèn giao thông trên spritesheet
+    const sf::IntRect getTrafficTextureRect(
+        const Constants::TrafficLightColor& color);
 
     bool hasSpritesheet(const Constants::DynamicObjectType& type) const;
     const sf::Texture& getDynamicObjectSpritesheet(const Constants::DynamicObjectType& type,
@@ -50,9 +53,10 @@ public:
     sf::IntRect getDynamicObjectSpritesheetRect(const Constants::DynamicObjectType& type,
                                                 int frame);
 
-    void
-    clearAll(); // drops file-loaded caches (textures/fonts/sounds); every live sf::Sprite/sf::Text
-                // referencing them becomes dangling, so only call this on program exit
+    // Xóa toàn bộ tài nguyên đã được cache.
+    // Lưu ý: Tất cả các sf::Sprite hay sf::Text đang dùng tài nguyên này sẽ bị lỗi (dangling),
+    // do đó chỉ nên gọi hàm này khi thoát chương trình.
+    void clearAll();
 
 private:
     std::unordered_map<std::string, std::unique_ptr<sf::Texture>> textures_;
