@@ -21,15 +21,30 @@ Coin::Coin(Lane* init_lane,
 	sprite.setScale({std::abs(current_scale.x), std::abs(current_scale.y)});
 
 	setPosition(init_position);
-
-	// Cài đặt Hitbox chuẩn bằng đúng ô Cell để dễ nhặt xu
-	hitbox.size = sf::Vector2f(Constants::CELL_SIZE, Constants::LANE_HEIGHT);
-	hitbox_offset = sf::Vector2f(0.f, 0.f);
-	hitbox.position = init_position;
 }
 #pragma endregion
 
 #pragma region GET, SET
+
+void Coin::setPosition(const sf::Vector2f &pos)
+{
+    sf::Vector2f cur_scale = sprite.getScale();
+    sprite.setScale({std::abs(cur_scale.x), std::abs(cur_scale.y)});
+    sprite.setOrigin({0.f, 0.f});
+
+    StaticObject::setPosition(pos);
+
+
+    if (current_lane != nullptr)
+    {
+        float cell_x = position.x - (Constants::CELL_SIZE - getWidthSprite()) / 2.f;
+        float lane_y = current_lane->getPosition().y;
+
+        hitbox.position = sf::Vector2f(cell_x, lane_y);
+        hitbox.size = sf::Vector2f(Constants::CELL_SIZE, Constants::LANE_HEIGHT);
+    }
+}
+
 Constants::StaticObjectType Coin::getType() const
 {
 	return Constants::StaticObjectType::Coin;

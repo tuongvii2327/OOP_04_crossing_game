@@ -18,6 +18,7 @@ public:
 	// Getters
 	Constants::StaticObjectType getType() const override;
 
+	void setPosition(const sf::Vector2f &pos) override;
 	bool isCollected() const { return is_collected_; }
 	void collect() { is_collected_ = true; }
 

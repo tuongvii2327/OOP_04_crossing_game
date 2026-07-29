@@ -2,7 +2,6 @@
 
 #include "entities/bird.h"
 #include "entities/rabbit.h"
-#include "entities/rock.h"
 #include <algorithm>
 #include <limits>
 
@@ -95,50 +94,6 @@ void LaneGrass::seedObjects()
                   return a->getPosition().x * direction > b->getPosition().x * direction;
               });
     num_active_object = static_cast<int>(list_dynamic.size());
-
-    // ─── BỔ SUNG: RẢI CỤC ĐÁ (ROCK) LÊN LÀN CỎ ───
-   int min_rocks = 0;
-   int max_rocks = 1;
-
-   if (level >= 10) {min_rocks = 3; max_rocks = Constants::MAX_OBJECT_PER_LANE;}
-   else if (level >= 6) {min_rocks = 2; max_rocks = 3;}
-   else if (level >= 3) {min_rocks = 1; max_rocks = 2; }
-   else {min_rocks = 0; max_rocks = 1;}
-
-   int rock_count = randomRange(min_rocks, max_rocks);
-   int total_cols = static_cast<int>(Constants::LANE_WIDTH /  Constants::CELL_SIZE);
-
-    for (int i = 0; i < rock_count; ++i) 
-    {
-        // Thử tối đa 10 lần chọn cột chưa có Coin hoặc Rock
-        for (int tryy = 0; tryy < 10; ++tryy)
-        {
-            int col = randomRange(1, std::max(1, total_cols - 2));
-            float cell_x = position.x + (col * Constants::CELL_SIZE);
-            float cell_y = position.y;
-
-            // KIỂM TRA CHỒNG LẤP VỚI COIN / ROCK KHÁC TRONG list_static
-            bool overlap = false;
-            for (const auto &existing : list_static)
-            {
-                // Đo khoảng cách giữa vị trí cột định đặt Đá với vật thể tĩnh đã có (Coin/Rock)
-                float existing_cell_x = existing->getPosition().x;
-                if (std::abs(cell_x - existing_cell_x) < Constants::CELL_SIZE * 0.9f)
-                {
-                    overlap = true; // Bị đè lên Coin -> Chọn cột khác!
-                    break;
-                }
-            }
-
-            // Nếu ô hoàn toàn trống -> Khởi tạo Rock và thoát vòng lặp thử
-            if (!overlap)
-            {
-                auto rock = std::make_unique<Rock>(this, sf::Vector2f{cell_x, cell_y});
-                list_static.push_back(std::move(rock));
-                break;
-            }
-        }
-    }
 }
 
 // probabilistically spawn (or reuse a recycled inactive animal) once the lane
