@@ -11,8 +11,7 @@
 Game::Game()
 {
     window.create(sf::VideoMode({Constants::WINDOW_WIDTH, Constants::WINDOW_HEIGHT}),
-                  Constants::GAME_TITLE,
-                  sf::Style::Titlebar | sf::Style::Close);
+                  Constants::GAME_TITLE, sf::Style::Titlebar | sf::Style::Close);
 
     // set FPS for game
     window.setFramerateLimit(Constants::FPS_LIMIT);
@@ -33,7 +32,7 @@ Game::Game()
     if (file.is_open())
     {
         data_.high_scores.resize(5);
-        file.read(reinterpret_cast<char *>(data_.high_scores.data()), 5 * sizeof(int));
+        file.read(reinterpret_cast<char*>(data_.high_scores.data()), 5 * sizeof(int));
         file.close();
     }
 
@@ -67,7 +66,8 @@ void Game::run()
         // std::cout << "Looping..." << std::endl;
         if (state_machine.processTransitions())
         {
-            // Reset clock when a state change occurs to avoid large delta time on the first update of the new state
+            // Reset clock when a state change occurs to avoid large delta time on the first update
+            // of the new state
             clock.restart();
         }
 

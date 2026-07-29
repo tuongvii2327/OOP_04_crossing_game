@@ -16,23 +16,21 @@ protected:
     void seedTraffic();
 
 public:
-    LaneRoad(const sf::Vector2f &init_position = {0, 0},
-             const int &init_level = 1,
-             const int &init_direction = 1);
+    LaneRoad(const sf::Vector2f& init_position = {0, 0}, const int& init_level = 1,
+             const int& init_direction = 1);
     ~LaneRoad() override;
 
     Constants::LaneType getType() const override;
 
     void updateState(float delta_time) override;
-    void render(sf::RenderWindow &window) const override;
-    void spawnLane(const sf::Vector2f &new_position,
-                   const int &new_level,
-                   const int &new_direction) override;
+    void render(sf::RenderWindow& window) const override;
+    void spawnLane(const sf::Vector2f& new_position, const int& new_level,
+                   const int& new_direction) override;
     void spawnObject() override;
 
-    Traffic *getNearestTrafficAhead(const Vehicle &vehicle);
-    Vehicle *getNearestVehicleAhead(const Vehicle &vehicle);
+    Traffic* getNearestTrafficAhead(const Vehicle& vehicle);
+    Vehicle* getNearestVehicleAhead(const Vehicle& vehicle);
 
-    void serialize(std::ostream &os) const override;
-    void deserialize(std::istream &is) override;
+    void serialize(std::ostream& os) const override;
+    void deserialize(std::istream& is) override;
 };

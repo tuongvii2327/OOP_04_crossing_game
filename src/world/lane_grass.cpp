@@ -5,7 +5,8 @@
 #include <algorithm>
 #include <limits>
 
-LaneGrass::LaneGrass(const sf::Vector2f &init_position, const int &init_level, const int &init_direction)
+LaneGrass::LaneGrass(const sf::Vector2f& init_position, const int& init_level,
+                     const int& init_direction)
     : Lane(init_position, init_level, init_direction, Constants::LaneType::Grass)
 {
     seedObjects();
@@ -13,10 +14,7 @@ LaneGrass::LaneGrass(const sf::Vector2f &init_position, const int &init_level, c
 
 LaneGrass::~LaneGrass() = default;
 
-Constants::LaneType LaneGrass::getType() const
-{
-    return Constants::LaneType::Grass;
-}
+Constants::LaneType LaneGrass::getType() const { return Constants::LaneType::Grass; }
 
 // populate list_dynamic with initial Bird/Rabbit objects, spread across the lane
 void LaneGrass::seedObjects()
@@ -67,7 +65,7 @@ void LaneGrass::seedObjects()
         {
             x = lane_left + randomRange(0, range);
             bool overlap = false;
-            for (auto &other : list_dynamic)
+            for (auto& other : list_dynamic)
             {
                 float other_x = other->getPosition().x;
                 float other_width = other->getWidthSprite();
@@ -88,11 +86,10 @@ void LaneGrass::seedObjects()
         list_dynamic.push_back(std::move(obj));
     }
 
-    std::sort(list_dynamic.begin(), list_dynamic.end(),
-              [this](const std::unique_ptr<DynamicObject> &a, const std::unique_ptr<DynamicObject> &b)
-              {
-                  return a->getPosition().x * direction > b->getPosition().x * direction;
-              });
+    std::sort(
+        list_dynamic.begin(), list_dynamic.end(),
+        [this](const std::unique_ptr<DynamicObject>& a, const std::unique_ptr<DynamicObject>& b)
+        { return a->getPosition().x * direction > b->getPosition().x * direction; });
     num_active_object = static_cast<int>(list_dynamic.size());
 }
 
@@ -119,13 +116,12 @@ void LaneGrass::spawnObject()
     if (randomRange(0, spawn_rate_chance) != 0)
         return;
 
-    DynamicObject *last_obj = list_dynamic.back().get();
+    DynamicObject* last_obj = list_dynamic.back().get();
     float lane_left = position.x;
     float lane_right = position.x + Constants::LANE_WIDTH;
-    float entered_distance = (direction == 1)
-                                 ? (last_obj->getPosition().x - lane_left)
-                                 : (lane_right - (last_obj->getPosition().x +
-                                                  last_obj->getWidthSprite()));
+    float entered_distance =
+        (direction == 1) ? (last_obj->getPosition().x - lane_left)
+                         : (lane_right - (last_obj->getPosition().x + last_obj->getWidthSprite()));
     if (entered_distance < static_cast<float>(Constants::CELL_SIZE))
         return;
 
@@ -142,7 +138,7 @@ void LaneGrass::spawnObject()
     {
         if ((*o)->getType() == exp_type && (*o)->getColor() == exp_color)
         {
-            Animal *target = dynamic_cast<Animal *>(o->get());
+            Animal* target = dynamic_cast<Animal*>(o->get());
             if (target)
             {
                 target->setActiveState(true);
@@ -171,22 +167,22 @@ void LaneGrass::spawnObject()
 
 // closest active animal ahead of `animal` (per lane direction) that is either
 // stopped or moving no faster than `animal`
-Animal *LaneGrass::getNearestAnimalAhead(const Animal &animal)
+Animal* LaneGrass::getNearestAnimalAhead(const Animal& animal)
 {
-    Animal *nearest = nullptr;
+    Animal* nearest = nullptr;
     float nearest_gap = std::numeric_limits<float>::max();
-    for (auto &obj : list_dynamic)
+    for (auto& obj : list_dynamic)
     {
         if (!obj->isActive())
             continue;
-        Animal *a = dynamic_cast<Animal *>(obj.get());
+        Animal* a = dynamic_cast<Animal*>(obj.get());
         if (!a)
             continue;
         float gap = (a->getPosition().x - animal.getPosition().x) * direction;
         if (gap <= 0.f)
             continue; // behind or same position
-        bool is_obstacle = !a->isMove() || a->getVelocity().x * direction <=
-                                               animal.getVelocity().x * direction;
+        bool is_obstacle =
+            !a->isMove() || a->getVelocity().x * direction <= animal.getVelocity().x * direction;
         if (is_obstacle && gap < nearest_gap)
         {
             nearest_gap = gap;
@@ -196,13 +192,13 @@ Animal *LaneGrass::getNearestAnimalAhead(const Animal &animal)
     return nearest;
 }
 
-void LaneGrass::serialize(std::ostream &os) const
+void LaneGrass::serialize(std::ostream& os) const
 {
     // Grass lanes have no extra data beyond what the base class writes
     Lane::serialize(os);
 }
 
-void LaneGrass::deserialize(std::istream &is)
+void LaneGrass::deserialize(std::istream& is)
 {
     // Grass lanes have no extra data beyond what the base class reads
     Lane::deserialize(is);

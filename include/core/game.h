@@ -24,6 +24,7 @@ private:
 
     void loadPlayerData();
     void savePlayerData();
+
 public:
     Game();
     ~Game();

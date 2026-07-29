@@ -1,21 +1,18 @@
 #include "entities/wood.h"
+#include "utils/resource_manager.h"
 #include "world/lane.h"
 #include "world/lane_river.h"
 #include <algorithm>
-#include "utils/resource_manager.h"
 
 #pragma region PROTECTED
 // safe_distance = base_speed * SAFE_DISTANCE_FACTOR
-float Wood::calcSafeDistance() const
-{
-    return base_speed * Constants::SAFE_DISTANCE_FACTOR;
-}
+float Wood::calcSafeDistance() const { return base_speed * Constants::SAFE_DISTANCE_FACTOR; }
 #pragma endregion
 
 #pragma region PUBLIC
 #pragma region CONSTRUCTOR, DESTRUCTOR
 // Wood floats across the river lane, with base_speed and safe_distance like Vehicle
-Wood::Wood(const Constants::ObjectColor &init_color, Lane *init_lane)
+Wood::Wood(const Constants::ObjectColor& init_color, Lane* init_lane)
     : DynamicObject(Constants::DynamicObjectType::Wood, init_color, init_lane)
 {
     wood_color = init_color;
@@ -25,38 +22,26 @@ Wood::Wood(const Constants::ObjectColor &init_color, Lane *init_lane)
 #pragma endregion
 
 #pragma region GET, SET
-Constants::ObjectColor Wood::getColor() const
-{
-    return wood_color;
-}
+Constants::ObjectColor Wood::getColor() const { return wood_color; }
 
-void Wood::setColor(const Constants::ObjectColor &new_color)
+void Wood::setColor(const Constants::ObjectColor& new_color)
 {
     wood_color = new_color;
     setSprite(Resource().getDynamicObjectTexture(getType(), new_color), getType());
 }
 
-Constants::DynamicObjectType Wood::getType() const
-{
-    return Constants::DynamicObjectType::Wood;
-}
+Constants::DynamicObjectType Wood::getType() const { return Constants::DynamicObjectType::Wood; }
 
-float Wood::getBaseSpeed() const
-{
-    return base_speed;
-}
+float Wood::getBaseSpeed() const { return base_speed; }
 
 // set base_speed & safe_distance
-void Wood::setBaseSpeed(const float &new_speed)
+void Wood::setBaseSpeed(const float& new_speed)
 {
     base_speed = new_speed;
     safe_distance = calcSafeDistance();
 }
 
-float Wood::getSafeDistance() const
-{
-    return safe_distance;
-}
+float Wood::getSafeDistance() const { return safe_distance; }
 #pragma endregion
 
 #pragma region OTHER
@@ -68,21 +53,20 @@ void Wood::updateState(float delta_time)
 
     float v_wood = base_speed;
 
-    LaneRiver *river = dynamic_cast<LaneRiver *>(current_lane);
-    Wood *nearest_wood = river ? river->getNearestWoodAhead(*this) : nullptr;
+    LaneRiver* river = dynamic_cast<LaneRiver*>(current_lane);
+    Wood* nearest_wood = river ? river->getNearestWoodAhead(*this) : nullptr;
     if (nearest_wood)
     {
-        float gap = gapToObstacle(nearest_wood->getPosition().x,
-                                  nearest_wood->getWidthSprite());
+        float gap = gapToObstacle(nearest_wood->getPosition().x, nearest_wood->getWidthSprite());
         float ratio = std::clamp(gap / safe_distance, 0.f, 1.f);
         float nearest_wood_speed = nearest_wood->getVelocity().x * direction;
-        v_wood = nearest_wood_speed +
-                 ratio * (base_speed - nearest_wood_speed);
+        v_wood = nearest_wood_speed + ratio * (base_speed - nearest_wood_speed);
     }
 
     float v_target = std::min(base_speed, v_wood);
     float acceleration = std::pow(base_speed, 2.0) / (safe_distance);
-    if (v_target > velocity.x * direction && (velocity.x * direction + acceleration * delta_time) <= base_speed)
+    if (v_target > velocity.x * direction &&
+        (velocity.x * direction + acceleration * delta_time) <= base_speed)
     {
         v_target = std::min(v_target, velocity.x * direction + acceleration * delta_time);
     }

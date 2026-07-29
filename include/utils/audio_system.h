@@ -44,10 +44,10 @@ private:
     AudioSystem();
 
 public:
-    AudioSystem(const AudioSystem &) = delete;
-    AudioSystem &operator=(const AudioSystem &) = delete;
+    AudioSystem(const AudioSystem&) = delete;
+    AudioSystem& operator=(const AudioSystem&) = delete;
 
-    static AudioSystem &getInstance()
+    static AudioSystem& getInstance()
     {
         static AudioSystem instance;
         return instance;
@@ -74,4 +74,4 @@ public:
     void clearAll();
 };
 
-inline AudioSystem &Audio() { return AudioSystem::getInstance(); }
+inline AudioSystem& Audio() { return AudioSystem::getInstance(); }

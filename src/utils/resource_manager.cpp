@@ -19,7 +19,7 @@ static sf::Color shade(sf::Color base, float factor)
     return sf::Color(scaleChannel(base.r), scaleChannel(base.g), scaleChannel(base.b), base.a);
 }
 
-static sf::Color toSFColor(const Constants::ObjectColor &color)
+static sf::Color toSFColor(const Constants::ObjectColor& color)
 {
     switch (color)
     {
@@ -36,7 +36,7 @@ static sf::Color toSFColor(const Constants::ObjectColor &color)
     }
 }
 
-static sf::Color toTrafficColor(const Constants::TrafficLightColor &color)
+static sf::Color toTrafficColor(const Constants::TrafficLightColor& color)
 {
     switch (color)
     {
@@ -195,21 +195,19 @@ static sf::Texture makeBushTexture(unsigned w, unsigned h, sf::Color body)
         float cx, cy, r;
     };
     const Lump lumps[] = {
-        {fw * 0.30f, fh * 0.55f, fh * 0.32f},
-        {fw * 0.62f, fh * 0.50f, fh * 0.38f},
-        {fw * 0.45f, fh * 0.30f, fh * 0.30f},
-        {fw * 0.78f, fh * 0.62f, fh * 0.24f},
+        {fw * 0.30f, fh * 0.55f, fh * 0.32f}, {fw * 0.62f, fh * 0.50f, fh * 0.38f},
+        {fw * 0.45f, fh * 0.30f, fh * 0.30f}, {fw * 0.78f, fh * 0.62f, fh * 0.24f},
         {fw * 0.18f, fh * 0.68f, fh * 0.22f},
     };
 
-    for (const auto &lump : lumps)
+    for (const auto& lump : lumps)
     {
         sf::CircleShape leaf(lump.r);
         leaf.setFillColor(darker);
         leaf.setPosition({lump.cx - lump.r, lump.cy - lump.r});
         rt.draw(leaf);
     }
-    for (const auto &lump : lumps)
+    for (const auto& lump : lumps)
     {
         float r = lump.r * 0.8f;
         sf::CircleShape leaf(r);
@@ -321,13 +319,13 @@ static sf::Texture makeWoodTexture(unsigned w, unsigned h, sf::Color body)
 // CLASS IMPLEMENTATION
 // ==========================================
 
-ResourceManager &ResourceManager::getInstance()
+ResourceManager& ResourceManager::getInstance()
 {
     static ResourceManager instance;
     return instance;
 }
 
-const sf::Texture &ResourceManager::getTexture(const std::string &filepath)
+const sf::Texture& ResourceManager::getTexture(const std::string& filepath)
 {
     auto it = textures_.find(filepath);
     if (it != textures_.end())
@@ -340,7 +338,7 @@ const sf::Texture &ResourceManager::getTexture(const std::string &filepath)
     return *(textures_.emplace(filepath, std::move(texture)).first->second);
 }
 
-const sf::Font &ResourceManager::getFont(const std::string &filepath)
+const sf::Font& ResourceManager::getFont(const std::string& filepath)
 {
     auto it = fonts_.find(filepath);
     if (it != fonts_.end())
@@ -353,7 +351,7 @@ const sf::Font &ResourceManager::getFont(const std::string &filepath)
     return *(fonts_.emplace(filepath, std::move(font)).first->second);
 }
 
-const sf::SoundBuffer &ResourceManager::getSoundBuffer(const std::string &filepath)
+const sf::SoundBuffer& ResourceManager::getSoundBuffer(const std::string& filepath)
 {
     auto it = sound_buffers_.find(filepath);
     if (it != sound_buffers_.end())
@@ -366,10 +364,13 @@ const sf::SoundBuffer &ResourceManager::getSoundBuffer(const std::string &filepa
     return *(sound_buffers_.emplace(filepath, std::move(buffer)).first->second);
 }
 
-const sf::Texture &ResourceManager::getDynamicObjectTexture(const Constants::DynamicObjectType &type, const Constants::ObjectColor &color, int cur_frame)
+const sf::Texture&
+ResourceManager::getDynamicObjectTexture(const Constants::DynamicObjectType& type,
+                                         const Constants::ObjectColor& color, int cur_frame)
 {
     std::string type_name, color_name, frame;
-    cur_frame = (cur_frame / Constants::NUM_OF_DT_PER_FRAME) % Constants::getNumberOfFrames(type) + 1;
+    cur_frame =
+        (cur_frame / Constants::NUM_OF_DT_PER_FRAME) % Constants::getNumberOfFrames(type) + 1;
     frame = std::to_string(cur_frame);
     switch (type)
     {
@@ -416,19 +417,24 @@ const sf::Texture &ResourceManager::getDynamicObjectTexture(const Constants::Dyn
         color_name = "none";
         break;
     }
-    
+
     if (type == Constants::DynamicObjectType::People)
     {
-        if (color == Constants::ObjectColor::None) color_name = "person";
-        else if (color == Constants::ObjectColor::Blue) color_name = "robot";
-        else if (color == Constants::ObjectColor::Green) color_name = "usagi";
+        if (color == Constants::ObjectColor::None)
+            color_name = "person";
+        else if (color == Constants::ObjectColor::Blue)
+            color_name = "robot";
+        else if (color == Constants::ObjectColor::Green)
+            color_name = "usagi";
     }
-    
-    std::string final_path = "assets/textures/" + type_name + "/" + color_name + "_" + frame + ".png";
+
+    std::string final_path =
+        "assets/textures/" + type_name + "/" + color_name + "_" + frame + ".png";
     return getInstance().getTexture(final_path);
 }
 
-const sf::Texture &ResourceManager::getStaticObjectTexture(const Constants::StaticObjectType &type, const Constants::ObjectColor &color)
+const sf::Texture& ResourceManager::getStaticObjectTexture(const Constants::StaticObjectType& type,
+                                                           const Constants::ObjectColor& color)
 {
     std::string type_name, color_name;
     switch (type)
@@ -482,9 +488,10 @@ const sf::Texture &ResourceManager::getStaticObjectTexture(const Constants::Stat
     return getInstance().getTexture(final_path);
 }
 
-const sf::Texture &ResourceManager::getLaneTexture(const Constants::LaneType &type, int texture_variant)
+const sf::Texture& ResourceManager::getLaneTexture(const Constants::LaneType& type,
+                                                   int texture_variant)
 {
-    if (type == Constants::LaneType::River) //special casse, variant of River work as current_frame
+    if (type == Constants::LaneType::River) // special casse, variant of River work as current_frame
     {
         texture_variant = (texture_variant / 3) % Constants::getNumberOfTextureVariant(type) + 1;
     }
@@ -517,13 +524,13 @@ const sf::Texture &ResourceManager::getLaneTexture(const Constants::LaneType &ty
     return getInstance().getTexture(final_path);
 }
 
-const sf::Texture &ResourceManager::getTrafficTexture(const Constants::TrafficLightColor &color)
+const sf::Texture& ResourceManager::getTrafficTexture(const Constants::TrafficLightColor& color)
 {
     std::string final_path = "assets/textures/traffic/traffic.png";
     return getInstance().getTexture(final_path);
 }
 
-const sf::IntRect ResourceManager::getTrafficTextureRect(const Constants::TrafficLightColor &color)
+const sf::IntRect ResourceManager::getTrafficTextureRect(const Constants::TrafficLightColor& color)
 {
     const int FRAME_WIDTH = 800;
     const int FRAME_HEIGHT = 800;
@@ -543,18 +550,21 @@ const sf::IntRect ResourceManager::getTrafficTextureRect(const Constants::Traffi
         column = 2;
         break;
     }
-    return sf::IntRect(sf::Vector2i(column * FRAME_WIDTH, 0), sf::Vector2i(FRAME_WIDTH, FRAME_HEIGHT));
+    return sf::IntRect(sf::Vector2i(column * FRAME_WIDTH, 0),
+                       sf::Vector2i(FRAME_WIDTH, FRAME_HEIGHT));
 }
 
-bool ResourceManager::hasSpritesheet(const Constants::DynamicObjectType &type) const
+bool ResourceManager::hasSpritesheet(const Constants::DynamicObjectType& type) const
 {
-    return type == Constants::DynamicObjectType::Truck
-        || type == Constants::DynamicObjectType::Car
-        || type == Constants::DynamicObjectType::Rabbit
-        || type == Constants::DynamicObjectType::Bird;
+    return type == Constants::DynamicObjectType::Truck ||
+           type == Constants::DynamicObjectType::Car ||
+           type == Constants::DynamicObjectType::Rabbit ||
+           type == Constants::DynamicObjectType::Bird;
 }
 
-const sf::Texture &ResourceManager::getDynamicObjectSpritesheet(const Constants::DynamicObjectType &type, const Constants::ObjectColor &color)
+const sf::Texture&
+ResourceManager::getDynamicObjectSpritesheet(const Constants::DynamicObjectType& type,
+                                             const Constants::ObjectColor& color)
 {
     (void)color;
     std::string type_name;
@@ -580,12 +590,14 @@ const sf::Texture &ResourceManager::getDynamicObjectSpritesheet(const Constants:
     return getTexture(path);
 }
 
-sf::IntRect ResourceManager::getDynamicObjectSpritesheetRect(const Constants::DynamicObjectType &type, int frame)
+sf::IntRect
+ResourceManager::getDynamicObjectSpritesheetRect(const Constants::DynamicObjectType& type,
+                                                 int frame)
 {
     const int FRAME_SIZE = 800;
     int numFrames = Constants::getNumberOfFrames(type);
     int idx = (frame / 4) % numFrames;
-    const sf::Texture &tex = getDynamicObjectSpritesheet(type, Constants::ObjectColor::None);
+    const sf::Texture& tex = getDynamicObjectSpritesheet(type, Constants::ObjectColor::None);
     int cols = tex.getSize().x / FRAME_SIZE;
     int row = idx / cols;
     int col = idx % cols;
@@ -594,15 +606,25 @@ sf::IntRect ResourceManager::getDynamicObjectSpritesheetRect(const Constants::Dy
     switch (type)
     {
     case Constants::DynamicObjectType::Car:
-        contentW = 750; contentH = 425; break;
+        contentW = 750;
+        contentH = 425;
+        break;
     case Constants::DynamicObjectType::Rabbit:
-        contentW = 700; contentH = 700; break;
+        contentW = 700;
+        contentH = 700;
+        break;
     case Constants::DynamicObjectType::Bird:
-        contentW = 725; contentH = 643; break;
+        contentW = 725;
+        contentH = 643;
+        break;
     case Constants::DynamicObjectType::Truck:
-        contentW = 725; contentH = 675; break;
+        contentW = 725;
+        contentH = 675;
+        break;
     default:
-        contentW = FRAME_SIZE; contentH = FRAME_SIZE; break;
+        contentW = FRAME_SIZE;
+        contentH = FRAME_SIZE;
+        break;
     }
     int offsetX = (FRAME_SIZE - contentW) / 2;
     int offsetY = (FRAME_SIZE - contentH) / 2;

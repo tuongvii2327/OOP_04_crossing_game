@@ -15,26 +15,31 @@ const std::unordered_map<AudioSystem::SFX, std::string> AudioSystem::sfx_paths_ 
     {SFX::Crash,
      "assets/audio/crash.wav"}, // https://pixabay.com/sound-effects/film-special-effects-sound-effect-car-crash-394903/
     {SFX::GameOver, "assets/audio/game_over.wav"},
-    {SFX::HighScore, "assets/audio/new_highscore.wav"}, // https://www.youtube.com/watch?v=pg360fNMDAw
-    {SFX::Bird, "assets/audio/bird.wav"},               // https://pixabay.com/sound-effects/nature-bird-chirping-482865/
+    {SFX::HighScore,
+     "assets/audio/new_highscore.wav"}, // https://www.youtube.com/watch?v=pg360fNMDAw
+    {SFX::Bird,
+     "assets/audio/bird.wav"}, // https://pixabay.com/sound-effects/nature-bird-chirping-482865/
     //{SFX::Rabbit, "assets/audio/car_horn.wav"},       // tam vi khong bat tieng con tho
-    {SFX::CarHorn, "assets/audio/car_horn.wav"},      // https://pixabay.com/sound-effects/city-car-horn-6408/
-    {SFX::TruckHorn, "assets/audio/truck_horn.wav"}}; // https://pixabay.com/sound-effects/city-truck-horn-153263/
+    {SFX::CarHorn,
+     "assets/audio/car_horn.wav"}, // https://pixabay.com/sound-effects/city-car-horn-6408/
+    {SFX::TruckHorn,
+     "assets/audio/truck_horn.wav"}}; // https://pixabay.com/sound-effects/city-truck-horn-153263/
 
 const std::unordered_map<AudioSystem::Music, std::string> AudioSystem::music_paths_ = {
-    {Music::Background, "assets/audio/bg_music.ogg"}}; // https://pixabay.com/music/upbeat-game-8-bit-399898/
+    {Music::Background,
+     "assets/audio/bg_music.ogg"}}; // https://pixabay.com/music/upbeat-game-8-bit-399898/
 
 AudioSystem::AudioSystem() : bg_music_(std::make_unique<sf::Music>()) {}
 
 void AudioSystem::preloadAll()
 {
-    for (const auto &pair : sfx_paths_)
+    for (const auto& pair : sfx_paths_)
     {
         try
         {
             Resource().getSoundBuffer(pair.second);
         }
-        catch (const std::exception &e)
+        catch (const std::exception& e)
         {
             std::cerr << "[AudioSystem] Preload lỗi: " << e.what() << '\n';
         }
@@ -44,7 +49,7 @@ void AudioSystem::preloadAll()
 void AudioSystem::setSFXVolume(int volume_level)
 {
     sfx_volume_ = static_cast<float>(volume_level) * 10.f;
-    for (auto &sound : active_sounds_)
+    for (auto& sound : active_sounds_)
     {
         if (sound)
             sound->setVolume(sfx_volume_);
@@ -66,7 +71,7 @@ void AudioSystem::playSFX(SFX sfx)
         if (it == sfx_paths_.end())
             return;
 
-        const sf::SoundBuffer &buffer = Resource().getSoundBuffer(it->second);
+        const sf::SoundBuffer& buffer = Resource().getSoundBuffer(it->second);
 
         // Cấp phát âm thanh độc lập trên Heap để đảm bảo nó luôn sống cho tới khi phát xong
         auto sound = std::make_unique<sf::Sound>(buffer);
@@ -74,7 +79,7 @@ void AudioSystem::playSFX(SFX sfx)
         sound->play();
         active_sounds_.push_back(std::move(sound));
     }
-    catch (const std::exception &e)
+    catch (const std::exception& e)
     {
         std::cerr << "[AudioSystem] Lỗi phát SFX: " << e.what() << '\n';
     }
@@ -121,8 +126,9 @@ void AudioSystem::stopAllSFX()
 
 void AudioSystem::update()
 {
-    active_sounds_.remove_if([](const std::unique_ptr<sf::Sound> &sound)
-                             { return !sound || sound->getStatus() == sf::Sound::Status::Stopped; });
+    active_sounds_.remove_if(
+        [](const std::unique_ptr<sf::Sound>& sound)
+        { return !sound || sound->getStatus() == sf::Sound::Status::Stopped; });
 }
 
 void AudioSystem::clearAll()
