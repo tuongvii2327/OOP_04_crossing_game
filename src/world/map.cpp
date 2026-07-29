@@ -217,15 +217,16 @@ void Map::snapPlayerToGrid(People* player) const
 {
     if (!player || player->isDead()) return;
 
+    // Sử dụng target_position để kiểm tra làn đường đích đến, vì hitbox.position hiện tại vẫn ở điểm bắt đầu nhảy
     sf::FloatRect hitbox = player->getHitBox();
-    float player_y = hitbox.position.y;
+    float target_y = player->getTargetPosition().y + player->getHitBoxOffset().y;
     
     const Lane* current_lane = nullptr;
     for (const auto& lane : lanes)
     {
         float lane_top = lane->getPosition().y;
         float lane_bottom = lane_top + Constants::LANE_HEIGHT;
-        if (player_y >= lane_top && player_y <= lane_bottom)
+        if (target_y >= lane_top && target_y <= lane_bottom)
         {
             current_lane = lane.get();
             break;
@@ -233,15 +234,20 @@ void Map::snapPlayerToGrid(People* player) const
     }
 
     if (!current_lane) return;
-    //
-    float current_center_x = player->getPosition().x + player->getWidthSprite() / 2.f;
+    
+    float current_center_x = player->getTargetPosition().x + player->getWidthSprite() / 2.f;
 
     if (current_lane->getType() == Constants::LaneType::River)
     {
         const LaneRiver* river = dynamic_cast<const LaneRiver*>(current_lane);
         if (river)
         {
-            Wood* wood = river->getWoodAt(hitbox);
+            // tạo hitbox giả lập tại vị trí đích để kiểm tra va chạm với Wood
+            sf::FloatRect target_hitbox = hitbox;
+            target_hitbox.position.x = player->getTargetPosition().x + player->getHitBoxOffset().x;
+            target_hitbox.position.y = target_y;
+            
+            Wood* wood = river->getWoodAt(target_hitbox);
             if (wood)
             {
                 float wood_x = wood->getPosition().x;
@@ -254,21 +260,21 @@ void Map::snapPlayerToGrid(People* player) const
                 float target_center_x = (dist0 < dist1) ? cell0_center : cell1_center;
                 float new_x = target_center_x - player->getWidthSprite() / 2.f;
                 
-                player->setPosition(sf::Vector2f(new_x, player->getPosition().y));
+                player->snapTargetX(new_x);
                 return;
             }
         }
     }
 
     // Default static grid snap
-    float relative_x = player->getPosition().x - Constants::GAME_PLAY_BAR_WIDTH;
+    float relative_x = player->getTargetPosition().x - Constants::GAME_PLAY_BAR_WIDTH;
     int column = static_cast<int>(std::round(relative_x / Constants::CELL_SIZE));
     
     int total_cols = static_cast<int>(Constants::LANE_WIDTH / Constants::CELL_SIZE);
     column = std::max(0, std::min(column, total_cols - 1));
 
     float new_x = Constants::GAME_PLAY_BAR_WIDTH + column * Constants::CELL_SIZE + (Constants::CELL_SIZE - player->getWidthSprite()) / 2.f;
-    player->setPosition(sf::Vector2f(new_x, player->getPosition().y));
+    player->snapTargetX(new_x);
 }
 
 void Map::reset(float start_y)

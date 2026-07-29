@@ -240,6 +240,12 @@ void People::resetPosition()
     updateSpriteRect();
 }
 
+void People::snapTargetX(float new_x)
+{
+    target_position.x = new_x;
+    jump_end_pos.x = new_x;
+}
+
 sf::FloatRect People::getBounds() const { return sprite.getGlobalBounds(); }
 
 bool People::handleEvent(const sf::Event &event, float camera_top_y,

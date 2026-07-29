@@ -21,7 +21,8 @@ Constants::LaneType LaneRiver::getType() const
 }
 
 // populate list_dynamic with initial Wood objects, spread across the lane
-void LaneRiver::seedObjects() {
+void LaneRiver::seedObjects() 
+{
   // River lanes always have enough Wood for the player to cross
   int min_spawn = 2;
   int max_spawn = 3;
@@ -41,78 +42,70 @@ void LaneRiver::seedObjects() {
 
   const float min_gap = Constants::CELL_SIZE * 0.5f;
 
-  for (int i = 0; i < count; ++i) {
-    Constants::ObjectColor color = Constants::ObjectColor::None;
+  for (int i = 0; i < count; ++i)
+  {
+      Constants::ObjectColor color = Constants::ObjectColor::None;
 
-    auto obj = std::make_unique<Wood>(color, this);
+      auto obj = std::make_unique<Wood>(color, this);
 
-    float obj_width = obj->getWidthSprite();
-    float lane_left = position.x,
+      float obj_width = obj->getWidthSprite();
+      float lane_left = position.x,
           lane_right = position.x + Constants::LANE_WIDTH - obj_width;
-    int range = lane_right - lane_left;
-    if (range < 0) {
-      range = 0;
-    }
-    int count = std::min(randomRange(min_spawn, max_spawn),
-                         static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
+      int range = lane_right - lane_left;
+      if (range < 0)
+      {
+          range = 0;
+      }
+      int count = std::min(randomRange(min_spawn, max_spawn), static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
+      const float min_gap = Constants::CELL_SIZE * 0.5f;
 
-    const float min_gap = Constants::CELL_SIZE * 1.5f;
+      for (int i = 0; i < count; ++i)
+      {
+          Constants::ObjectColor color = Constants::ObjectColor::None;
+          auto obj = std::make_unique<Wood>(color, this);
 
-    for (int i = 0; i < count; ++i)
-    {
-        Constants::ObjectColor color = Constants::ObjectColor::None;
-
-        auto obj = std::make_unique<Wood>(color, this);
-
-        float obj_width = obj->getWidthSprite();
-        float lane_left = position.x,
+          float obj_width = obj->getWidthSprite();
+          float lane_left = position.x,
               lane_right = position.x + Constants::LANE_WIDTH - obj_width;
-        int range = lane_right - lane_left;
-        if (range < 0)
-        {
-            range = 0;
-        }
-        float x = lane_left;
-        bool placed = false;
-        for (int tryy = 0; tryy < 10; tryy++)
-        {
-            x = lane_left + randomRange(0, range);
-            bool overlap = false;
-            for (auto &other : list_dynamic)
-            {
-                float other_x = other->getPosition().x;
-                float other_width = other->getWidthSprite();
-                if (x < other_x + other_width + min_gap &&
-                    x + other_width + min_gap > other_x)
-                {
-                    overlap = true;
-                    break;
-                }
-            }
-            if (!overlap)
-            {
-                placed = true;
-                break;
-            }
-        }
-
-        obj->setPosition({x, 0});
-        list_dynamic.push_back(std::move(obj));
-    }
-
-    if (!placed) continue;
-
-    obj->setPosition({x, 0});
-    list_dynamic.push_back(std::move(obj));
+          int range = lane_right - lane_left;
+          if (range < 0)
+          {
+              range = 0;
+          }
+          float x = lane_left;
+          bool placed = false;
+          for (int tryy = 0; tryy < 10; tryy++)
+          {
+              x = lane_left + randomRange(0, range);
+              bool overlap = false;
+              for (auto& other : list_dynamic)
+              {
+                  float other_x = other->getPosition().x;
+                  float other_width = other->getWidthSprite();
+                  if (x < other_x + other_width + min_gap && x + other_width + min_gap > other_x)
+                  {
+                      overlap = true;
+                      break;
+                  }
+              }
+              if (!overlap)
+              {
+                  placed = true;
+                  break;
+              }
+          }
+          if (!placed) continue;
+          obj->setPosition({ x, 0 });
+          list_dynamic.push_back(std::move(obj));
+      }
   }
 
-  std::sort(list_dynamic.begin(), list_dynamic.end(),
-            [this](const std::unique_ptr<DynamicObject> &a,
-                   const std::unique_ptr<DynamicObject> &b) {
-              return a->getPosition().x * direction >
-                     b->getPosition().x * direction;
-            });
-  num_active_object = static_cast<int>(list_dynamic.size());
+      std::sort(list_dynamic.begin(), list_dynamic.end(),
+          [this](const std::unique_ptr<DynamicObject>& a,
+              const std::unique_ptr<DynamicObject>& b) {
+                  return a->getPosition().x * direction > b->getPosition().x * direction;
+          });
+      num_active_object = static_cast<int>(list_dynamic.size());
 }
 
 // probabilistically spawn (or reuse a recycled inactive Wood) once the lane
@@ -290,10 +283,12 @@ void LaneRiver::serialize(std::ostream &os) const
     Lane::serialize(os);
 }
 
-void LaneRiver::deserialize(std::istream &is)
+void LaneRiver::deserialize(std::istream& is)
 {
     // River lanes have no extra data beyond what the base class reads
     Lane::deserialize(is);
+}
+
 void LaneRiver::updateState(float delta_time) {
   Lane::updateState(delta_time);
   texture_variant++;

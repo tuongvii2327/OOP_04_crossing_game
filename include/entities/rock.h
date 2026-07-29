@@ -19,4 +19,5 @@ public:
 	// Other
 	Constants::ObjectEffect getEffect() const override { return Constants::ObjectEffect::Blocked; }
 	void updateState(float delta_time) override;
+
 };

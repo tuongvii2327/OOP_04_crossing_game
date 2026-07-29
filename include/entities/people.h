@@ -57,6 +57,10 @@ public:
     bool isAnimating() const { return is_animating; }
     sf::Vector2f getStartPosition(int init_cell = 6, int init_lane = 10) const;
     void resetPosition();
+    
+    // Thêm phương thức để truy cập đích đến và set X đích đến
+    sf::Vector2f getTargetPosition() const { return target_position; }
+    void snapTargetX(float new_x);
 
   sf::FloatRect getBounds() const;
   bool handleEvent(const sf::Event &event, float camera_top_y, const Map &map);

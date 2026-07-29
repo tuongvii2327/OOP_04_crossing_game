@@ -29,5 +29,8 @@ public:
   // the wood immediately ahead of `wood` in list_dynamic, if it is slower
   Wood *getNearestWoodAhead(const Wood &wood);
 
+  void serialize(std::ostream& os) const;
+  void deserialize(std::istream& is);
+
   void updateState(float delta_time) override; //call Lane::updateState and update frame, set new sprite
 };
