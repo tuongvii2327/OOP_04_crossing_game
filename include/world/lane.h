@@ -25,10 +25,10 @@ protected:
     std::deque<std::unique_ptr<StaticObject>> list_static;
     void seedCoins();
 
-    void moveBy(sf::Vector2f offset);                                                   // move position by offset, update sprite position
-    void adjustSprite();                                                                // scale sprite to fit LANE_WIDTH x LANE_HEIGHT
-    int randomRange(int start, int end);                                                // random int in [start, end]
-    virtual void seedObjects() = 0;                                                     // populate list_dynamic with initial objects matching the lane type
+    void moveBy(sf::Vector2f offset);        // move position by offset, update sprite position
+    void adjustSprite();                     // scale sprite to fit LANE_WIDTH x LANE_HEIGHT
+    int randomRange(int start, int end);     // random int in [start, end]
+    virtual void seedObjects() = 0;          // populate list_dynamic with initial objects matching the lane type
     int pickTextureVariant(const Constants::LaneType& type);
 
 public:
@@ -68,7 +68,7 @@ public:
 
     // Other
     void checkActive();                                  // re-marks the lane active every frame
-    virtual void updateState(float delta_time);          // advance all objects, recount actives, then spawn
+    virtual void updateState(float delta_time);          // advance all objects, recount actives, then spawn ***RIVER will override to present animation
     virtual void render(sf::RenderWindow &window) const; // draw lane sprite and objects
     virtual void spawnLane(const sf::Vector2f &new_position,
                            const int &new_level,

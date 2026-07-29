@@ -1,7 +1,8 @@
 #include "world/lane_river.h"
-
 #include "entities/wood.h"
 #include <algorithm>
+#include "utils/resource_manager.h"
+
 #include <limits>
 
 LaneRiver::LaneRiver(const sf::Vector2f &init_position, const int &init_level,
@@ -20,26 +21,37 @@ Constants::LaneType LaneRiver::getType() const
 }
 
 // populate list_dynamic with initial Wood objects, spread across the lane
-void LaneRiver::seedObjects()
-{
-    // River lanes always have enough Wood for the player to cross
-    int min_spawn = 2;
-    int max_spawn = 3;
+void LaneRiver::seedObjects() {
+  // River lanes always have enough Wood for the player to cross
+  int min_spawn = 2;
+  int max_spawn = 3;
 
-    if (level >= 10)
-    {
-        min_spawn = 1;
-        max_spawn = 2;
-    }
-    else if (level >= 3)
-    {
-        min_spawn = 2;
-        max_spawn = 3;
-    }
-    else
-    {
-        min_spawn = 2;
-        max_spawn = 3;
+  if (level >= 10) {
+    min_spawn = 1;
+    max_spawn = 2;
+  } else if (level >= 3) {
+    min_spawn = 2;
+    max_spawn = 3;
+  } else {
+    min_spawn = 2;
+    max_spawn = 3;
+  }
+  int count = std::min(randomRange(min_spawn, max_spawn),
+                       static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
+
+  const float min_gap = Constants::CELL_SIZE * 0.5f;
+
+  for (int i = 0; i < count; ++i) {
+    Constants::ObjectColor color = Constants::ObjectColor::None;
+
+    auto obj = std::make_unique<Wood>(color, this);
+
+    float obj_width = obj->getWidthSprite();
+    float lane_left = position.x,
+          lane_right = position.x + Constants::LANE_WIDTH - obj_width;
+    int range = lane_right - lane_left;
+    if (range < 0) {
+      range = 0;
     }
     int count = std::min(randomRange(min_spawn, max_spawn),
                          static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
@@ -88,14 +100,19 @@ void LaneRiver::seedObjects()
         list_dynamic.push_back(std::move(obj));
     }
 
-    std::sort(list_dynamic.begin(), list_dynamic.end(),
-              [this](const std::unique_ptr<DynamicObject> &a,
-                     const std::unique_ptr<DynamicObject> &b)
-              {
-                  return a->getPosition().x * direction >
-                         b->getPosition().x * direction;
-              });
-    num_active_object = static_cast<int>(list_dynamic.size());
+    if (!placed) continue;
+
+    obj->setPosition({x, 0});
+    list_dynamic.push_back(std::move(obj));
+  }
+
+  std::sort(list_dynamic.begin(), list_dynamic.end(),
+            [this](const std::unique_ptr<DynamicObject> &a,
+                   const std::unique_ptr<DynamicObject> &b) {
+              return a->getPosition().x * direction >
+                     b->getPosition().x * direction;
+            });
+  num_active_object = static_cast<int>(list_dynamic.size());
 }
 
 // probabilistically spawn (or reuse a recycled inactive Wood) once the lane
@@ -229,6 +246,23 @@ LaneRiver::getWoodVelocityAt(const sf::FloatRect &player_hitbox) const
     return {0.f, 0.f};
 }
 
+Wood *LaneRiver::getWoodAt(const sf::FloatRect& player_hitbox) const {
+    float lane_top = position.y;
+    float lane_bottom = position.y + Constants::LANE_HEIGHT;
+    float player_y = player_hitbox.position.y;
+    if (player_y < lane_top || player_y > lane_bottom)
+        return nullptr;
+    for (const auto& obj : list_dynamic) {
+        if (!obj->isActive())
+            continue;
+        if (obj->getType() != Constants::DynamicObjectType::Wood)
+            continue;
+        if (isPlayerOnWood(player_hitbox, obj.get()))
+            return dynamic_cast<Wood*>(obj.get());
+    }
+    return nullptr;
+}
+
 // the wood immediately ahead of wood in list_dynamic, if it is slower
 Wood *LaneRiver::getNearestWoodAhead(const Wood &wood)
 {
@@ -260,4 +294,9 @@ void LaneRiver::deserialize(std::istream &is)
 {
     // River lanes have no extra data beyond what the base class reads
     Lane::deserialize(is);
+void LaneRiver::updateState(float delta_time) {
+  Lane::updateState(delta_time);
+  texture_variant++;
+  setSprite(
+      Resource().getLaneTexture(Constants::LaneType::River, texture_variant));
 }

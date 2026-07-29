@@ -23,9 +23,11 @@ public:
   // {0,0} if none
   sf::Vector2f getWoodVelocityAt(const sf::FloatRect &player_hitbox) const;
 
+  // Helper: returns the Wood the player is standing on, or nullptr if none
+  Wood *getWoodAt(const sf::FloatRect &player_hitbox) const;
+
   // the wood immediately ahead of `wood` in list_dynamic, if it is slower
   Wood *getNearestWoodAhead(const Wood &wood);
 
-  void serialize(std::ostream &os) const override;
-  void deserialize(std::istream &is) override;
+  void updateState(float delta_time) override; //call Lane::updateState and update frame, set new sprite
 };

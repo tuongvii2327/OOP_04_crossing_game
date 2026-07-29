@@ -152,6 +152,7 @@ void PlayingState::handleEvent(const sf::Event &event)
 	float cam_top = view_.getCenter().y - (view_.getSize().y / 2.f);
 	if (player_->handleEvent(event, cam_top, map_))
 	{
+		map_.snapPlayerToGrid(player_.get());
 		scroll_armed_ = true;
 		score_text_->setString("Score: " +
 							   std::to_string(context_->data->current_score));

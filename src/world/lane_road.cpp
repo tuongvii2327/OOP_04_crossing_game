@@ -89,6 +89,8 @@ void LaneRoad::seedObjects()
             }
         }
 
+        if (!placed) continue;
+
         obj->setPosition({x, 0});
         list_dynamic.push_back(std::move(obj));
     }

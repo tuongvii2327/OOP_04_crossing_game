@@ -21,27 +21,38 @@ const int VISUAL_DISTANCE = 15;
 // object)
 constexpr float HITBOX_SIZE_RATIO = 0.95f;
 
+    // mot frame hinh trong animation keo dai bao nhieu lan dt (time 1 frame = dt * NUM_OF_DT_PER_FRAME)
+    const int NUM_OF_DT_PER_FRAME = 4;
+
 #pragma region LANE
-const unsigned int LANE_HEIGHT = 105;
-const unsigned int LANE_WIDTH = 1260;
-const unsigned int MAX_OBJECT_PER_LANE = 4;
+    const unsigned int LANE_HEIGHT = 105;
+    const unsigned int LANE_WIDTH = 1260;
+    const unsigned int MAX_OBJECT_PER_LANE = 4;
 
-enum class LaneType { Grass, Road, Safe, River };
+	enum class LaneType
+	{
+		Grass,
+		Road,
+		Safe,
+		River
+	};
 
-inline int getNumberOfTextureVariant(const LaneType &type) {
-  switch (type) {
-  case LaneType::Grass:
-    return 21;
-  case LaneType::Safe:
-    return 21;
-  case LaneType::Road:
-    return 3;
-  case LaneType::River:
-    return 1;
-  default:
-    return 1;
-  }
-}
+	inline int getNumberOfTextureVariant(const LaneType &type)
+	{
+		switch (type)
+		{
+		case LaneType::Grass:
+			return 21;
+		case LaneType::Safe:
+			return 21;
+		case LaneType::Road:
+			return 3;
+		case LaneType::River:
+			return 7;
+		default:
+			return 1;
+		}
+	}
 #pragma endregion
 
 #pragma region CAMERA

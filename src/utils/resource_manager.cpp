@@ -369,7 +369,7 @@ const sf::SoundBuffer &ResourceManager::getSoundBuffer(const std::string &filepa
 const sf::Texture &ResourceManager::getDynamicObjectTexture(const Constants::DynamicObjectType &type, const Constants::ObjectColor &color, int cur_frame)
 {
     std::string type_name, color_name, frame;
-    cur_frame = (cur_frame / 4) % Constants::getNumberOfFrames(type) + 1;
+    cur_frame = (cur_frame / Constants::NUM_OF_DT_PER_FRAME) % Constants::getNumberOfFrames(type) + 1;
     frame = std::to_string(cur_frame);
     switch (type)
     {
@@ -484,6 +484,10 @@ const sf::Texture &ResourceManager::getStaticObjectTexture(const Constants::Stat
 
 const sf::Texture &ResourceManager::getLaneTexture(const Constants::LaneType &type, int texture_variant)
 {
+    if (type == Constants::LaneType::River) //special casse, variant of River work as current_frame
+    {
+        texture_variant = (texture_variant / 3) % Constants::getNumberOfTextureVariant(type) + 1;
+    }
     if (texture_variant < 1 || texture_variant > Constants::getNumberOfTextureVariant(type))
     {
         texture_variant = 1;
