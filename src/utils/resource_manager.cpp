@@ -416,6 +416,14 @@ const sf::Texture &ResourceManager::getDynamicObjectTexture(const Constants::Dyn
         color_name = "none";
         break;
     }
+    
+    if (type == Constants::DynamicObjectType::People)
+    {
+        if (color == Constants::ObjectColor::None) color_name = "person";
+        else if (color == Constants::ObjectColor::Blue) color_name = "robot";
+        else if (color == Constants::ObjectColor::Green) color_name = "usagi";
+    }
+    
     std::string final_path = "assets/textures/" + type_name + "/" + color_name + "_" + frame + ".png";
     return getInstance().getTexture(final_path);
 }
@@ -441,26 +449,34 @@ const sf::Texture &ResourceManager::getStaticObjectTexture(const Constants::Stat
         type_name = "rock";
         break;
     }
-    switch (color)
+
+    if (type == Constants::StaticObjectType::Traffic)
     {
-    case Constants::ObjectColor::Red:
-        color_name = "red";
-        break;
-    case Constants::ObjectColor::Blue:
-        color_name = "blue";
-        break;
-    case Constants::ObjectColor::Green:
-        color_name = "green";
-        break;
-    case Constants::ObjectColor::Grey:
-        color_name = "grey";
-        break;
-    case Constants::ObjectColor::None:
-        color_name = "none";
-        break;
-    default:
-        color_name = "none";
-        break;
+        color_name = "traffic";
+    }
+    else
+    {
+        switch (color)
+        {
+        case Constants::ObjectColor::Red:
+            color_name = "red";
+            break;
+        case Constants::ObjectColor::Blue:
+            color_name = "blue";
+            break;
+        case Constants::ObjectColor::Green:
+            color_name = "green";
+            break;
+        case Constants::ObjectColor::Grey:
+            color_name = "grey";
+            break;
+        case Constants::ObjectColor::None:
+            color_name = "none";
+            break;
+        default:
+            color_name = "none";
+            break;
+        }
     }
     std::string final_path = "assets/textures/" + type_name + "/" + color_name + ".png";
     return getInstance().getTexture(final_path);

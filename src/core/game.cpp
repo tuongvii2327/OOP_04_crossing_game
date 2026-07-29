@@ -123,8 +123,8 @@ void Game::loadPlayerData()
         Serialization::read(file, data_.total_coins);
         Serialization::read(file, data_.selected_character);
 
-        // Đọc trạng thái mở khóa của 4 nhân vật
-        for (int i = 0; i < 4; ++i)
+        // Đọc trạng thái mở khóa của 3 nhân vật
+        for (int i = 0; i < 3; ++i)
         {
             bool is_unlocked;
             Serialization::read(file, is_unlocked);
@@ -138,7 +138,7 @@ void Game::loadPlayerData()
     {
         data_.total_coins = 0; // Mặc định là 0 nếu chưa có file dữ liệu
         data_.selected_character = 0;
-        data_.unlocked_characters = {true, false, false, false};
+        data_.unlocked_characters = {true, false, false};
     }
 }
 
@@ -150,8 +150,8 @@ void Game::savePlayerData()
         Serialization::write(file, data_.total_coins);
         Serialization::write(file, data_.selected_character);
 
-        // Ghi trạng thái mở khóa của 4 nhân vật
-        for (int i = 0; i < 4; ++i)
+        // Ghi trạng thái mở khóa của 3 nhân vật
+        for (int i = 0; i < 3; ++i)
         {
             bool is_unlocked = data_.unlocked_characters[i];
             Serialization::write(file, is_unlocked);

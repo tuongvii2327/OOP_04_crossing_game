@@ -81,9 +81,6 @@ void PlayingState::init()
     case 2:
         selected_color = Constants::ObjectColor::Green;
         break;
-    case 3:
-        selected_color = Constants::ObjectColor::Grey;
-        break;
     default:
         selected_color = Constants::ObjectColor::None;
         break;

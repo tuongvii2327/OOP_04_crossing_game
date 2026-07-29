@@ -26,10 +26,10 @@ private:
 
     sf::Sprite char_sprite_;
 
-    // Dữ liệu 4 nhân vật
-    const int NUM_CHARS = 4;
-    const int char_prices_[4] = {0, 50, 100, 200};
-    const std::string char_names_[4] = {"DEFAULT", "BLUE SKIN", "GREEN SKIN", "GREY SKIN"};
+    // Dữ liệu 3 nhân vật
+    const int NUM_CHARS = 3;
+    const int char_prices_[3] = {0, 50, 100};
+    const std::string char_names_[3] = {"PERSON", "ROBOT", "USAGI"};
 
     void setupUI(const sf::Font &font);
     void updateUI();

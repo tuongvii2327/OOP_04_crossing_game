@@ -89,7 +89,6 @@ void ShopState::updateUI() {
   switch (viewing_char_index_) {
   case 1: preview_color = Constants::ObjectColor::Blue;  break;
   case 2: preview_color = Constants::ObjectColor::Green; break;
-  case 3: preview_color = Constants::ObjectColor::Grey;  break;
   }
 
   const sf::Texture &tex = Resource().getDynamicObjectTexture(

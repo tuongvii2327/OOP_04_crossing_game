@@ -20,7 +20,7 @@ struct GameData
 
 	// for shop
 	int selected_character = 0;
-	std::vector<bool> unlocked_characters = {true, false, false, false};
+	std::vector<bool> unlocked_characters = {true, false, false};
 };
 
 class StateMachine; // Forward declaration
