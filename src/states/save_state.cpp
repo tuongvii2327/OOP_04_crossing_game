@@ -90,8 +90,7 @@ void SaveState::setupUI(const sf::Font &font) {
   save_slot_texts_.push_back(std::move(back_text));
 
   // 2. SETUP UI CẢNH BÁO GHI ĐÈ (OVERWRITE PROMPT)
-  overwrite_prompt_text_->setString(
-      "SLOT ALREADY EXISTS!\nOVERWRITE SAVE? (Y / N)");
+  overwrite_prompt_text_->setString("SLOT ALREADY EXISTS!\nOVERWRITE SAVE? (ENTER / ESC)");
   overwrite_prompt_text_->setCharacterSize(48);
   overwrite_prompt_text_->setFillColor(sf::Color::Red);
 
@@ -117,15 +116,13 @@ void SaveState::handleEvent(const sf::Event &event) {
   // CONFIRM OVERRIDE
   if (current_mode_ == Mode::ConfirmOverwrite) {
     if (const auto *key_pressed = event.getIf<sf::Event::KeyPressed>()) {
-      if (key_pressed->code == sf::Keyboard::Key::Y ||
-          key_pressed->code == sf::Keyboard::Key::Enter) {
+      if (key_pressed->code == sf::Keyboard::Key::Enter) {
         // Đồng ý ghi đè -> Chuyển sang chế độ gõ tên
         current_mode_ = Mode::NamingMode;
         input_name_ = "";
         input_display_text_->setString("_");
         error_text_->setString("");
-      } else if (key_pressed->code == sf::Keyboard::Key::N ||
-                 key_pressed->code == sf::Keyboard::Key::Escape) {
+      } else if (key_pressed->code == sf::Keyboard::Key::Escape) {
         // Từ chối -> Hủy bỏ, quay lại chọn Slot
         current_mode_ = Mode::SelectSlot;
       }
