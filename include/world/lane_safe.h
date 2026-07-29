@@ -8,9 +8,6 @@ class StaticObject;
 
 class LaneSafe : public Lane
 {
-private:
-    std::deque<std::unique_ptr<StaticObject>> list_static;
-
 protected:
     void seedObjects() override; // spawn rocks
 

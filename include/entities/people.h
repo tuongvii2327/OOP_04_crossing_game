@@ -51,6 +51,7 @@ public:
   bool isColliding(const sf::FloatRect &other_hitbox) const override;
 
   bool tryToMove(float dx, float dy, float camera_top_y, const Map &map);
+  void moveBy(sf::Vector2f offset);
 
     void die();
     bool isDead() const;

@@ -24,8 +24,9 @@ void LaneSafe::seedObjects() {
   if (count == 0)
     return;
 
+  int total_cols = static_cast<int>(Constants::LANE_WIDTH / Constants::CELL_SIZE);
   std::vector<int> available_k;
-  for (int k = -4; k <= 6; ++k) {
+  for (int k = 0; k < total_cols; ++k) {
     available_k.push_back(k);
   }
 
@@ -34,11 +35,11 @@ void LaneSafe::seedObjects() {
       std::remove_if(
           available_k.begin(), available_k.end(),
           [this](int k) {
-              float rock_center = k * Constants::CELL_SIZE;
               for (const auto &s : list_static) {
                     if (s->getType() != Constants::StaticObjectType::Coin) continue;
                     float coin_left = s->getPosition().x;
-                    if (rock_center == coin_left) return true; // this column overlaps with a coin
+                    int coin_col = std::max(0, static_cast<int>(std::round((coin_left - Constants::GAME_PLAY_BAR_WIDTH) / Constants::CELL_SIZE)));
+                    if (k == coin_col) return true; // this column overlaps with a coin
               }
               return false;
           }),

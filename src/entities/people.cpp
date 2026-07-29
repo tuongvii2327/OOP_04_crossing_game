@@ -197,6 +197,15 @@ bool People::tryToMove(float dx, float dy, float camera_top_y, const Map &map)
     return true;
 }
 
+void People::moveBy(sf::Vector2f offset)
+{
+    DynamicObject::moveBy(offset);
+    target_position += offset;
+    start_lerp_position += offset;
+    jump_start_pos += offset;
+    jump_end_pos += offset;
+}
+
 void People::die() { is_dead = true; }
 
 bool People::isDead() const { return is_dead; }
