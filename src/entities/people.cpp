@@ -15,6 +15,7 @@ People::People(Constants::ObjectColor color)
       step_size(static_cast<float>(Constants::LANE_HEIGHT)),
       people_color(color),
       current_dir(Direction::Up),
+      prev_dir_(Direction::Up),
       current_anim_state(AnimState::Idle),
       anim_timer(0.f),
       anim_duration(0.3f),
@@ -49,11 +50,29 @@ Constants::ObjectColor People::getColor() const { return people_color; }
 void People::updateSpriteRect()
 {
     int col = static_cast<int>(current_anim_state);
-    int row = static_cast<int>(current_dir);
+    // Trước khi đổi hướng giữa nhảy thì vẫn giữ sprite hướng cũ
+    Direction dir = (is_turning_ && !row_swapped_) ? prev_dir_ : current_dir;
+    int row = static_cast<int>(dir);
     int left = col * FRAME_W;
     int top = row * FRAME_H;
     sprite.setTextureRect(
         sf::IntRect(sf::Vector2i(left, top), sf::Vector2i(FRAME_W, FRAME_H)));
+}
+
+float People::directionAngle(Direction dir)
+{
+    switch (dir)
+    {
+    case Direction::Down:
+        return 0.f;
+    case Direction::Right:
+        return 90.f;
+    case Direction::Up:
+        return 180.f;
+    case Direction::Left:
+        return 270.f;
+    }
+    return 0.f;
 }
 
 
@@ -76,6 +95,43 @@ void People::updateState(float delta_time)
         float arc = -JUMP_ARC_HEIGHT * std::sin(static_cast<float>(M_PI) * progress);
         float vis_y = jump_start_pos.y + (jump_end_pos.y - jump_start_pos.y) * progress + arc;
         sprite.setPosition(sf::Vector2f(vis_x, vis_y));
+
+        // --- Quay người khi đổi hướng (kiểu Crossy Road) ---
+        // Sprite chuyển sang hướng mới ở đỉnh cú nhảy, kèm xoay mượt quanh tâm
+        if (is_turning_)
+        {
+            if (progress < 0.35f)
+            {
+                sprite.setOrigin({0.f, 0.f});
+                sprite.setRotation(sf::degrees(0.f));
+            }
+            else if (progress < 0.65f)
+            {
+                float t = (progress - 0.35f) / 0.3f;
+                float rot = std::sin(static_cast<float>(M_PI) * t) * turn_amplitude_;
+                sf::Vector2f sc = sprite.getScale();
+                sprite.setOrigin({FRAME_W / 2.f, FRAME_H / 2.f});
+                sprite.setPosition(sf::Vector2f(vis_x + FRAME_W * sc.x / 2.f,
+                                                vis_y + FRAME_H * sc.y / 2.f));
+                sprite.setRotation(sf::degrees(rot));
+                if (progress >= 0.5f && !row_swapped_)
+                {
+                    row_swapped_ = true;
+                }
+            }
+            else
+            {
+                is_turning_ = false;
+                row_swapped_ = false;
+                sprite.setOrigin({0.f, 0.f});
+                sprite.setRotation(sf::degrees(0.f));
+            }
+        }
+        else
+        {
+            sprite.setOrigin({0.f, 0.f});
+            sprite.setRotation(sf::degrees(0.f));
+        }
 
         // --- Animation frame selection + squash/stretch scale ---
         if (progress < 0.2f)
@@ -123,10 +179,14 @@ void People::updateState(float delta_time)
         if (progress >= 1.0f)
         {
             is_animating = false;
+            is_turning_ = false;
+            row_swapped_ = false;
             current_anim_state = AnimState::Idle;
             // Commit the logical position after the jump completes
             position = target_position;
             start_lerp_position = position;
+            sprite.setOrigin({0.f, 0.f});
+            sprite.setRotation(sf::degrees(0.f));
             sprite.setPosition(position);
             hitbox.position = position + hitbox_offset;
             sprite.setScale(sf::Vector2f(base_scale_x_, base_scale_y_));
@@ -244,7 +304,12 @@ void People::resetPosition()
 
     current_anim_state = AnimState::Idle;
     current_dir = Direction::Up;
+    prev_dir_ = Direction::Up;
+    is_turning_ = false;
+    row_swapped_ = false;
     is_animating = false;
+    sprite.setOrigin({0.f, 0.f});
+    sprite.setRotation(sf::degrees(0.f));
     sprite.setScale(sf::Vector2f(base_scale_x_, base_scale_y_));
     updateSpriteRect();
 }
@@ -267,35 +332,53 @@ bool People::handleEvent(const sf::Event &event, float camera_top_y,
     if (!key)
         return false;
 
+    Direction new_dir = current_dir;
+    float dx = 0.f, dy = 0.f;
     if (key->code == sf::Keyboard::Key::W || key->code == sf::Keyboard::Key::Up)
     {
-        current_dir = Direction::Up;
-        updateSpriteRect();
-        return tryToMove(0.f, -step_size, camera_top_y, map);
+        new_dir = Direction::Up;
+        dy = -step_size;
     }
     else if (key->code == sf::Keyboard::Key::S ||
              key->code == sf::Keyboard::Key::Down)
     {
-        current_dir = Direction::Down;
-        updateSpriteRect();
-        return tryToMove(0.f, step_size, camera_top_y, map);
+        new_dir = Direction::Down;
+        dy = step_size;
     }
     else if (key->code == sf::Keyboard::Key::A ||
              key->code == sf::Keyboard::Key::Left)
     {
-        current_dir = Direction::Left;
-        updateSpriteRect();
-        return tryToMove(-step_size, 0.f, camera_top_y, map);
+        new_dir = Direction::Left;
+        dx = -step_size;
     }
     else if (key->code == sf::Keyboard::Key::D ||
              key->code == sf::Keyboard::Key::Right)
     {
-        current_dir = Direction::Right;
-        updateSpriteRect();
-        return tryToMove(step_size, 0.f, camera_top_y, map);
+        new_dir = Direction::Right;
+        dx = step_size;
+    }
+    else
+    {
+        return false;
     }
 
-    return false;
+    if (!tryToMove(dx, dy, camera_top_y, map))
+        return false;
+
+    // Đổi hướng: sprite sẽ quay sang hướng mới ở đỉnh cú nhảy (Crossy Road style)
+    if (new_dir != current_dir)
+    {
+        prev_dir_ = current_dir;
+        current_dir = new_dir;
+        is_turning_ = true;
+        row_swapped_ = false;
+        float diff = std::abs(directionAngle(prev_dir_) - directionAngle(current_dir));
+        if (diff > 180.f)
+            diff = 360.f - diff;
+        turn_amplitude_ = diff * 0.5f;
+    }
+
+    return true;
 }
 
 void People::serialize(std::ostream &os) const
@@ -321,11 +404,16 @@ void People::deserialize(std::istream &is)
     int dir_int = 0;
     Serialization::read(is, dir_int);
     current_dir = static_cast<Direction>(dir_int);
+    prev_dir_ = current_dir;
 
     is_dead = false;
     is_active = true;
     is_animating = false;
+    is_turning_ = false;
+    row_swapped_ = false;
     current_anim_state = AnimState::Idle;
+    sprite.setOrigin({0.f, 0.f});
+    sprite.setRotation(sf::degrees(0.f));
 
     updateSpriteRect();
     sprite.setPosition(position);

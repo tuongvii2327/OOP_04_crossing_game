@@ -34,12 +34,18 @@ private:
     Constants::ObjectColor people_color;
 
     Direction current_dir;
+    Direction prev_dir_;
+    bool is_turning_ = false;
+    bool row_swapped_ = false;
+    float turn_amplitude_ = 0.f;
     AnimState current_anim_state;
     float anim_timer;
     float anim_duration;
     bool is_animating;
 
     void updateSpriteRect();
+
+    static float directionAngle(Direction dir);
 
 public:
     People(Constants::ObjectColor color = Constants::ObjectColor::None);
