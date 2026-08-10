@@ -8,7 +8,7 @@ class LaneRiver : public Lane
 {
 protected:
     void seedObjects() override;
-
+    void seedCoins() override;
 public:
     LaneRiver(const sf::Vector2f& init_position = {0, 0}, const int& init_level = 1,
               const int& init_direction = 1);
@@ -33,6 +33,6 @@ public:
     void serialize(std::ostream& os) const;
     void deserialize(std::istream& is);
 
-    void updateState(
-        float delta_time) override; // call Lane::updateState and update frame, set new sprite
+    void updateState(float delta_time) override; // call Lane::updateState and update frame, set new sprite
+    void render(sf::RenderWindow& window) const override;
 };

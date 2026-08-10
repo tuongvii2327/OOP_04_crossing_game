@@ -25,7 +25,7 @@ protected:
     int num_active_object = 0;
     std::deque<std::unique_ptr<DynamicObject>> list_dynamic;
     std::deque<std::unique_ptr<StaticObject>> list_static;
-    void seedCoins();
+    virtual void seedCoins();
 
     void moveBy(sf::Vector2f offset);    // move position by offset, update sprite position
     void adjustSprite();                 // scale sprite to fit LANE_WIDTH x LANE_HEIGHT

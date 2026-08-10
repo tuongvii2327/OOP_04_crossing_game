@@ -10,6 +10,7 @@ LaneRiver::LaneRiver(const sf::Vector2f& init_position, const int& init_level,
     : Lane(init_position, init_level, init_direction, Constants::LaneType::River)
 {
     seedObjects();
+    seedCoins();
 }
 
 LaneRiver::~LaneRiver() = default;
@@ -19,95 +20,91 @@ Constants::LaneType LaneRiver::getType() const { return Constants::LaneType::Riv
 // populate list_dynamic with initial Wood objects, spread across the lane
 void LaneRiver::seedObjects()
 {
-    // River lanes always have enough Wood for the player to cross
     int min_spawn = 2;
     int max_spawn = 3;
 
-    if (level >= 10)
-    {
-        min_spawn = 1;
-        max_spawn = 2;
-    }
-    else if (level >= 3)
-    {
-        min_spawn = 2;
-        max_spawn = 3;
-    }
-    else
-    {
-        min_spawn = 2;
-        max_spawn = 3;
-    }
-    int count = std::min(randomRange(min_spawn, max_spawn),
-                         static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
+    if (level >= 10) { min_spawn = 1; max_spawn = 2; }
+    else if (level >= 3) { min_spawn = 2; max_spawn = 3; }
 
+    int count = std::min(randomRange(min_spawn, max_spawn), static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
     const float min_gap = Constants::CELL_SIZE * 0.5f;
 
     for (int i = 0; i < count; ++i)
     {
         Constants::ObjectColor color = Constants::ObjectColor::None;
-
+        
         auto obj = std::make_unique<Wood>(color, this);
 
         float obj_width = obj->getWidthSprite();
         float lane_left = position.x, lane_right = position.x + Constants::LANE_WIDTH - obj_width;
-        int range = lane_right - lane_left;
-        if (range < 0)
-        {
-            range = 0;
-        }
-        int count = std::min(randomRange(min_spawn, max_spawn),
-                             static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
-        const float min_gap = Constants::CELL_SIZE * 0.5f;
+        int range = std::max(0.f, lane_right - lane_left);
 
-        for (int i = 0; i < count; ++i)
+        float x = lane_left;
+        bool placed = false;
+        for (int tryy = 0; tryy < 10; tryy++)
         {
-            Constants::ObjectColor color = Constants::ObjectColor::None;
-            auto obj = std::make_unique<Wood>(color, this);
-
-            float obj_width = obj->getWidthSprite();
-            float lane_left = position.x,
-                  lane_right = position.x + Constants::LANE_WIDTH - obj_width;
-            int range = lane_right - lane_left;
-            if (range < 0)
+            x = lane_left + randomRange(0, static_cast<int>(range));
+            bool overlap = false;
+            for (auto& other : list_dynamic)
             {
-                range = 0;
-            }
-            float x = lane_left;
-            bool placed = false;
-            for (int tryy = 0; tryy < 10; tryy++)
-            {
-                x = lane_left + randomRange(0, range);
-                bool overlap = false;
-                for (auto& other : list_dynamic)
+                float other_x = other->getPosition().x;
+                float other_width = other->getWidthSprite();
+                if (x < other_x + other_width + min_gap && x + obj_width + min_gap > other_x)
                 {
-                    float other_x = other->getPosition().x;
-                    float other_width = other->getWidthSprite();
-                    if (x < other_x + other_width + min_gap && x + other_width + min_gap > other_x)
-                    {
-                        overlap = true;
-                        break;
-                    }
-                }
-                if (!overlap)
-                {
-                    placed = true;
+                    overlap = true;
                     break;
                 }
             }
-            if (!placed)
-                continue;
+            if (!overlap)
+            {
+                placed = true;
+                break;
+            }
+        }
+
+        if (placed)
+        {
             obj->setPosition({x, 0});
             list_dynamic.push_back(std::move(obj));
         }
     }
 
-    std::sort(
-        list_dynamic.begin(), list_dynamic.end(),
+    std::sort(list_dynamic.begin(), list_dynamic.end(),
         [this](const std::unique_ptr<DynamicObject>& a, const std::unique_ptr<DynamicObject>& b)
         { return a->getPosition().x * direction > b->getPosition().x * direction; });
     num_active_object = static_cast<int>(list_dynamic.size());
 }
+
+void LaneRiver::seedCoins()
+{
+    for (const auto &obj : list_dynamic)
+    {
+        if (auto wood = dynamic_cast<Wood*>(obj.get()))
+        {
+            if (randomRange(0, 9) < 3)
+            {
+                int cell_k = randomRange(0, 1); 
+
+                float coin_width = static_cast<float>(Constants::getSizeInGame(Constants::StaticObjectType::Coin).width);
+                float coin_height = static_cast<float>(Constants::getSizeInGame(Constants::StaticObjectType::Coin).height);
+
+                // Tính offset X cố định trên khúc gỗ
+                float offset_x = (cell_k * Constants::CELL_SIZE) + (Constants::CELL_SIZE - coin_width) / 2.f;
+                float coin_x = wood->getPosition().x + offset_x;
+                float coin_y = position.y + (Constants::LANE_HEIGHT - coin_height) / 2.f;
+
+                auto coin = std::make_unique<Coin>(this, sf::Vector2f{coin_x, coin_y}, Constants::ObjectColor::None);
+                
+                // ─── TRUYỀN OFFSET VÀO DỮ LIỆU CỦA COIN ───
+                coin->setParentWood(wood, offset_x);
+                coin->setVelocity(wood->getVelocity());
+                
+                list_static.push_back(std::move(coin));
+            }
+        }
+    }
+}
+
 
 // probabilistically spawn (or reuse a recycled inactive Wood) once the lane
 // has room and the most-recently-entered object has cleared the entry edge
@@ -177,8 +174,9 @@ void LaneRiver::spawnObject()
 static bool isPlayerOnWood(const sf::FloatRect& player_hitbox, const DynamicObject* wood)
 {
     float player_center_x = player_hitbox.position.x + player_hitbox.size.x / 2.f;
-    float wood_left = wood->getHitBox().position.x;
-    float wood_right = wood_left + wood->getHitBox().size.x;
+    float wood_left = wood->getPosition().x; 
+    float wood_right = wood_left + wood->getWidthSprite();
+    
     return player_center_x >= wood_left && player_center_x <= wood_right;
 }
 
@@ -291,4 +289,22 @@ void LaneRiver::updateState(float delta_time)
     Lane::updateState(delta_time);
     texture_variant++;
     setSprite(Resource().getLaneTexture(Constants::LaneType::River, texture_variant));
+}
+
+void LaneRiver::render(sf::RenderWindow& window) const
+{
+    // 1. Vẽ phông nền mặt nước Sông ở dưới cùng
+    window.draw(sprite);
+
+    // 2. Vẽ danh sách các Khúc Gỗ (list_dynamic) TRƯỚC
+    for (const auto &o : list_dynamic)
+    {
+        o->render(window);
+    }
+
+    // 3. Vẽ danh sách Đồng Xu (list_static) SAU để Coin luôn nổi ĐÈ LÊN TRÊN MẶT GỖ
+    for (const auto &s : list_static)
+    {
+        s->render(window);
+    }
 }

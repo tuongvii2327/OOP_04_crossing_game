@@ -11,6 +11,7 @@ LaneSafe::LaneSafe(const sf::Vector2f& init_position, const int& init_level,
     {
         seedObjects();
     }
+    seedCoins();
 }
 
 LaneSafe::~LaneSafe() = default;

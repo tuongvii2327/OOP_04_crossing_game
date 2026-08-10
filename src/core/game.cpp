@@ -128,7 +128,6 @@ void Game::loadPlayerData()
         Serialization::read(file, data_.selected_character);
 
         // Đọc tuần tự trạng thái mở khóa của 3 nhân vật hiện tại
-        // TODO: Sẽ mở rộng nếu thêm nhân vật mới
         for (int i = 0; i < 3; ++i)
         {
             bool is_unlocked;
@@ -137,7 +136,45 @@ void Game::loadPlayerData()
         }
 
         file.close();
-        std::cout << "[Game] Loaded Total Coins: " << data_.total_coins << "\n";
+
+        // ─── KIỂM TRA KHÓA MÃ HÓA BỊ LỆCH / DỮ LIỆU BIẾN DẠNG ───
+        bool is_corrupted = false;
+
+        // 1. Kiểm tra số Coin hợp lệ
+        if (data_.total_coins < 0 || data_.total_coins > 1000000)
+        {
+            is_corrupted = true;
+        }
+
+        // 2. Kiểm tra chỉ số nhân vật chọn hợp lệ (chỉ từ 0 đến 2)
+        if (data_.selected_character < 0 || data_.selected_character > 2)
+        {
+            is_corrupted = true;
+        }
+
+        // 3. Nhân vật mặc định đầu tiên (index 0) bắt buộc phải luôn được mở khóa
+        if (!data_.unlocked_characters[0])
+        {
+            is_corrupted = true;
+        }
+
+        // ─── XỬ LÝ KHI PHÁT HIỆN LỆCH KHÓA MÃ HÓA ───
+        if (is_corrupted)
+        {
+            std::cout << "[Game] Key Mismatch / Corrupted Data detected! Resetting player data to default...\n";
+            
+            // Reset về dữ liệu mặc định cho người chơi
+            data_.total_coins = 0;
+            data_.selected_character = 0;
+            data_.unlocked_characters = {true, false, false};
+
+            // Lưu đè ngay lập tức bằng Secret Key mới
+            savePlayerData(); 
+        }
+        else
+        {
+            std::cout << "[Game] Loaded Total Coins: " << data_.total_coins << "\n";
+        }
     }
     else
     {

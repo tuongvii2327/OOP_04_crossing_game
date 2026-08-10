@@ -9,7 +9,7 @@
 namespace Serialization
 {
 // Bảo mật: Khóa mã hóa bí mật (Secret Key) để dùng cho thuật toán XOR Cipher
-inline constexpr std::string_view SECRET_KEY = "SixSeven67";
+inline constexpr std::string_view SECRET_KEY = "Nhom04 - OOP: Duy - Khang - Mai - Nghia - Vi";
 inline constexpr size_t KEY_LEN = SECRET_KEY.size();
 
 // Thuật toán xử lý mã hóa / giải mã XOR

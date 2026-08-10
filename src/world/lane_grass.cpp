@@ -10,6 +10,7 @@ LaneGrass::LaneGrass(const sf::Vector2f& init_position, const int& init_level,
     : Lane(init_position, init_level, init_direction, Constants::LaneType::Grass)
 {
     seedObjects();
+    seedCoins();
 }
 
 LaneGrass::~LaneGrass() = default;

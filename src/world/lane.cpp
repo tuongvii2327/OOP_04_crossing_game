@@ -91,8 +91,6 @@ Lane::Lane(const sf::Vector2f& init_position, const int& init_level, const int& 
     setLevel(init_level);
     setPosition(init_position);
     setActiveState(1);
-
-    seedCoins();
 }
 
 Lane::~Lane() = default;
@@ -190,6 +188,8 @@ void Lane::updateState(float delta_time)
     for (auto& o : list_dynamic)
         o->updateState(delta_time);
 
+    for (auto &s : list_static)
+        s->updateState(delta_time);
     // recount active objects
     num_active_object = 0;
     for (auto& o : list_dynamic)
