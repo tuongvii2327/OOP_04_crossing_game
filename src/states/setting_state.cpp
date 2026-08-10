@@ -156,19 +156,47 @@ void SettingState::handleEvent(const sf::Event& event)
         {
             sf::Vector2f mouse_pos(static_cast<float>(mouse_button_pressed->position.x),
                                    static_cast<float>(mouse_button_pressed->position.y));
-
+    
             for (size_t i = 0; i < setting_texts_.size(); ++i)
             {
                 if (setting_texts_[i]->getGlobalBounds().contains(mouse_pos))
                 {
                     selected_index_ = static_cast<int>(i);
+    
                     if (selected_index_ == static_cast<int>(setting_texts_.size()) - 1)
                     {
-                        context_->state_machine->pop();
+                        Audio().playSFX(AudioSystem::SFX::Back);
+                        context_->state_machine->pop(); // Click BACK TO MENU
                     }
                     else
                     {
-                        increaseSetting();
+                        // ─── TÌM TỌA ĐỘ PIXEL THỰC TẾ CỦA KÝ TỰ '<' VÀ '>' BẰNG SFML ───
+                        std::string str = setting_texts_[i]->getString().toAnsiString();
+                        size_t left_idx = str.find('<');
+                        size_t right_idx = str.find('>');
+    
+                        if (left_idx != std::string::npos && right_idx != std::string::npos)
+                        {
+                            float left_arrow_x = setting_texts_[i]->findCharacterPos(left_idx).x;
+                            float right_arrow_x = setting_texts_[i]->findCharacterPos(right_idx).x;
+    
+                            // Điểm chia ranh giới giữa mũi tên trái và mũi tên phải
+                            float mid_arrow_x = (left_arrow_x + right_arrow_x) / 2.0f;
+    
+                            if (mouse_pos.x < mid_arrow_x)
+                            {
+                                decreaseSetting(); // Click gần mũi tên trái '<' -> Giảm Âm lượng
+                            }
+                            else
+                            {
+                                increaseSetting(); // Click gần mũi tên phải '>' -> Tăng Âm lượng
+                            }
+                        }
+                        else
+                        {
+                            // Fallback cho Auto Scroll (ON / OFF không có mũi tên)
+                            increaseSetting();
+                        }
                     }
                     break;
                 }

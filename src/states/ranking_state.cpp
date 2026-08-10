@@ -46,7 +46,7 @@ void RankingState::setupUI(const sf::Font& font)
     }
 
     rankings.push_back("");
-    rankings.push_back("Press ESC to go back");
+    rankings.push_back("BACK TO MENU");
 
     float initial_y = 420.0f;
     float spacing = 60.0f;
@@ -71,12 +71,50 @@ void RankingState::setupUI(const sf::Font& font)
 // Handle escape key input
 void RankingState::handleEvent(const sf::Event& event)
 {
+    // 1. Xử lý bàn phím: ESC hoặc Enter để quay về
     if (const auto* key_pressed = event.getIf<sf::Event::KeyPressed>())
     {
-        if (key_pressed->code == sf::Keyboard::Key::Escape)
+        if (key_pressed->code == sf::Keyboard::Key::Escape ||
+            key_pressed->code == sf::Keyboard::Key::Enter)
         {
             Audio().playSFX(AudioSystem::SFX::Back);
             context_->state_machine->pop();
+        }
+    }
+
+    // 2. Xử lý di chuột: Hover vào nút "BACK TO MENU" sẽ đổi sang màu Vàng
+    if (const auto* mouse_moved = event.getIf<sf::Event::MouseMoved>())
+    {
+        sf::Vector2f mouse_pos(static_cast<float>(mouse_moved->position.x),
+                               static_cast<float>(mouse_moved->position.y));
+
+        if (!ranking_texts_.empty())
+        {
+            auto& back_btn = ranking_texts_.back(); // Nút BACK TO MENU ở vị trí cuối vector
+            if (back_btn->getGlobalBounds().contains(mouse_pos))
+            {
+                back_btn->setFillColor(sf::Color::Yellow);
+            }
+            else
+            {
+                back_btn->setFillColor(sf::Color::White);
+            }
+        }
+    }
+
+    // 3. Xử lý Click chuột: Click vào "BACK TO MENU" sẽ quay về Menu chính
+    if (const auto* mouse_button_pressed = event.getIf<sf::Event::MouseButtonPressed>())
+    {
+        if (mouse_button_pressed->button == sf::Mouse::Button::Left)
+        {
+            sf::Vector2f mouse_pos(static_cast<float>(mouse_button_pressed->position.x),
+                                   static_cast<float>(mouse_button_pressed->position.y));
+
+            if (!ranking_texts_.empty() && ranking_texts_.back()->getGlobalBounds().contains(mouse_pos))
+            {
+                Audio().playSFX(AudioSystem::SFX::Back);
+                context_->state_machine->pop();
+            }
         }
     }
 }
