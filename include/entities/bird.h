@@ -17,4 +17,5 @@ public:
 	void setColor(const Constants::ObjectColor &new_color);
 
 	Constants::DynamicObjectType getType() const override;
+	int getStoppedFrame() const override;
 };

@@ -24,7 +24,7 @@ void Bird::setColor(const Constants::ObjectColor &new_color)
     bird_color = new_color;
     if (Resource().hasSpritesheet(Constants::DynamicObjectType::Bird))
     {
-        setTextureRect(Resource().getDynamicObjectSpritesheetRect(Constants::DynamicObjectType::Bird, current_frame));
+        setTextureRect(Resource().getDynamicObjectSpritesheetRect(Constants::DynamicObjectType::Bird, current_frame, !is_move));
     }
     else
     {
@@ -35,6 +35,13 @@ void Bird::setColor(const Constants::ObjectColor &new_color)
 Constants::DynamicObjectType Bird::getType() const
 {
     return Constants::DynamicObjectType::Bird;
+}
+
+// tick value held while the bird is stopped; the spritesheet rect is resolved
+// to the standing cell (r1c1) via the is_stopped flag in getDynamicObjectSpritesheetRect()
+int Bird::getStoppedFrame() const
+{
+    return Constants::NUM_OF_DT_PER_FRAME;
 }
 #pragma endregion
 #pragma endregion

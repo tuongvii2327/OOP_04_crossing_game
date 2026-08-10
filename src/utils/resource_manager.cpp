@@ -580,32 +580,50 @@ const sf::Texture &ResourceManager::getDynamicObjectSpritesheet(const Constants:
     return getTexture(path);
 }
 
-sf::IntRect ResourceManager::getDynamicObjectSpritesheetRect(const Constants::DynamicObjectType &type, int frame)
+sf::IntRect ResourceManager::getDynamicObjectSpritesheetRect(const Constants::DynamicObjectType &type, int frame, bool is_stopped)
 {
     const int FRAME_SIZE = 800;
     int numFrames = Constants::getNumberOfFrames(type);
-    int idx = (frame / 4) % numFrames;
+    int idx = (frame / Constants::NUM_OF_DT_PER_FRAME) % numFrames;
+    // Bird sheet (1600x1600) is a 2x2 grid of 800x800 cells: r0c0, r0c1 and r1c0
+    // are the flying frames; r1c1 (cell 3) is the standing frame shown while stopped.
+    if (type == Constants::DynamicObjectType::Bird && is_stopped)
+    {
+        idx = 3;
+    }
     const sf::Texture &tex = getDynamicObjectSpritesheet(type, Constants::ObjectColor::None);
     int cols = tex.getSize().x / FRAME_SIZE;
     int row = idx / cols;
     int col = idx % cols;
 
     int contentW, contentH;
+    int offsetX, offsetY;
     switch (type)
     {
+    // car sheet: 1600x1600 -> 2x2 grid of 800x800 frames.
+    // Crop keeps the frame's natural aspect (750x425, same as the 90x51
+    // in-game box) so the non-uniform scale doesn't distort the sprite.
     case Constants::DynamicObjectType::Car:
-        contentW = 750; contentH = 425; break;
+        contentW = 750; contentH = 425;
+        offsetX = 25; offsetY = 250;
+        break;
     case Constants::DynamicObjectType::Rabbit:
-        contentW = 700; contentH = 700; break;
+        contentW = 700; contentH = 700;
+        offsetX = (FRAME_SIZE - contentW) / 2; offsetY = (FRAME_SIZE - contentH) / 2;
+        break;
     case Constants::DynamicObjectType::Bird:
-        contentW = 725; contentH = 643; break;
+        contentW = 725; contentH = 643;
+        offsetX = (FRAME_SIZE - contentW) / 2; offsetY = (FRAME_SIZE - contentH) / 2;
+        break;
     case Constants::DynamicObjectType::Truck:
-        contentW = 725; contentH = 675; break;
+        contentW = 725; contentH = 675;
+        offsetX = (FRAME_SIZE - contentW) / 2; offsetY = (FRAME_SIZE - contentH) / 2;
+        break;
     default:
-        contentW = FRAME_SIZE; contentH = FRAME_SIZE; break;
+        contentW = FRAME_SIZE; contentH = FRAME_SIZE;
+        offsetX = 0; offsetY = 0;
+        break;
     }
-    int offsetX = (FRAME_SIZE - contentW) / 2;
-    int offsetY = (FRAME_SIZE - contentH) / 2;
 
     return sf::IntRect(sf::Vector2i(col * FRAME_SIZE + offsetX, row * FRAME_SIZE + offsetY),
                        sf::Vector2i(contentW, contentH));

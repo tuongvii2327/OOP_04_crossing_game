@@ -46,6 +46,11 @@ float Animal::randomSoundInterval() const
     std::uniform_real_distribution<float> dist(15.0f, 30.0f);
     return dist(rng);
 }
+
+int Animal::getStoppedFrame() const
+{
+    return 1;
+}
 #pragma endregion
 
 #pragma region GET, SET
@@ -166,10 +171,10 @@ void Animal::updateState(float delta_time)
     }
     else
     {
-        current_frame = 1;
+        current_frame = getStoppedFrame();
         if (Resource().hasSpritesheet(getType()))
         {
-            setTextureRect(Resource().getDynamicObjectSpritesheetRect(getType(), current_frame));
+            setTextureRect(Resource().getDynamicObjectSpritesheetRect(getType(), current_frame, true));
         }
         else
         {

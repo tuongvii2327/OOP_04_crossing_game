@@ -30,7 +30,7 @@ public:
 
 	bool hasSpritesheet(const Constants::DynamicObjectType &type) const;
 	const sf::Texture &getDynamicObjectSpritesheet(const Constants::DynamicObjectType &type, const Constants::ObjectColor &color);
-	sf::IntRect getDynamicObjectSpritesheetRect(const Constants::DynamicObjectType &type, int frame);
+	sf::IntRect getDynamicObjectSpritesheetRect(const Constants::DynamicObjectType &type, int frame, bool is_stopped = false);
 
 	void clearAll(); // drops file-loaded caches (textures/fonts/sounds); every live sf::Sprite/sf::Text referencing them becomes dangling, so only call this on program exit
 
