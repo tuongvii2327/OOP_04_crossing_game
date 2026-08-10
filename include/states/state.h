@@ -6,6 +6,20 @@ struct SharedContext;
 
 class State
 {
+public: 
+    struct IconButton
+    {
+        std::unique_ptr<sf::Sprite> sprite = nullptr;
+        int choice_index;
+        bool is_hovered = false;
+    };
+
+    struct IconConfig
+    {
+        std::string path;
+        int choice;
+        sf::Vector2f pos;
+    };
 protected:
     SharedContext* context_;
 

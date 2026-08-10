@@ -177,12 +177,6 @@ void HomeState::init()
     menu_options_[selected_index_]->setFillColor(sf::Color::Yellow);
 
     // Corner icon buttons
-    struct IconConfig
-    {
-        std::string path;
-        int choice;
-        sf::Vector2f pos;
-    };
     const float rx = static_cast<float>(Constants::WINDOW_WIDTH) - 55.f;
     const float by = static_cast<float>(Constants::WINDOW_HEIGHT) - 55.f;
     const float sp = 80.f;

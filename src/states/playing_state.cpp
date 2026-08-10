@@ -1,7 +1,8 @@
 #include "states/playing_state.h"
-#include "../include/utils/serialization.h"
 #include "states/game_over_state.h"
 #include "states/pause_state.h"
+#include "states/setting_state.h"
+#include "states/home_state.h"
 #include "utils/audio_system.h"
 #include "utils/constants.h"
 #include "utils/resource_manager.h"
@@ -28,6 +29,11 @@ PlayingState::~PlayingState()
     }
 }
 
+// icon_buttons_ layout:
+//   [0] Pause
+//   [1] Settings 
+//   [2] ExitHome  
+
 void PlayingState::init()
 {
     Audio().pauseMusic();
@@ -44,7 +50,7 @@ void PlayingState::init()
     score_text_->setFillColor(sf::Color::White);
     score_text_->setOutlineColor(sf::Color::Black);
     score_text_->setOutlineThickness(2.f);
-    score_text_->setPosition({20.f, 20.f});
+    score_text_->setPosition({5.f, 20.f});
 
     if (!context_->data->high_scores.empty())
     {
@@ -64,7 +70,7 @@ void PlayingState::init()
     coin_text_->setFillColor(sf::Color::Yellow);
     coin_text_->setOutlineColor(sf::Color::Black);
     coin_text_->setOutlineThickness(2.f);
-    coin_text_->setPosition({20.f, 70.f});
+    coin_text_->setPosition({5.f, 70.f});
 
     const sf::Texture& player_tex =
         Resource().getDynamicObjectTexture(Constants::DynamicObjectType::People);
@@ -86,6 +92,48 @@ void PlayingState::init()
 
     player_ = std::make_unique<People>(selected_color);
     std::cout << "5. Khoi tao Player thanh cong\n";
+
+    // sidebar
+    const sf::Texture& sb_tex = Resource().getTexture("assets/textures/ui/sidebar.png");
+    sidebar_sprite_ = std::make_unique<sf::Sprite>(sb_tex);
+    sidebar_sprite_->setTexture(sb_tex, true);
+    sidebar_sprite_->setPosition({ 0.f, 0.f });
+    sidebar_sprite_->setScale(
+        { static_cast<float>(Constants::GAME_PLAY_BAR_WIDTH) / sb_tex.getSize().x,
+         static_cast<float>(Constants::GAME_PLAY_BAR_HEIGHT) / sb_tex.getSize().y });
+    std::cout << "6. Khoi tao Side bar thanh cong\n";
+
+    // Corner icon buttons
+    const float x = 60.0f;
+    const float by = static_cast<float>(Constants::WINDOW_HEIGHT) - x;
+    const float y1 = 200.0f;
+    const float y2 = 300.f;
+
+    std::vector<IconConfig> cfgs = {
+        // Pause
+        {"assets/textures/icon/PlayPause.png", 0, {x, y1}},
+        //Setting
+        {"assets/textures/icon/Gear.png", 1, {x, y2}},
+        // Bottom-Left: Exit
+        {"assets/textures/icon/Exit.png", 2, {x, by}}
+    };
+
+    icon_buttons_.clear();
+    for (const auto& c : cfgs)
+    {
+        IconButton btn;
+        const sf::Texture& tex = Resource().getTexture(c.path);
+        btn.sprite = std::make_unique<sf::Sprite>(tex);
+        btn.sprite->setTexture(tex, true);
+        btn.sprite->setOrigin({ tex.getSize().x / 2.f, tex.getSize().y / 2.f });
+        btn.sprite->setPosition(c.pos);
+        btn.sprite->setScale({ 4.f, 4.f });
+        btn.choice_index = c.choice;
+        btn.is_hovered = false;
+        icon_buttons_.push_back(std::move(btn));
+    }
+    std::cout << "7. Khoi tao Buttons thanh cong\n";
+
 
     if (load_slot_ > 0)
     {
@@ -116,6 +164,8 @@ void PlayingState::init()
     flash_overlay_.setSize({static_cast<float>(Constants::WINDOW_WIDTH),
                             static_cast<float>(Constants::WINDOW_HEIGHT)});
     flash_overlay_.setFillColor(sf::Color(255, 0, 0, 0));
+
+    
 }
 
 void PlayingState::setupWorld()
@@ -155,6 +205,69 @@ void PlayingState::handleEvent(const sf::Event& event)
         map_.snapPlayerToGrid(player_.get());
         scroll_armed_ = true;
         score_text_->setString("Score: " + std::to_string(context_->data->current_score));
+    }
+
+
+    if (const auto* mm = event.getIf<sf::Event::MouseMoved>())
+    {
+        sf::Vector2f mp(static_cast<float>(mm->position.x), static_cast<float>(mm->position.y));
+
+        // Hover on corner icons
+        for (auto& btn : icon_buttons_)
+        {
+            if (btn.sprite && btn.sprite->getGlobalBounds().contains(mp))
+            {
+                if (!btn.is_hovered)
+                {
+                    btn.is_hovered = true;
+                    btn.sprite->setScale({ 4.8f, 4.8f });
+                    Audio().playSFX(AudioSystem::SFX::Hover);
+                }
+            }
+            else if (btn.is_hovered)
+            {
+                btn.is_hovered = false;
+                btn.sprite->setScale({ 4.f, 4.f });
+            }
+        }
+    }
+
+    if (const auto* mb = event.getIf<sf::Event::MouseButtonPressed>())
+    {
+        if (mb->button == sf::Mouse::Button::Left)
+        {
+            sf::Vector2f mp(static_cast<float>(mb->position.x), static_cast<float>(mb->position.y));
+
+            // Click corner icons
+            for (const auto& btn : icon_buttons_)
+            {
+                if (btn.sprite && btn.sprite->getGlobalBounds().contains(mp))
+                {
+                    Audio().playSFX(AudioSystem::SFX::Click);
+                    executeChoice(btn.choice_index);
+                    return;
+                }
+            }
+        }
+    }
+}
+
+void PlayingState::executeChoice(int index)
+{
+    switch (index)
+    {
+    case 0:
+        std::cout << "Transition to: Pause\n";
+        context_->state_machine->push(std::make_unique<PauseState>(context_));
+        break;
+    case 1:
+        std::cout << "Transition to: Settings\n";
+        context_->state_machine->push(std::make_unique<SettingState>(context_));
+        break;
+    case 2:
+        std::cout << "Transition to: Home\n";
+        context_->state_machine->push(std::make_unique<HomeState>(context_));
+        break;
     }
 }
 
@@ -310,8 +423,11 @@ void PlayingState::update(float dt)
 
     // Chỉ kiểm tra va chạm chết người khi player đã đặt chân xuống (không đang nhảy)
     // Khi nhảy, player "đang bay" nên miễn nhiễm — giống Crossy Road gốc
-    if ((!player_->isAnimating() && map_.checkLethalCollision(player_->getHitBox())) ||
-        (player_->getPosition().y + player_->getHeightSprite() * 0.5f) >= camera_bottom_y)
+    bool people_die = (!player_->isAnimating() && map_.checkLethalCollision(player_->getHitBox()))
+        || (player_->getPosition().y + player_->getHeightSprite() * 0.5f) >= camera_bottom_y
+        || (player_->getPosition().x + player_->getWidthSprite() * 0.5f) <= Constants::GAME_PLAY_BAR_WIDTH
+        || (player_->getPosition().x + player_->getWidthSprite() * 0.5f) >= Constants::WINDOW_WIDTH;
+    if (people_die)
     {
         Audio().stopAllSFX(); // Dọn sạch mọi tạp âm (tiếng còi xe, tiếng chim...) đang dở dang
         Audio().playSFX(AudioSystem::SFX::Crash);
@@ -361,6 +477,12 @@ void PlayingState::render(sf::RenderWindow& window)
     {
         window.draw(flash_overlay_);
     }
+
+    if (sidebar_sprite_)
+    {
+        window.draw(*sidebar_sprite_);
+    }
+
     if (score_text_)
     {
         window.draw(*score_text_);
@@ -370,6 +492,10 @@ void PlayingState::render(sf::RenderWindow& window)
     {
         window.draw(*coin_text_);
     }
+
+    for (const auto& btn : icon_buttons_)
+        if (btn.sprite)
+            window.draw(*btn.sprite);
 }
 
 void PlayingState::pause() { std::cout << "[PlayingState] Paused\n"; }

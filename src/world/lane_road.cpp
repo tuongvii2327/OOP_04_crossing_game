@@ -104,16 +104,10 @@ void LaneRoad::seedObjects()
 // populate traffic with 0 or 1 traffic light
 void LaneRoad::seedTraffic()
 {
-    const float margin = 2.f * Constants::CELL_SIZE;
-    const float gap_min = 3.f * Constants::CELL_SIZE;
-    const float usable = Constants::LANE_WIDTH - 2.f * margin;
-
-    int count = randomRange(0, 1);
-    if (count == 0)
-        return;
-
-    int slot = usable / (count + 1);
-    float x = position.x + margin + slot;
+    static std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
+    std::uniform_int_distribution<int> dist(Constants::GAME_PLAY_BAR_WIDTH + 2 * Constants::CELL_SIZE, Constants::GAME_PLAY_BAR_WIDTH + 7 * Constants::CELL_SIZE);
+    float x = static_cast<float>(dist(rng));
+    
     Constants::TrafficLightColor color = (randomRange(0, 1) == 0)
                                              ? Constants::TrafficLightColor::Green
                                              : Constants::TrafficLightColor::Red;

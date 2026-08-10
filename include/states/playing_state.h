@@ -15,6 +15,9 @@
 class PlayingState : public State
 {
 private:
+    std::unique_ptr<sf::Sprite> sidebar_sprite_;
+    std::vector<IconButton> icon_buttons_;
+
     std::unique_ptr<sf::Text> score_text_;
     std::unique_ptr<sf::Text> coin_text_;
 
@@ -51,6 +54,7 @@ public:
 
     // Handle movement key presses via People's tryToMove()
     void handleEvent(const sf::Event& event) override;
+    void executeChoice(int index);
 
     void setBaseScrollSpeed(float new_speed);
     float autoScrollSpeed() const;

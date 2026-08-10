@@ -73,7 +73,7 @@ void Traffic::setPosition(const sf::Vector2f& pos)
     position = pos;
     if (current_lane != nullptr)
     {
-        position.y = current_lane->getPosition().y + (Constants::LANE_HEIGHT - getHeightSprite());
+        position.y = current_lane->getPosition().y - 40.0f;
     }
     sprite.setPosition(position);
     hitbox.position = position + hitbox_offset; // update hitbox

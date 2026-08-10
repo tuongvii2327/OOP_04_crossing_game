@@ -9,14 +9,6 @@
 
 class HomeState : public State
 {
-public:
-    struct IconButton
-    {
-        std::unique_ptr<sf::Sprite> sprite;
-        int choice_index;
-        bool is_hovered = false;
-    };
-
 private:
     std::unique_ptr<sf::Sprite> background_sprite_;
     std::unique_ptr<sf::Text> title_text_;

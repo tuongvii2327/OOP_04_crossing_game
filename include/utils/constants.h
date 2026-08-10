@@ -42,9 +42,9 @@ inline int getNumberOfTextureVariant(const LaneType& type)
     switch (type)
     {
     case LaneType::Grass:
-        return 21;
+        return 55;
     case LaneType::Safe:
-        return 21;
+        return 44;
     case LaneType::Road:
         return 3;
     case LaneType::River:
@@ -156,9 +156,9 @@ inline Size getSizeInGame(const StaticObjectType& type)
     switch (type)
     {
     case StaticObjectType::Traffic:
-        return {50, 50};
+        return {105, 105};
     case StaticObjectType::Rock:
-        return {80, 55};
+        return {102, 70};
     case StaticObjectType::Bush:
         return {90, 69};
     case StaticObjectType::Coin:
