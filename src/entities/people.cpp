@@ -10,26 +10,24 @@
 #endif
 
 People::People(Constants::ObjectColor color)
-    : DynamicObject(Constants::DynamicObjectType::People, color, nullptr),
-      is_dead(false),
-      step_size(static_cast<float>(Constants::LANE_HEIGHT)),
-      people_color(color),
-      current_dir(Direction::Up),
-      current_anim_state(AnimState::Idle),
-      anim_timer(0.f),
-      anim_duration(0.3f),
-      is_animating(false)
+    : DynamicObject(Constants::DynamicObjectType::People, color, nullptr), is_dead(false),
+      step_size(static_cast<float>(Constants::LANE_HEIGHT)), people_color(color),
+      current_dir(Direction::Up), current_anim_state(AnimState::Idle), anim_timer(0.f),
+      anim_duration(0.3f), is_animating(false)
 {
     sprite.setOrigin({0.f, 0.f});
 
-    base_scale_x_ = 52.f / static_cast<float>(FRAME_W);
-    base_scale_y_ = 62.f / static_cast<float>(FRAME_H);
+    const Constants::Size people_size = Constants::getSizeInGame(Constants::DynamicObjectType::People);
+    const float people_width = static_cast<float>(people_size.width);
+    const float people_height = static_cast<float>(people_size.height);
+
+    base_scale_x_ = people_width / static_cast<float>(FRAME_W);
+    base_scale_y_ = people_height / static_cast<float>(FRAME_H);
     sprite.setScale(sf::Vector2f(base_scale_x_, base_scale_y_));
 
-    hitbox.size = {52.f * Constants::HITBOX_SIZE_RATIO,
-                   62.f * Constants::HITBOX_SIZE_RATIO};
-    hitbox_offset = {(52.f - hitbox.size.x) / 2.f,
-                     (62.f - hitbox.size.y) / 2.f};
+    hitbox.size = {people_width * Constants::HITBOX_SIZE_RATIO,
+                   people_height * Constants::HITBOX_SIZE_RATIO};
+    hitbox_offset = {(people_width - hitbox.size.x) / 2.f, (people_height - hitbox.size.y) / 2.f};
 
     resetPosition();
 }
@@ -52,8 +50,7 @@ void People::updateSpriteRect()
     int row = static_cast<int>(current_dir);
     int left = col * FRAME_W;
     int top = row * FRAME_H;
-    sprite.setTextureRect(
-        sf::IntRect(sf::Vector2i(left, top), sf::Vector2i(FRAME_W, FRAME_H)));
+    sprite.setTextureRect(sf::IntRect(sf::Vector2i(left, top), sf::Vector2i(FRAME_W, FRAME_H)));
 }
 
 void People::updateState(float delta_time)
@@ -86,18 +83,16 @@ void People::updateState(float delta_time)
             current_anim_state = AnimState::Prep;
             float t = progress / 0.2f;
             float squash = std::sin(t * static_cast<float>(M_PI) * 0.5f);
-            sprite.setScale(sf::Vector2f(
-                base_scale_x_ * (1.f + 0.15f * squash),
-                base_scale_y_ * (1.f - 0.18f * squash)));
+            sprite.setScale(sf::Vector2f(base_scale_x_ * (1.f + 0.15f * squash),
+                                         base_scale_y_ * (1.f - 0.18f * squash)));
         }
         else if (progress < 0.65f)
         {
             current_anim_state = AnimState::Jump;
             float t = (progress - 0.2f) / 0.45f;
             float stretch = std::sin(t * static_cast<float>(M_PI));
-            sprite.setScale(sf::Vector2f(
-                base_scale_x_ * (1.f - 0.10f * stretch),
-                base_scale_y_ * (1.f + 0.12f * stretch)));
+            sprite.setScale(sf::Vector2f(base_scale_x_ * (1.f - 0.10f * stretch),
+                                         base_scale_y_ * (1.f + 0.12f * stretch)));
         }
         else
         {
@@ -106,18 +101,16 @@ void People::updateState(float delta_time)
             {
                 current_anim_state = AnimState::Land;
                 float s = t / 0.5f;
-                sprite.setScale(sf::Vector2f(
-                    base_scale_x_ * (1.f + 0.18f * s),
-                    base_scale_y_ * (1.f - 0.22f * s)));
+                sprite.setScale(sf::Vector2f(base_scale_x_ * (1.f + 0.18f * s),
+                                             base_scale_y_ * (1.f - 0.22f * s)));
             }
             else
             {
                 current_anim_state = AnimState::Idle;
                 float s = (t - 0.5f) / 0.5f;
                 float bounce = (1.f - s) * 0.06f;
-                sprite.setScale(sf::Vector2f(
-                    base_scale_x_ * (1.f + bounce),
-                    base_scale_y_ * (1.f - bounce)));
+                sprite.setScale(
+                    sf::Vector2f(base_scale_x_ * (1.f + bounce), base_scale_y_ * (1.f - bounce)));
             }
         }
 
@@ -140,14 +133,14 @@ void People::updateState(float delta_time)
     }
 }
 
-bool People::isColliding(const sf::FloatRect &other_hitbox) const
+bool People::isColliding(const sf::FloatRect& other_hitbox) const
 {
     if (is_dead || !is_active)
         return false;
     return hitbox.findIntersection(other_hitbox).has_value();
 }
 
-bool People::tryToMove(float dx, float dy, float camera_top_y, const Map &map)
+bool People::tryToMove(float dx, float dy, float camera_top_y, const Map& map)
 {
     if (is_dead)
         return false;
@@ -162,23 +155,19 @@ bool People::tryToMove(float dx, float dy, float camera_top_y, const Map &map)
     float future_top = target_position.y + hitbox_offset.y + dy;
     float future_bottom = future_top + hitbox.size.y;
 
-    float left_bound =
-        static_cast<float>(Constants::GAME_PLAY_BAR_WIDTH); // left (140)
-    float right_bound =
-        static_cast<float>(Constants::WINDOW_WIDTH); // right (1400)
-    float cam_bottom =
-        camera_top_y + static_cast<float>(Constants::WINDOW_HEIGHT);
+    float left_bound = static_cast<float>(Constants::GAME_PLAY_BAR_WIDTH); // left (140)
+    float right_bound = static_cast<float>(Constants::WINDOW_WIDTH);       // right (1400)
+    float cam_bottom = camera_top_y + static_cast<float>(Constants::WINDOW_HEIGHT);
 
     // Kiểm tra biên màn hình
-    if (future_left < left_bound || future_right > right_bound ||
-        future_top < camera_top_y || future_bottom > cam_bottom)
+    if (future_left < left_bound || future_right > right_bound || future_top < camera_top_y ||
+        future_bottom > cam_bottom)
     {
         return false;
     }
 
     // Kiểm tra va chạm với ô blocked trong map
-    sf::FloatRect future_hitbox_rect({future_left, future_top},
-                                     {hitbox.size.x, hitbox.size.y});
+    sf::FloatRect future_hitbox_rect({future_left, future_top}, {hitbox.size.x, hitbox.size.y});
     if (map.checkBlockedCollision(future_hitbox_rect))
         return false;
 
@@ -215,19 +204,22 @@ void People::die() { is_dead = true; }
 
 bool People::isDead() const { return is_dead; }
 
-
 sf::Vector2f People::getStartPosition(int init_cell, int init_lane) const
 {
-    float start_x =
-        static_cast<float>(Constants::WINDOW_WIDTH) -
-        static_cast<float>(Constants::NUMBER_OF_CELLS - init_cell + 1) *
-            static_cast<float>(Constants::CELL_SIZE) +
-        (static_cast<float>(Constants::CELL_SIZE) - 52.f) / 2.f;
-    float start_y =
-        (static_cast<float>(Constants::WINDOW_HEIGHT) -
-         static_cast<float>(Constants::NUMBER_OF_LANES - init_lane + 1) *
-             static_cast<float>(Constants::LANE_HEIGHT)) +
-        (static_cast<float>(Constants::LANE_HEIGHT) - 62.f) / 2.f;
+    const Constants::Size people_size =
+        Constants::getSizeInGame(Constants::DynamicObjectType::People);
+    float start_x = static_cast<float>(Constants::WINDOW_WIDTH) -
+                    static_cast<float>(Constants::NUMBER_OF_CELLS - init_cell + 1) *
+                        static_cast<float>(Constants::CELL_SIZE) +
+                    (static_cast<float>(Constants::CELL_SIZE) -
+                     static_cast<float>(people_size.width)) /
+                        2.f;
+    float start_y = (static_cast<float>(Constants::WINDOW_HEIGHT) -
+                     static_cast<float>(Constants::NUMBER_OF_LANES - init_lane + 1) *
+                         static_cast<float>(Constants::LANE_HEIGHT)) +
+                    (static_cast<float>(Constants::LANE_HEIGHT) -
+                     static_cast<float>(people_size.height)) /
+                        2.f;
     return sf::Vector2f(start_x, start_y);
 }
 
@@ -264,13 +256,12 @@ void People::snapTargetX(float new_x)
 
 sf::FloatRect People::getBounds() const { return sprite.getGlobalBounds(); }
 
-bool People::handleEvent(const sf::Event &event, float camera_top_y,
-                         const Map &map)
+bool People::handleEvent(const sf::Event& event, float camera_top_y, const Map& map)
 {
     if (is_dead || !is_active)
         return false;
 
-    const auto *key = event.getIf<sf::Event::KeyPressed>();
+    const auto* key = event.getIf<sf::Event::KeyPressed>();
     if (!key)
         return false;
 
@@ -281,20 +272,17 @@ bool People::handleEvent(const sf::Event &event, float camera_top_y,
         new_dir = Direction::Up;
         dy = -step_size;
     }
-    else if (key->code == sf::Keyboard::Key::S ||
-             key->code == sf::Keyboard::Key::Down)
+    else if (key->code == sf::Keyboard::Key::S || key->code == sf::Keyboard::Key::Down)
     {
         new_dir = Direction::Down;
         dy = step_size;
     }
-    else if (key->code == sf::Keyboard::Key::A ||
-             key->code == sf::Keyboard::Key::Left)
+    else if (key->code == sf::Keyboard::Key::A || key->code == sf::Keyboard::Key::Left)
     {
         new_dir = Direction::Left;
         dx = -step_size;
     }
-    else if (key->code == sf::Keyboard::Key::D ||
-             key->code == sf::Keyboard::Key::Right)
+    else if (key->code == sf::Keyboard::Key::D || key->code == sf::Keyboard::Key::Right)
     {
         new_dir = Direction::Right;
         dx = step_size;
@@ -318,7 +306,7 @@ bool People::handleEvent(const sf::Event &event, float camera_top_y,
     return false;
 }
 
-void People::serialize(std::ostream &os) const
+void People::serialize(std::ostream& os) const
 {
     Serialization::write(os, is_dead);
     Serialization::write(os, position.x);
@@ -330,7 +318,7 @@ void People::serialize(std::ostream &os) const
     Serialization::write(os, dir_int);
 }
 
-void People::deserialize(std::istream &is)
+void People::deserialize(std::istream& is)
 {
     Serialization::read(is, is_dead);
     Serialization::read(is, position.x);

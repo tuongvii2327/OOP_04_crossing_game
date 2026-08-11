@@ -10,15 +10,12 @@
 #include "entities/truck.h"
 #include "entities/wood.h"
 
-#include <limits>
 #include "../include/utils/serialization.h"
+#include <limits>
 
 #pragma region PROTECTED
 // move position by offset, update sprite position
-void Lane::moveBy(sf::Vector2f offset)
-{
-    setPosition(position + offset);
-}
+void Lane::moveBy(sf::Vector2f offset) { setPosition(position + offset); }
 
 // scale sprite up to fill LANE_WIDTH x LANE_HEIGHT if it's smaller
 void Lane::adjustSprite()
@@ -49,66 +46,64 @@ void Lane::seedCoins()
     // Tỷ lệ 40% mỗi làn đường xuất hiện 1 đồng xu
     if (randomRange(0, 9) >= 4)
         return;
-        int total_cols = static_cast<int>(Constants::LANE_WIDTH / Constants::CELL_SIZE);
-    
-        // Thử tối đa 10 lần để tìm ô trống chưa bị Rock / Bush chiếm chỗ
-        for (int tryy = 0; tryy < 10; ++tryy)
+    int total_cols = static_cast<int>(Constants::LANE_WIDTH / Constants::CELL_SIZE);
+
+    // Thử tối đa 10 lần để tìm ô trống chưa bị Rock / Bush chiếm chỗ
+    for (int tryy = 0; tryy < 10; ++tryy)
+    {
+        int col = randomRange(1, std::max(1, total_cols - 2));
+        float cell_x = position.x + (col * Constants::CELL_SIZE);
+        float cell_y = position.y;
+
+        // KIỂM TRA CHỒNG LẤP: Duyệt qua các vật thể tĩnh (Rock, Bush) đã có trên làn
+        bool overlap = false;
+        for (const auto& existing : list_static)
         {
-            int col = randomRange(1, std::max(1, total_cols - 2));
-            float cell_x = position.x + (col * Constants::CELL_SIZE);
-            float cell_y = position.y;
-    
-            // KIỂM TRA CHỒNG LẤP: Duyệt qua các vật thể tĩnh (Rock, Bush) đã có trên làn
-            bool overlap = false;
-            for (const auto &existing : list_static)
+            if (std::abs(cell_x - existing->getPosition().x) < Constants::CELL_SIZE * 0.8f)
             {
-                if (std::abs(cell_x - existing->getPosition().x) < Constants::CELL_SIZE * 0.8f)
-                {
-                    overlap = true;
-                    break;
-                }
-            }
-    
-            // Nếu ô hoàn toàn trống -> Tạo Coin và kết thúc
-            if (!overlap)
-            {
-                auto coin = std::make_unique<Coin>(this, sf::Vector2f{cell_x, cell_y}, Constants::ObjectColor::None);
-                list_static.push_back(std::move(coin));
-                break; 
+                overlap = true;
+                break;
             }
         }
+
+        // Nếu ô hoàn toàn trống -> Tạo Coin và kết thúc
+        if (!overlap)
+        {
+            auto coin = std::make_unique<Coin>(this, sf::Vector2f{cell_x, cell_y},
+                                               Constants::ObjectColor::None);
+            list_static.push_back(std::move(coin));
+            break;
+        }
     }
+}
 #pragma endregion
 
 #pragma region PUBLIC
 // texture, direction, level, position, active state are set here;
 // subclasses call seedObjects() and seedTraffic() in their own constructors
-Lane::Lane(const sf::Vector2f& init_position, const int& init_level, const int& init_direction, const Constants::LaneType& init_type)
-    : texture_variant(pickTextureVariant(init_type)), sprite(Resource().getLaneTexture(init_type, texture_variant))
+Lane::Lane(const sf::Vector2f& init_position, const int& init_level, const int& init_direction,
+           const Constants::LaneType& init_type)
+    : texture_variant(pickTextureVariant(init_type)),
+      sprite(Resource().getLaneTexture(init_type, texture_variant))
 {
     adjustSprite(); // <-- Kéo giãn sprite ngay khi làn đường vừa được tạo
     setDirection(init_direction);
     setLevel(init_level);
     setPosition(init_position);
     setActiveState(1);
-
-    seedCoins();
 }
 
 Lane::~Lane() = default;
 
-sf::Sprite Lane::getSprite() const
-{
-    return sprite;
-}
+sf::Sprite Lane::getSprite() const { return sprite; }
 
 // swap texture, then rescale sprite to fit the lane
-void Lane::setSprite(const sf::Texture &texture)
+void Lane::setSprite(const sf::Texture& texture)
 {
     sprite.setTexture(texture, 1);
     adjustSprite();
 
-    //apply facing, logic same as object texture
+    // apply facing, logic same as object texture
     sf::Vector2f currentScale = sprite.getScale();
     float absX = std::abs(currentScale.x);
 
@@ -116,47 +111,36 @@ void Lane::setSprite(const sf::Texture &texture)
 
     if (direction == -1)
     {
-        sprite.setScale({ -absX, currentScale.y });
-        sprite.setOrigin({ width, 0.f });
+        sprite.setScale({-absX, currentScale.y});
+        sprite.setOrigin({width, 0.f});
     }
     else
     {
-        sprite.setScale({ absX, currentScale.y });
-        sprite.setOrigin({ 0.f, 0.f });
+        sprite.setScale({absX, currentScale.y});
+        sprite.setOrigin({0.f, 0.f});
     }
 }
 
-sf::Vector2f Lane::getPosition() const
-{
-    return position;
-}
+sf::Vector2f Lane::getPosition() const { return position; }
 
-void Lane::setPosition(const sf::Vector2f &pos)
+void Lane::setPosition(const sf::Vector2f& pos)
 {
     position = pos;
-    position.x = Constants::WINDOW_WIDTH - Constants::LANE_WIDTH; // lane is always right of the sidebar
+    position.x =
+        Constants::WINDOW_WIDTH - Constants::LANE_WIDTH; // lane is always right of the sidebar
     sprite.setPosition(position);
 
-    for (auto &s : list_static)
+    for (auto& s : list_static)
     {
-        s ->setPosition(s->getPosition());
+        s->setPosition(s->getPosition());
     }
 }
 
-int Lane::getLevel() const
-{
-    return level;
-}
+int Lane::getLevel() const { return level; }
 
-void Lane::setLevel(int new_level)
-{
-    level = new_level;
-}
+void Lane::setLevel(int new_level) { level = new_level; }
 
-int Lane::getDirection() const
-{
-    return direction;
-}
+int Lane::getDirection() const { return direction; }
 
 void Lane::setDirection(int direct)
 {
@@ -164,31 +148,20 @@ void Lane::setDirection(int direct)
         direction = direct;
 }
 
-bool Lane::isActive() const
-{
-    return is_active;
-}
+bool Lane::isActive() const { return is_active; }
 
-void Lane::setActiveState(bool state)
-{
-    is_active = state;
-}
+void Lane::setActiveState(bool state) { is_active = state; }
 
-int Lane::getNumberOfActive() const
-{
-    return num_active_object;
-}
+int Lane::getNumberOfActive() const { return num_active_object; }
 
 void Lane::setNumberOfActive(int new_num)
 {
     // Cố tình dùng min/max thay thế cho std::clamp để chống lỗi phiên bản C++
-    num_active_object = std::min(std::max(new_num, 0), static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
+    num_active_object =
+        std::min(std::max(new_num, 0), static_cast<int>(Constants::MAX_OBJECT_PER_LANE));
 }
 
-int Lane::getTextureVariant() const
-{
-    return texture_variant;
-}
+int Lane::getTextureVariant() const { return texture_variant; }
 
 void Lane::setTextureVariant(int new_variant)
 {
@@ -199,49 +172,43 @@ void Lane::setTextureVariant(int new_variant)
     setSprite(Resource().getLaneTexture(getType(), texture_variant));
 }
 
-float Lane::getWidthSprite() const
-{
-    return sprite.getGlobalBounds().size.x;
-}
+float Lane::getWidthSprite() const { return sprite.getGlobalBounds().size.x; }
 
-float Lane::getHeightSprite() const
-{
-    return sprite.getGlobalBounds().size.y;
-}
+float Lane::getHeightSprite() const { return sprite.getGlobalBounds().size.y; }
 #pragma endregion
 
 #pragma region OTHER
-// re-marks the lane active every frame (lanes behind the camera are removed by Map, not deactivated here)
-void Lane::checkActive()
-{
-    setActiveState(true);
-}
+// re-marks the lane active every frame (lanes behind the camera are removed by Map, not deactivated
+// here)
+void Lane::checkActive() { setActiveState(true); }
 
 // advance all objects, recount actives, then spawn
 void Lane::updateState(float delta_time)
 {
-    for (auto &o : list_dynamic)
+    for (auto& o : list_dynamic)
         o->updateState(delta_time);
 
+    for (auto &s : list_static)
+        s->updateState(delta_time);
     // recount active objects
     num_active_object = 0;
-    for (auto &o : list_dynamic)
+    for (auto& o : list_dynamic)
         if (o->isActive())
             ++num_active_object;
 
     checkActive();
     spawnObject();
-} 
+}
 
 // draw lane sprite, then every object
-void Lane::render(sf::RenderWindow &window) const
+void Lane::render(sf::RenderWindow& window) const
 {
     window.draw(sprite);
-    for (const auto &s : list_static) 
+    for (const auto& s : list_static)
     {
         s->render(window);
     }
-    for (const auto &o : list_dynamic)
+    for (const auto& o : list_dynamic)
     {
         o->render(window);
     }
@@ -249,14 +216,15 @@ void Lane::render(sf::RenderWindow &window) const
 
 // reuse this Lane instance for a newly scrolled-in row: reposition, flip
 // direction/objects if the direction changed
-void Lane::spawnLane(const sf::Vector2f &new_position, const int &new_level, const int &new_direction)
+void Lane::spawnLane(const sf::Vector2f& new_position, const int& new_level,
+                     const int& new_direction)
 {
     setPosition(new_position);
     setLevel(new_level);
     if (new_direction != direction)
     {
         setDirection(new_direction);
-        for (auto &o : list_dynamic)
+        for (auto& o : list_dynamic)
         {
             o->setDirection(new_direction);
             o->setVelocity({-o->getVelocity().x, o->getVelocity().y});
@@ -265,9 +233,9 @@ void Lane::spawnLane(const sf::Vector2f &new_position, const int &new_level, con
 }
 
 // true if any active object with a Lethal effect is colliding with player_hitbox
-bool Lane::checkLethalCollision(const sf::FloatRect &player_hitbox) const
+bool Lane::checkLethalCollision(const sf::FloatRect& player_hitbox) const
 {
-    for (const auto &obj : list_dynamic)
+    for (const auto& obj : list_dynamic)
     {
         if (!obj->isActive())
             continue;
@@ -280,12 +248,12 @@ bool Lane::checkLethalCollision(const sf::FloatRect &player_hitbox) const
     return false;
 }
 
-int Lane::checkCoinCollision(const sf::FloatRect &player_hitbox) 
+int Lane::checkCoinCollision(const sf::FloatRect& player_hitbox)
 {
     int collected_count = 0;
-    for (auto &s : list_static)
+    for (auto& s : list_static)
     {
-        if (auto coin = dynamic_cast<Coin *>(s.get()))
+        if (auto coin = dynamic_cast<Coin*>(s.get()))
         {
             if (!coin->isCollected() && coin->isColliding(player_hitbox))
             {
@@ -297,9 +265,9 @@ int Lane::checkCoinCollision(const sf::FloatRect &player_hitbox)
     return collected_count;
 }
 
-bool Lane::checkBlockedCollision(const sf::FloatRect &target_hitbox) const
+bool Lane::checkBlockedCollision(const sf::FloatRect& target_hitbox) const
 {
-    for (const auto &obj : list_static)
+    for (const auto& obj : list_static)
     {
         // Kiểm tra vật thể tĩnh có hiệu ứng Blocked (Rock) và bị chạm vào Hitbox đích
         if (obj->getEffect() == Constants::ObjectEffect::Blocked && obj->isColliding(target_hitbox))
@@ -314,7 +282,7 @@ bool Lane::checkBlockedCollision(const sf::FloatRect &target_hitbox) const
 #pragma region SAVE-LOAD
 
 // ---- SERIALIZE (base class: lane props + dynamic objects) ----
-void Lane::serialize(std::ostream &os) const
+void Lane::serialize(std::ostream& os) const
 {
     // 1. Write lane type so deserializer knows which subclass to create
     Constants::LaneType t = getType();
@@ -332,7 +300,7 @@ void Lane::serialize(std::ostream &os) const
     // 3. Write dynamic objects
     size_t obj_count = list_dynamic.size();
     Serialization::write(os, obj_count);
-    for (const auto &obj : list_dynamic)
+    for (const auto& obj : list_dynamic)
     {
         Serialization::write(os, obj->getType());
         Serialization::write(os, obj->getColor());
@@ -346,13 +314,13 @@ void Lane::serialize(std::ostream &os) const
     // 4. Lưu danh sách STATIC OBJECTS
     size_t static_count = list_static.size();
     Serialization::write(os, static_count);
-    for (const auto &s : list_static)
+    for (const auto& s : list_static)
     {
         Serialization::write(os, s->getType());
         Serialization::write(os, s->getPosition().x);
         Serialization::write(os, s->getPosition().y);
 
-        if (auto coin = dynamic_cast<Coin *>(s.get()))
+        if (auto coin = dynamic_cast<Coin*>(s.get()))
         {
             Serialization::write(os, coin->isCollected()); // Lưu trạng thái đã bị ăn hay chưa
         }
@@ -362,7 +330,7 @@ void Lane::serialize(std::ostream &os) const
 // ---- DESERIALIZE (base class: lane props + dynamic objects) ----
 // NOTE: The lane type has already been consumed by Map::deserialize
 // to create the correct subclass. Do NOT read type here.
-void Lane::deserialize(std::istream &is)
+void Lane::deserialize(std::istream& is)
 {
     // 1. Read basic lane properties (type already consumed by Map)
 
@@ -374,7 +342,7 @@ void Lane::deserialize(std::istream &is)
     Serialization::read(is, is_active);
     Serialization::read(is, num_active_object);
 
-    setTextureVariant(texture_variant); //set variant and set sprite
+    setTextureVariant(texture_variant); // set variant and set sprite
     setPosition(position);
 
     // 2. Read dynamic objects
@@ -446,7 +414,8 @@ void Lane::deserialize(std::istream &is)
         {
             bool is_collected = false;
             Serialization::read(is, is_collected);
-            auto coin = std::make_unique<Coin>(this, sf::Vector2f{px, py}, Constants::ObjectColor::None);
+            auto coin =
+                std::make_unique<Coin>(this, sf::Vector2f{px, py}, Constants::ObjectColor::None);
 
             if (is_collected)
             {

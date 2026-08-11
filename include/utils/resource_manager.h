@@ -13,8 +13,8 @@
 class ResourceManager
 {
 public:
-	ResourceManager(const ResourceManager &) = delete;
-	ResourceManager &operator=(const ResourceManager &) = delete;
+    ResourceManager(const ResourceManager&) = delete;
+    ResourceManager& operator=(const ResourceManager&) = delete;
 
 	static ResourceManager &getInstance(); // singleton accessor
 
@@ -35,19 +35,16 @@ public:
 	void clearAll(); // drops file-loaded caches (textures/fonts/sounds); every live sf::Sprite/sf::Text referencing them becomes dangling, so only call this on program exit
 
 private:
-	std::unordered_map<std::string, std::unique_ptr<sf::Texture>> textures_;
-	std::unordered_map<std::string, std::unique_ptr<sf::Font>> fonts_;
-	std::unordered_map<std::string, std::unique_ptr<sf::SoundBuffer>> sound_buffers_;
+    std::unordered_map<std::string, std::unique_ptr<sf::Texture>> textures_;
+    std::unordered_map<std::string, std::unique_ptr<sf::Font>> fonts_;
+    std::unordered_map<std::string, std::unique_ptr<sf::SoundBuffer>> sound_buffers_;
 
-	// std::map<std::pair<int, int>, sf::Texture> dynamic_texture_cache_;
-	// std::map<std::pair<int, int>, sf::Texture> static_texture_cache_;
-	// std::map<std::pair<int, int>, sf::Texture> lane_texture_cache_;
-	// std::map<int, sf::Texture> traffic_texture_cache_;
+    // std::map<std::pair<int, int>, sf::Texture> dynamic_texture_cache_;
+    // std::map<std::pair<int, int>, sf::Texture> static_texture_cache_;
+    // std::map<std::pair<int, int>, sf::Texture> lane_texture_cache_;
+    // std::map<int, sf::Texture> traffic_texture_cache_;
 
-	ResourceManager() = default;
+    ResourceManager() = default;
 };
 
-inline ResourceManager &Resource()
-{
-	return ResourceManager::getInstance();
-}
+inline ResourceManager& Resource() { return ResourceManager::getInstance(); }

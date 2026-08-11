@@ -6,31 +6,32 @@
 #include "utils/serialization.h"
 #include <fstream>
 
-LoadState::LoadState(SharedContext *context)
-    : State(context), selected_index_(0)
-{
-}
+LoadState::LoadState(SharedContext* context) : State(context), selected_index_(0) {}
 
 // Load font and initialize load screen
 void LoadState::init()
 {
-    const sf::Texture &bg_tex = Resource().getTexture("assets/textures/ui/load.png");
+    const sf::Texture& bg_tex = Resource().getTexture("assets/textures/ui/load.png");
     background_sprite_ = std::make_unique<sf::Sprite>(bg_tex);
     background_sprite_->setTexture(bg_tex, true);
-    background_sprite_->setTextureRect(sf::IntRect({0, 0}, sf::Vector2i(static_cast<int>(bg_tex.getSize().x), static_cast<int>(bg_tex.getSize().y))));
+    background_sprite_->setTextureRect(
+        sf::IntRect({0, 0}, sf::Vector2i(static_cast<int>(bg_tex.getSize().x),
+                                         static_cast<int>(bg_tex.getSize().y))));
     background_sprite_->setPosition({0.f, 0.f});
 
-    float scale_x = static_cast<float>(Constants::WINDOW_WIDTH) / static_cast<float>(bg_tex.getSize().x);
-    float scale_y = static_cast<float>(Constants::WINDOW_HEIGHT) / static_cast<float>(bg_tex.getSize().y);
+    float scale_x =
+        static_cast<float>(Constants::WINDOW_WIDTH) / static_cast<float>(bg_tex.getSize().x);
+    float scale_y =
+        static_cast<float>(Constants::WINDOW_HEIGHT) / static_cast<float>(bg_tex.getSize().y);
     background_sprite_->setScale({scale_x, scale_y});
 
-    const sf::Font &font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
+    const sf::Font& font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
     title_text_ = std::make_unique<sf::Text>(font);
     setupUI(font);
 }
 
 // ---- HÀM ĐỌC NHANH THÔNG TIN FILE LƯU ----
-bool getSlotMetadata(int slot_index, std::string &out_name, int &out_score)
+bool getSlotMetadata(int slot_index, std::string& out_name, int& out_score)
 {
     std::ifstream file("data/saves/slot_" + std::to_string(slot_index) + ".bin", std::ios::binary);
     if (!file.is_open())
@@ -44,7 +45,7 @@ bool getSlotMetadata(int slot_index, std::string &out_name, int &out_score)
 }
 
 // Setup load menu UI with save slots
-void LoadState::setupUI(const sf::Font &font)
+void LoadState::setupUI(const sf::Font& font)
 {
     title_text_->setString("LOAD GAME");
     title_text_->setCharacterSize(72);
@@ -54,8 +55,8 @@ void LoadState::setupUI(const sf::Font &font)
     float title_x = (Constants::WINDOW_WIDTH - title_bounds.size.x) / 2.0f;
     title_text_->setPosition({title_x, 150.0f});
 
-    std::vector<std::string> save_options = {"SAVE SLOT 1", "SAVE SLOT 2",
-                                             "SAVE SLOT 3", "BACK TO MENU"};
+    std::vector<std::string> save_options = {"SAVE SLOT 1", "SAVE SLOT 2", "SAVE SLOT 3",
+                                             "BACK TO MENU"};
 
     float initial_y = 420.0f;
     float spacing = 80.0f;
@@ -72,7 +73,8 @@ void LoadState::setupUI(const sf::Font &font)
             int slot_score = 0;
             if (getSlotMetadata(static_cast<int>(i) + 1, slot_name, slot_score))
             {
-                display_str = "SLOT " + std::to_string(i + 1) + ": [" + slot_name + "] - Score: " + std::to_string(slot_score);
+                display_str = "SLOT " + std::to_string(i + 1) + ": [" + slot_name +
+                              "] - Score: " + std::to_string(slot_score);
             }
             else
             {
@@ -115,22 +117,23 @@ void LoadState::setupUI(const sf::Font &font)
     //     back_text.setFillColor(sf::Color::White);
 
     // sf::FloatRect back_bounds = back_text.getLocalBounds();
-    // back_text.setPosition({(Constants::WINDOW_WIDTH - back_bounds.size.x) / 2.0f, initial_y + 3 * spacing});
-    // save_slot_texts_.push_back(std::move(back_text));
+    // back_text.setPosition({(Constants::WINDOW_WIDTH - back_bounds.size.x) / 2.0f, initial_y + 3 *
+    // spacing}); save_slot_texts_.push_back(std::move(back_text));
 }
 
 // Handle slot selection and navigation
-void LoadState::handleEvent(const sf::Event &event)
+void LoadState::handleEvent(const sf::Event& event)
 {
     // 1. Xử lý sự kiện bàn phím
-    if (const auto *key_pressed = event.getIf<sf::Event::KeyPressed>())
+    if (const auto* key_pressed = event.getIf<sf::Event::KeyPressed>())
     {
         if (key_pressed->code == sf::Keyboard::Key::Up || key_pressed->code == sf::Keyboard::Key::W)
         {
             moveUp();
             Audio().playSFX(AudioSystem::SFX::Hover);
         }
-        else if (key_pressed->code == sf::Keyboard::Key::Down || key_pressed->code == sf::Keyboard::Key::S)
+        else if (key_pressed->code == sf::Keyboard::Key::Down ||
+                 key_pressed->code == sf::Keyboard::Key::S)
         {
             moveDown();
             Audio().playSFX(AudioSystem::SFX::Hover);
@@ -155,9 +158,10 @@ void LoadState::handleEvent(const sf::Event &event)
     }
 
     // 2. Xử lý di chuột
-    if (const auto *mouse_moved = event.getIf<sf::Event::MouseMoved>())
+    if (const auto* mouse_moved = event.getIf<sf::Event::MouseMoved>())
     {
-        sf::Vector2f mouse_pos(static_cast<float>(mouse_moved->position.x), static_cast<float>(mouse_moved->position.y));
+        sf::Vector2f mouse_pos(static_cast<float>(mouse_moved->position.x),
+                               static_cast<float>(mouse_moved->position.y));
 
         for (size_t i = 0; i < save_slot_texts_.size(); ++i)
         {
@@ -177,11 +181,12 @@ void LoadState::handleEvent(const sf::Event &event)
     }
 
     // 3. Xử lý click chuột
-    if (const auto *mouse_button_pressed = event.getIf<sf::Event::MouseButtonPressed>())
+    if (const auto* mouse_button_pressed = event.getIf<sf::Event::MouseButtonPressed>())
     {
         if (mouse_button_pressed->button == sf::Mouse::Button::Left)
         {
-            sf::Vector2f mouse_pos(static_cast<float>(mouse_button_pressed->position.x), static_cast<float>(mouse_button_pressed->position.y));
+            sf::Vector2f mouse_pos(static_cast<float>(mouse_button_pressed->position.x),
+                                   static_cast<float>(mouse_button_pressed->position.y));
 
             for (size_t i = 0; i < save_slot_texts_.size(); ++i)
             {
@@ -208,7 +213,7 @@ void LoadState::handleEvent(const sf::Event &event)
 void LoadState::update(float delta_time) {}
 
 // Render load menu
-void LoadState::render(sf::RenderWindow &window)
+void LoadState::render(sf::RenderWindow& window)
 {
     window.clear(sf::Color(25, 25, 25));
 
@@ -222,7 +227,7 @@ void LoadState::render(sf::RenderWindow &window)
     //     window.draw(*title_text_);
     // }
 
-    for (const auto &slot_text : save_slot_texts_)
+    for (const auto& slot_text : save_slot_texts_)
     {
         window.draw(slot_text);
     }
@@ -252,7 +257,8 @@ void LoadState::moveDown()
 void LoadState::loadGameData(int slot_index)
 {
     // Kiểm tra xem file có thực sự tồn tại trước khi Load để tránh nạp file trống
-    std::ifstream test_file("data/saves/slot_" + std::to_string(slot_index) + ".bin", std::ios::binary);
+    std::ifstream test_file("data/saves/slot_" + std::to_string(slot_index) + ".bin",
+                            std::ios::binary);
     if (!test_file.is_open())
     {
         std::cout << "[LoadState] Slot " << slot_index << " is empty. Cannot load!" << std::endl;

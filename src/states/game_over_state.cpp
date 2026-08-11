@@ -7,10 +7,7 @@
 #include <fstream>
 #include <iostream>
 
-GameOverState::GameOverState(SharedContext *context)
-    : State(context), selected_index_(0)
-{
-}
+GameOverState::GameOverState(SharedContext* context) : State(context), selected_index_(0) {}
 
 void GameOverState::init()
 {
@@ -21,8 +18,8 @@ void GameOverState::init()
         top_score_before = context_->data->high_scores[0];
     }
 
-    bool is_new_highscore = (top_score_before > 0) &&
-                            (context_->data->current_score > top_score_before);
+    bool is_new_highscore =
+        (top_score_before > 0) && (context_->data->current_score > top_score_before);
     if (is_new_highscore)
     {
         Audio().resumeMusic();
@@ -36,7 +33,7 @@ void GameOverState::init()
     // save highscore when die
     saveHighScore();
 
-    const sf::Font &font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
+    const sf::Font& font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
     title_text_ = std::make_unique<sf::Text>(font);
     score_text_ = std::make_unique<sf::Text>(font);
 
@@ -45,7 +42,8 @@ void GameOverState::init()
     if (is_new_highscore)
     {
         title_text_->setString("NEW HIGHSCORE!");
-        title_text_->setFillColor(sf::Color::Magenta); // Đổi thành màu Cyan (hoặc Green/Magenta) cho ngầu
+        title_text_->setFillColor(
+            sf::Color::Magenta); // Đổi thành màu Cyan (hoặc Green/Magenta) cho ngầu
 
         // Canh giữa lại tọa độ X vì độ dài chữ "NEW HIGHSCORE!" khác với "GAME OVER"
         sf::FloatRect title_bounds = title_text_->getLocalBounds();
@@ -56,7 +54,7 @@ void GameOverState::init()
 void GameOverState::saveHighScore()
 {
     int current_score = context_->data->current_score;
-    auto &scores = context_->data->high_scores;
+    auto& scores = context_->data->high_scores;
 
     scores.push_back(current_score);
     std::sort(scores.begin(), scores.end(), std::greater<int>());
@@ -69,12 +67,12 @@ void GameOverState::saveHighScore()
     std::ofstream file("data/highscore.bin", std::ios::binary);
     if (file.is_open())
     {
-        file.write(reinterpret_cast<const char *>(scores.data()), 5 * sizeof(int));
+        file.write(reinterpret_cast<const char*>(scores.data()), 5 * sizeof(int));
         file.close();
     }
 }
 
-void GameOverState::setupUI(const sf::Font &font)
+void GameOverState::setupUI(const sf::Font& font)
 {
     background_overlay_.setSize({static_cast<float>(Constants::WINDOW_WIDTH),
                                  static_cast<float>(Constants::WINDOW_HEIGHT)});
@@ -109,20 +107,22 @@ void GameOverState::setupUI(const sf::Font &font)
             text->setFillColor(sf::Color::White);
 
         sf::FloatRect bounds = text->getLocalBounds();
-        text->setPosition({(Constants::WINDOW_WIDTH - bounds.size.x) / 2.f, initial_y + i * spacing});
+        text->setPosition(
+            {(Constants::WINDOW_WIDTH - bounds.size.x) / 2.f, initial_y + i * spacing});
         menu_texts_.push_back(std::move(text));
     }
 }
 
-void GameOverState::handleEvent(const sf::Event &event)
+void GameOverState::handleEvent(const sf::Event& event)
 {
-    if (const auto *key_pressed = event.getIf<sf::Event::KeyPressed>())
+    if (const auto* key_pressed = event.getIf<sf::Event::KeyPressed>())
     {
         if (key_pressed->code == sf::Keyboard::Key::Up || key_pressed->code == sf::Keyboard::Key::W)
         {
             moveUp();
         }
-        else if (key_pressed->code == sf::Keyboard::Key::Down || key_pressed->code == sf::Keyboard::Key::S)
+        else if (key_pressed->code == sf::Keyboard::Key::Down ||
+                 key_pressed->code == sf::Keyboard::Key::S)
         {
             moveDown();
         }
@@ -141,9 +141,10 @@ void GameOverState::handleEvent(const sf::Event &event)
         }
     }
 
-    if (const auto *mouse_moved = event.getIf<sf::Event::MouseMoved>())
+    if (const auto* mouse_moved = event.getIf<sf::Event::MouseMoved>())
     {
-        sf::Vector2f mouse_pos(static_cast<float>(mouse_moved->position.x), static_cast<float>(mouse_moved->position.y));
+        sf::Vector2f mouse_pos(static_cast<float>(mouse_moved->position.x),
+                               static_cast<float>(mouse_moved->position.y));
 
         for (size_t i = 0; i < menu_texts_.size(); ++i)
         {
@@ -160,11 +161,12 @@ void GameOverState::handleEvent(const sf::Event &event)
         }
     }
 
-    if (const auto *mouse_button_pressed = event.getIf<sf::Event::MouseButtonPressed>())
+    if (const auto* mouse_button_pressed = event.getIf<sf::Event::MouseButtonPressed>())
     {
         if (mouse_button_pressed->button == sf::Mouse::Button::Left)
         {
-            sf::Vector2f mouse_pos(static_cast<float>(mouse_button_pressed->position.x), static_cast<float>(mouse_button_pressed->position.y));
+            sf::Vector2f mouse_pos(static_cast<float>(mouse_button_pressed->position.x),
+                                   static_cast<float>(mouse_button_pressed->position.y));
 
             for (size_t i = 0; i < menu_texts_.size(); ++i)
             {
@@ -191,12 +193,12 @@ void GameOverState::handleEvent(const sf::Event &event)
 
 void GameOverState::update(float delta_time) {}
 
-void GameOverState::render(sf::RenderWindow &window)
+void GameOverState::render(sf::RenderWindow& window)
 {
     window.draw(background_overlay_);
     window.draw(*title_text_);
     window.draw(*score_text_);
-    for (const auto &text : menu_texts_)
+    for (const auto& text : menu_texts_)
     {
         window.draw(*text);
     }

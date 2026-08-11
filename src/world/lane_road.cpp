@@ -6,10 +6,11 @@
 #include "utils/resource_manager.h"
 #include "utils/serialization.h"
 
-#include <limits>
 #include <algorithm>
+#include <limits>
 
-LaneRoad::LaneRoad(const sf::Vector2f &init_position, const int &init_level, const int &init_direction)
+LaneRoad::LaneRoad(const sf::Vector2f& init_position, const int& init_level,
+                   const int& init_direction)
     : Lane(init_position, init_level, init_direction, Constants::LaneType::Road)
 {
     seedObjects();
@@ -18,10 +19,7 @@ LaneRoad::LaneRoad(const sf::Vector2f &init_position, const int &init_level, con
 
 LaneRoad::~LaneRoad() = default;
 
-Constants::LaneType LaneRoad::getType() const
-{
-    return Constants::LaneType::Road;
-}
+Constants::LaneType LaneRoad::getType() const { return Constants::LaneType::Road; }
 
 // populate list_dynamic with initial Car/Truck objects, spread across the lane
 void LaneRoad::seedObjects()
@@ -72,7 +70,7 @@ void LaneRoad::seedObjects()
         {
             x = lane_left + randomRange(0, range);
             bool overlap = false;
-            for (auto &other : list_dynamic)
+            for (auto& other : list_dynamic)
             {
                 float other_x = other->getPosition().x;
                 float other_width = other->getWidthSprite();
@@ -89,36 +87,30 @@ void LaneRoad::seedObjects()
             }
         }
 
-        if (!placed) continue;
+        if (!placed)
+            continue;
 
         obj->setPosition({x, 0});
         list_dynamic.push_back(std::move(obj));
     }
 
-    std::sort(list_dynamic.begin(), list_dynamic.end(),
-              [this](const std::unique_ptr<DynamicObject> &a, const std::unique_ptr<DynamicObject> &b)
-              {
-                  return a->getPosition().x * direction > b->getPosition().x * direction;
-              });
+    std::sort(
+        list_dynamic.begin(), list_dynamic.end(),
+        [this](const std::unique_ptr<DynamicObject>& a, const std::unique_ptr<DynamicObject>& b)
+        { return a->getPosition().x * direction > b->getPosition().x * direction; });
     num_active_object = static_cast<int>(list_dynamic.size());
 }
 
 // populate traffic with 0 or 1 traffic light
 void LaneRoad::seedTraffic()
 {
-    const float margin = 2.f * Constants::CELL_SIZE;
-    const float gap_min = 3.f * Constants::CELL_SIZE;
-    const float usable = Constants::LANE_WIDTH - 2.f * margin;
-
-    int count = randomRange(0, 1);
-    if (count == 0)
-        return;
-
-    int slot = usable / (count + 1);
-    float x = position.x + margin + slot;
-    Constants::TrafficLightColor color =
-        (randomRange(0, 1) == 0) ? Constants::TrafficLightColor::Green
-                                 : Constants::TrafficLightColor::Red;
+    static std::mt19937 rng(std::chrono::steady_clock::now().time_since_epoch().count());
+    std::uniform_int_distribution<int> dist(Constants::GAME_PLAY_BAR_WIDTH + 2 * Constants::CELL_SIZE, Constants::GAME_PLAY_BAR_WIDTH + 7 * Constants::CELL_SIZE);
+    float x = static_cast<float>(dist(rng));
+    
+    Constants::TrafficLightColor color = (randomRange(0, 1) == 0)
+                                             ? Constants::TrafficLightColor::Green
+                                             : Constants::TrafficLightColor::Red;
     traffic = std::make_unique<Traffic>(this, color);
     traffic->setPosition({x, 0});
 }
@@ -132,7 +124,7 @@ void LaneRoad::updateState(float delta_time)
 }
 
 // draw lane sprite + objects (base), then traffic light
-void LaneRoad::render(sf::RenderWindow &window) const
+void LaneRoad::render(sf::RenderWindow& window) const
 {
     window.draw(sprite);
     if (traffic) // must draw traffic before vehicle
@@ -140,11 +132,12 @@ void LaneRoad::render(sf::RenderWindow &window) const
     for (const auto& o : list_dynamic)
     {
         o->render(window);
-    } 
+    }
 }
 
 // reuse lane: base reposition + shuffle traffic light
-void LaneRoad::spawnLane(const sf::Vector2f &new_position, const int &new_level, const int &new_direction)
+void LaneRoad::spawnLane(const sf::Vector2f& new_position, const int& new_level,
+                         const int& new_direction)
 {
     Lane::spawnLane(new_position, new_level, new_direction);
 
@@ -160,8 +153,7 @@ void LaneRoad::spawnLane(const sf::Vector2f &new_position, const int &new_level,
         float lane_left = position.x;
         int lo = static_cast<int>(0.1f * Constants::LANE_WIDTH);
         int hi = static_cast<int>(0.9f * Constants::LANE_WIDTH);
-        traffic->setPosition(
-            {lane_left + static_cast<float>(randomRange(lo, hi)), position.y});
+        traffic->setPosition({lane_left + static_cast<float>(randomRange(lo, hi)), position.y});
     }
 }
 
@@ -188,13 +180,12 @@ void LaneRoad::spawnObject()
     if (randomRange(0, spawn_rate_chance) != 0)
         return;
 
-    DynamicObject *last_obj = list_dynamic.back().get();
+    DynamicObject* last_obj = list_dynamic.back().get();
     float lane_left = position.x;
     float lane_right = position.x + Constants::LANE_WIDTH;
-    float entered_distance = (direction == 1)
-                                 ? (last_obj->getPosition().x - lane_left)
-                                 : (lane_right - (last_obj->getPosition().x +
-                                                  last_obj->getWidthSprite()));
+    float entered_distance =
+        (direction == 1) ? (last_obj->getPosition().x - lane_left)
+                         : (lane_right - (last_obj->getPosition().x + last_obj->getWidthSprite()));
     if (entered_distance < static_cast<float>(Constants::CELL_SIZE))
         return;
 
@@ -210,7 +201,7 @@ void LaneRoad::spawnObject()
     {
         if ((*o)->getType() == exp_type && (*o)->getColor() == exp_color)
         {
-            Vehicle *target = dynamic_cast<Vehicle *>(o->get());
+            Vehicle* target = dynamic_cast<Vehicle*>(o->get());
             if (target)
             {
                 target->setActiveState(true);
@@ -237,7 +228,7 @@ void LaneRoad::spawnObject()
 
 // the lane's single traffic light if it's red/yellow, ahead of vehicle, and
 // within its safe distance
-Traffic *LaneRoad::getNearestTrafficAhead(const Vehicle &vehicle)
+Traffic* LaneRoad::getNearestTrafficAhead(const Vehicle& vehicle)
 {
     if (!traffic)
         return nullptr;
@@ -246,7 +237,9 @@ Traffic *LaneRoad::getNearestTrafficAhead(const Vehicle &vehicle)
     if (color == Constants::TrafficLightColor::Green)
         return nullptr;
 
-    float gap = vehicle.gapToObstacle(traffic->getPosition().x, Constants::getSizeInGame(Constants::StaticObjectType::Traffic).width);
+    float gap =
+        vehicle.gapToObstacle(traffic->getPosition().x,
+                              Constants::getSizeInGame(Constants::StaticObjectType::Traffic).width);
     if (gap < 0 || gap > vehicle.getSafeDistance())
         return nullptr;
 
@@ -254,7 +247,7 @@ Traffic *LaneRoad::getNearestTrafficAhead(const Vehicle &vehicle)
 }
 
 // the vehicle immediately ahead of `vehicle` in list_dynamic, if it is slower
-Vehicle *LaneRoad::getNearestVehicleAhead(const Vehicle &vehicle)
+Vehicle* LaneRoad::getNearestVehicleAhead(const Vehicle& vehicle)
 {
     for (auto it = list_dynamic.begin(); it != list_dynamic.end(); ++it)
     {
@@ -265,7 +258,7 @@ Vehicle *LaneRoad::getNearestVehicleAhead(const Vehicle &vehicle)
         auto ahead_it = std::prev(it);
         if (!(*ahead_it)->isActive())
             return nullptr;
-        Vehicle *ahead = dynamic_cast<Vehicle *>(ahead_it->get());
+        Vehicle* ahead = dynamic_cast<Vehicle*>(ahead_it->get());
         if (ahead && ahead->getVelocity().x * direction < vehicle.getVelocity().x * direction)
             return ahead;
         return nullptr;
@@ -273,7 +266,7 @@ Vehicle *LaneRoad::getNearestVehicleAhead(const Vehicle &vehicle)
     return nullptr;
 }
 
-void LaneRoad::serialize(std::ostream &os) const
+void LaneRoad::serialize(std::ostream& os) const
 {
     // 1. Write base lane data
     Lane::serialize(os);
@@ -289,7 +282,7 @@ void LaneRoad::serialize(std::ostream &os) const
     }
 }
 
-void LaneRoad::deserialize(std::istream &is)
+void LaneRoad::deserialize(std::istream& is)
 {
     // 1. Read base lane data
     Lane::deserialize(is);

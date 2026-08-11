@@ -6,23 +6,20 @@
 #include "utils/constants.h"
 #include "utils/resource_manager.h"
 
-PauseState::PauseState(SharedContext *context)
-    : State(context), selected_index_(0)
-{
-}
+PauseState::PauseState(SharedContext* context) : State(context), selected_index_(0) {}
 
 // Load font and initialize UI
 void PauseState::init()
 {
     Audio().resumeMusic();
-    const sf::Font &font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
+    const sf::Font& font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
     title_text_ = std::make_unique<sf::Text>(font);
 
     setupUI(font);
 }
 
 // Setup pause menu UI with overlay and options
-void PauseState::setupUI(const sf::Font &font)
+void PauseState::setupUI(const sf::Font& font)
 {
     background_overlay_.setSize({static_cast<float>(Constants::WINDOW_WIDTH),
                                  static_cast<float>(Constants::WINDOW_HEIGHT)});
@@ -65,16 +62,17 @@ void PauseState::setupUI(const sf::Font &font)
 }
 
 // Handle pause menu input
-void PauseState::handleEvent(const sf::Event &event)
+void PauseState::handleEvent(const sf::Event& event)
 {
-    if (const auto *key_pressed = event.getIf<sf::Event::KeyPressed>())
+    if (const auto* key_pressed = event.getIf<sf::Event::KeyPressed>())
     {
         if (key_pressed->code == sf::Keyboard::Key::Up || key_pressed->code == sf::Keyboard::Key::W)
         {
             moveUp();
             Audio().playSFX(AudioSystem::SFX::Hover);
         }
-        else if (key_pressed->code == sf::Keyboard::Key::Down || key_pressed->code == sf::Keyboard::Key::S)
+        else if (key_pressed->code == sf::Keyboard::Key::Down ||
+                 key_pressed->code == sf::Keyboard::Key::S)
         {
             moveDown();
             Audio().playSFX(AudioSystem::SFX::Hover);
@@ -106,9 +104,10 @@ void PauseState::handleEvent(const sf::Event &event)
         }
     }
     // MouseMoved
-    if (const auto *mouse_moved = event.getIf<sf::Event::MouseMoved>())
+    if (const auto* mouse_moved = event.getIf<sf::Event::MouseMoved>())
     {
-        sf::Vector2f mouse_pos(static_cast<float>(mouse_moved->position.x), static_cast<float>(mouse_moved->position.y));
+        sf::Vector2f mouse_pos(static_cast<float>(mouse_moved->position.x),
+                               static_cast<float>(mouse_moved->position.y));
 
         for (size_t i = 0; i < menu_texts_.size(); ++i)
         {
@@ -119,8 +118,7 @@ void PauseState::handleEvent(const sf::Event &event)
                 {
                     menu_texts_[selected_index_]->setFillColor(sf::Color::White);
                     selected_index_ = static_cast<int>(i);
-                    menu_texts_[selected_index_]->setFillColor(
-                        sf::Color::Yellow);
+                    menu_texts_[selected_index_]->setFillColor(sf::Color::Yellow);
                     Audio().playSFX(AudioSystem::SFX::Hover);
                 }
                 break;
@@ -129,11 +127,12 @@ void PauseState::handleEvent(const sf::Event &event)
     }
 
     // Handle left mouse button click (MouseButtonPressed)
-    if (const auto *mouse_button_pressed = event.getIf<sf::Event::MouseButtonPressed>())
+    if (const auto* mouse_button_pressed = event.getIf<sf::Event::MouseButtonPressed>())
     {
         if (mouse_button_pressed->button == sf::Mouse::Button::Left)
         {
-            sf::Vector2f mouse_pos(static_cast<float>(mouse_button_pressed->position.x), static_cast<float>(mouse_button_pressed->position.y));
+            sf::Vector2f mouse_pos(static_cast<float>(mouse_button_pressed->position.x),
+                                   static_cast<float>(mouse_button_pressed->position.y));
 
             for (size_t i = 0; i < menu_texts_.size(); ++i)
             {
@@ -167,14 +166,14 @@ void PauseState::handleEvent(const sf::Event &event)
 void PauseState::update(float delta_time) {}
 
 // Render pause menu overlay and options
-void PauseState::render(sf::RenderWindow &window)
+void PauseState::render(sf::RenderWindow& window)
 {
     window.draw(background_overlay_);
     if (title_text_)
     {
         window.draw(*title_text_);
     }
-    for (const auto &menu_text : menu_texts_)
+    for (const auto& menu_text : menu_texts_)
     {
         if (menu_text)
         {

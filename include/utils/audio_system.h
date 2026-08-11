@@ -9,7 +9,8 @@
 class AudioSystem
 {
 public:
-    // Định nghĩa Enum cho SFX và Music thay vì dùng chuỗi tĩnh
+    // Sử dụng Enum thay vì chuỗi (string) tĩnh để quản lý hiệu ứng âm thanh (SFX) và nhạc nền (Music)
+    // Giúp dễ dàng gọi hàm và tránh lỗi đánh máy
     enum class SFX
     {
         Click,
@@ -37,17 +38,17 @@ private:
     float sfx_volume_ = 70.f;
     float music_volume_ = 50.f;
 
-    // Map chứa đường dẫn cố định của file âm thanh
+    // Map ánh xạ từ Enum sang đường dẫn file âm thanh tương ứng
     static const std::unordered_map<SFX, std::string> sfx_paths_;
     static const std::unordered_map<Music, std::string> music_paths_;
 
     AudioSystem();
 
 public:
-    AudioSystem(const AudioSystem &) = delete;
-    AudioSystem &operator=(const AudioSystem &) = delete;
+    AudioSystem(const AudioSystem&) = delete;
+    AudioSystem& operator=(const AudioSystem&) = delete;
 
-    static AudioSystem &getInstance()
+    static AudioSystem& getInstance()
     {
         static AudioSystem instance;
         return instance;
@@ -59,19 +60,20 @@ public:
     float getSFXVolume() const { return sfx_volume_; }
     float getMusicVolume() const { return music_volume_; }
 
-    // Tải trước tất cả SFX vào RAM để chống giật lag khi chơi
+    // Nạp sẵn toàn bộ file âm thanh (SFX) vào bộ nhớ RAM khi khởi động game
+    // Việc này giúp tránh tình trạng giật lag mỗi lần phải load file mới lúc đang chơi
     void preloadAll();
 
-    // Phát âm thanh sử dụng Enum thay vì String
+    // Các hàm phát âm thanh, truyền vào Enum thay vì tên file
     void playSFX(SFX sfx);
     void playMusic(Music music);
 
-    void pauseMusic();  // Tạm dừng nhạc
-    void resumeMusic(); //  Tiếp tục phát nhạc
-    void stopAllSFX();  // khi thua
+    void pauseMusic();  // Tạm dừng phát nhạc nền
+    void resumeMusic(); // Tiếp tục phát nhạc nền từ vị trí tạm dừng
+    void stopAllSFX();  // Dừng mọi hiệu ứng âm thanh đang phát (vd: dùng khi game over)
 
     void update();
     void clearAll();
 };
 
-inline AudioSystem &Audio() { return AudioSystem::getInstance(); }
+inline AudioSystem& Audio() { return AudioSystem::getInstance(); }

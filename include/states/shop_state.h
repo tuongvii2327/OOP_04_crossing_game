@@ -14,7 +14,7 @@ private:
     std::unique_ptr<sf::Sprite> background_sprite_;
     std::unique_ptr<sf::Text> title_text_;
     std::unique_ptr<sf::Text> coin_text_;
-    std::unique_ptr<sf::Sprite> coin_sprite_; // Icon đồng xu (top-left)
+    std::unique_ptr<sf::Sprite> coin_sprite_;           // Icon đồng xu (top-left)
     std::vector<std::unique_ptr<sf::Text>> menu_texts_; // [0]=Action, [1]=Back
 
     // Mũi tên đổi nhân vật (hai bên ảnh)
@@ -31,7 +31,7 @@ private:
     const int char_prices_[3] = {0, 50, 100};
     const std::string char_names_[3] = {"PERSON", "ROBOT", "USAGI"};
 
-    void setupUI(const sf::Font &font);
+    void setupUI(const sf::Font& font);
     void updateUI();
 
     void moveUp();
@@ -41,11 +41,11 @@ private:
     void executeAction();
 
 public:
-    ShopState(SharedContext *context);
+    ShopState(SharedContext* context);
     ~ShopState() override = default;
 
     void init() override;
-    void handleEvent(const sf::Event &event) override;
+    void handleEvent(const sf::Event& event) override;
     void update(float delta_time) override;
-    void render(sf::RenderWindow &window) override;
+    void render(sf::RenderWindow& window) override;
 };

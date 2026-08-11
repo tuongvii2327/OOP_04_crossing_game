@@ -1,11 +1,10 @@
 #include "entities/rabbit.h"
-#include "world/lane.h"
 #include "utils/resource_manager.h"
+#include "world/lane.h"
 
 #pragma region PUBLIC
 #pragma region CONSTRUCTOR, DESTRUCTOR
-Rabbit::Rabbit(const Constants::ObjectColor &init_color, 
-    Lane *init_lane)
+Rabbit::Rabbit(const Constants::ObjectColor& init_color, Lane* init_lane)
     : Animal(Constants::DynamicObjectType::Rabbit, init_color, init_lane)
 {
     rabbit_color = init_color;
@@ -14,21 +13,21 @@ Rabbit::Rabbit(const Constants::ObjectColor &init_color,
 
 #pragma region GET, SET
 
-Constants::ObjectColor Rabbit::getColor() const
-{
-    return rabbit_color;
-}
+Constants::ObjectColor Rabbit::getColor() const { return rabbit_color; }
 
-void Rabbit::setColor(const Constants::ObjectColor &new_color)
+void Rabbit::setColor(const Constants::ObjectColor& new_color)
 {
     rabbit_color = new_color;
     if (Resource().hasSpritesheet(Constants::DynamicObjectType::Rabbit))
     {
-        setTextureRect(Resource().getDynamicObjectSpritesheetRect(Constants::DynamicObjectType::Rabbit, current_frame));
+        setTextureRect(Resource().getDynamicObjectSpritesheetRect(
+            Constants::DynamicObjectType::Rabbit, current_frame));
     }
     else
     {
-        setSprite(Resource().getDynamicObjectTexture(Constants::DynamicObjectType::Rabbit, new_color, current_frame), Constants::DynamicObjectType::Rabbit);
+        setSprite(Resource().getDynamicObjectTexture(Constants::DynamicObjectType::Rabbit,
+                                                     new_color, current_frame),
+                  Constants::DynamicObjectType::Rabbit);
     }
 }
 

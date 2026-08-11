@@ -1,12 +1,13 @@
 #pragma once
 
-namespace Constants {
+namespace Constants
+{
 const unsigned int WINDOW_WIDTH = 1400;
 const unsigned int WINDOW_HEIGHT = 1050;
-const char *const GAME_TITLE = "Crossy Road";
+const char* const GAME_TITLE = "Crossy Road";
 const unsigned int FPS_LIMIT = 24;
 
-// number of cell
+// Số lượng ô grid trên bản đồ
 const unsigned int NUMBER_OF_LANES = 10;
 const unsigned int NUMBER_OF_CELLS = 12;
 
@@ -14,45 +15,44 @@ const unsigned int GAME_PLAY_BAR_HEIGHT = 1050;
 const unsigned int GAME_PLAY_BAR_WIDTH = 140;
 const unsigned int CELL_SIZE = 105;
 
-// min distance between sprites of objects to avoid collision in visual (UI)
+// Khoảng cách tối thiểu giữa các sprite của object để tránh va chạm trực quan (trên UI)
 const int VISUAL_DISTANCE = 15;
 
-// hitbox size as a fraction of the sprite size (applies to every dynamic
-// object)
+// Tỷ lệ hitbox so với kích thước thật của sprite (áp dụng cho mọi đối tượng có thể di chuyển)
 constexpr float HITBOX_SIZE_RATIO = 0.95f;
 
-    // mot frame hinh trong animation keo dai bao nhieu lan dt (time 1 frame = dt * NUM_OF_DT_PER_FRAME)
-    const int NUM_OF_DT_PER_FRAME = 4;
+// Một frame hình trong animation kéo dài bao nhiêu lần dt (thời gian 1 frame = dt * NUM_OF_DT_PER_FRAME)
+const int NUM_OF_DT_PER_FRAME = 4;
 
 #pragma region LANE
-    const unsigned int LANE_HEIGHT = 105;
-    const unsigned int LANE_WIDTH = 1260;
-    const unsigned int MAX_OBJECT_PER_LANE = 4;
+const unsigned int LANE_HEIGHT = 105;
+const unsigned int LANE_WIDTH = 1260;
+const unsigned int MAX_OBJECT_PER_LANE = 4;
 
-	enum class LaneType
-	{
-		Grass,
-		Road,
-		Safe,
-		River
-	};
+enum class LaneType
+{
+    Grass,
+    Road,
+    Safe,
+    River
+};
 
-	inline int getNumberOfTextureVariant(const LaneType &type)
-	{
-		switch (type)
-		{
-		case LaneType::Grass:
-			return 21;
-		case LaneType::Safe:
-			return 21;
-		case LaneType::Road:
-			return 3;
-		case LaneType::River:
-			return 7;
-		default:
-			return 1;
-		}
-	}
+inline int getNumberOfTextureVariant(const LaneType& type)
+{
+    switch (type)
+    {
+    case LaneType::Grass:
+        return 55;
+    case LaneType::Safe:
+        return 44;
+    case LaneType::Road:
+        return 3;
+    case LaneType::River:
+        return 7;
+    default:
+        return 1;
+    }
+}
 #pragma endregion
 
 #pragma region CAMERA
@@ -63,141 +63,152 @@ constexpr float AUTO_SCROLL_LEVEL_FACTOR = 0.3f;
 #pragma endregion
 
 #pragma region OBJECT
-// coefficients in the 'speed' formula above
+// Hệ số nhân tốc độ theo level (speed_multiplier)
 constexpr float SPEED_LEVEL_FACTOR = 0.2f;
 
-enum class DynamicObjectType {
-  // Character object
-  People,
-  // Road object
-  Car,
-  Truck,
+enum class DynamicObjectType
+{
+    // Character object
+    People,
+    // Road object
+    Car,
+    Truck,
 
-  // Grass objecct
-  Bird,
-  Rabbit,
+    // Grass objecct
+    Bird,
+    Rabbit,
 
-  // River object
-  Wood
+    // River object
+    Wood
 };
 
-enum class StaticObjectType {
-  // Character object
+enum class StaticObjectType
+{
+    // Character object
 
-  // Road object
-  Traffic,
+    // Road object
+    Traffic,
 
-  // Grass objecct
-  Rock,
-  Bush,
+    // Grass objecct
+    Rock,
+    Bush,
 
-  // River object
+    // River object
 
-  // Coin
-  Coin
+    // Coin
+    Coin
 };
 
-enum class ObjectColor {
-  Red,
-  Blue,
-  Green,
-  Grey,
-  None // keep last: used as the color count in random pickers
+enum class ObjectColor
+{
+    Red,
+    Blue,
+    Green,
+    Grey,
+    None // keep last: used as the color count in random pickers
 };
 
-// effect of an object (dynamic or static) on People when colliding with it
-enum class ObjectEffect {
-  None,       // can be touched, nothing happens
-  Blocked,    // blocks movement, cannot walk into it
-  Lethal,     // can be touched, touching it kills the player
-  Collectible // can be touched, touching it accumulates a special score (e.g.
-              // coin)
+// Hiệu ứng của một đối tượng (động hoặc tĩnh) tác động lên nhân vật (People) khi xảy ra va chạm
+enum class ObjectEffect
+{
+    None,       // Có thể đi xuyên qua, không có chuyện gì xảy ra
+    Blocked,    // Chặn đường đi, nhân vật không thể đi qua
+    Lethal,     // Gây chết người nếu nhân vật chạm vào
+    Collectible // Có thể thu thập để cộng điểm (vd: Coin)
 };
 
-// the usable speed range of an object
-struct SpeedRange {
-  int min_speed;
-  int max_speed;
+// Khoảng tốc độ có thể sử dụng của một đối tượng
+struct SpeedRange
+{
+    int min_speed;
+    int max_speed;
 };
 
-// Base speed range (px/s) for each object type before the level multiplier is
-// applied speed = random int in [min_speed, max_speed] * (1 + (level - 1) *
-// SPEED_LEVEL_FACTOR)
-inline SpeedRange getSpeedRange(const DynamicObjectType &type) {
-  switch (type) {
-  case DynamicObjectType::Car:
-    return {50, 80};
-  case DynamicObjectType::Truck:
-    return {35, 65};
-  case DynamicObjectType::Bird:
-    return {20, 60};
-  case DynamicObjectType::Rabbit:
-    return {35, 70};
-  case DynamicObjectType::Wood:
-    return {35, 80};
-  default:
-    return {0, 0};
-  }
+// Lấy khoảng tốc độ cơ bản (px/s) cho mỗi loại đối tượng trước khi áp dụng hệ số nhân của level.
+// Công thức: speed = random int trong [min_speed, max_speed] * (1 + (level - 1) * SPEED_LEVEL_FACTOR)
+inline SpeedRange getSpeedRange(const DynamicObjectType& type)
+{
+    switch (type)
+    {
+    case DynamicObjectType::Car:
+        return {50, 80};
+    case DynamicObjectType::Truck:
+        return {35, 65};
+    case DynamicObjectType::Bird:
+        return {20, 60};
+    case DynamicObjectType::Rabbit:
+        return {35, 70};
+    case DynamicObjectType::Wood:
+        return {35, 80};
+    default:
+        return {0, 0};
+    }
 }
 
-struct Size {
-  int width;
-  int height;
+struct Size
+{
+    int width;
+    int height;
 };
 
-inline Size getSizeInGame(const StaticObjectType &type) {
-  switch (type) {
-  case StaticObjectType::Traffic:
-    return {50, 50};
-  case StaticObjectType::Rock:
-    return {80, 55};
-  case StaticObjectType::Bush:
-    return {90, 69};
-  case StaticObjectType::Coin:
-    return {65, 60};
-  default:
-    return {90, 90};
-  }
+inline Size getSizeInGame(const StaticObjectType& type)
+{
+    switch (type)
+    {
+    case StaticObjectType::Traffic:
+        return {105, 105};
+    case StaticObjectType::Rock:
+        return {102, 70};
+    case StaticObjectType::Bush:
+        return {90, 69};
+    case StaticObjectType::Coin:
+        return {65, 60};
+    default:
+        return {90, 90};
+    }
 }
 
-inline Size getSizeInGame(const DynamicObjectType &type) {
-  switch (type) {
-  case DynamicObjectType::People:
-    return {52, 62};
-  case DynamicObjectType::Car:
-    return {90, 51};
-  case DynamicObjectType::Truck:
-    return {87, 81};
-  case DynamicObjectType::Bird:
-    return {53, 47};
-  case DynamicObjectType::Rabbit:
-    return {60, 60};
-  case DynamicObjectType::Wood:
-    return {210, 60};
-  default:
-    return {80, 200};
-  }
+inline Size getSizeInGame(const DynamicObjectType& type)
+{
+    switch (type)
+    {
+    case DynamicObjectType::People:
+        return {52, 62};
+    case DynamicObjectType::Car:
+        return {90, 51};
+    case DynamicObjectType::Truck:
+        return {87, 81};
+    case DynamicObjectType::Bird:
+        return {53, 47};
+    case DynamicObjectType::Rabbit:
+        return {60, 60};
+    case DynamicObjectType::Wood:
+        return {210, 60};
+    default:
+        return {80, 200};
+    }
 }
 
-inline int getNumberOfFrames(const DynamicObjectType &type) {
-  switch (type) {
-  case DynamicObjectType::People:
-    return 1;
-  case DynamicObjectType::Car:
-    return 4;
-  case DynamicObjectType::Truck:
-    return 4;
-  case DynamicObjectType::Bird:
-    return 3;
-  case DynamicObjectType::Rabbit:
-    return 2;
-  default:
-    return 1;
-  }
+inline int getNumberOfFrames(const DynamicObjectType& type)
+{
+    switch (type)
+    {
+    case DynamicObjectType::People:
+        return 1;
+    case DynamicObjectType::Car:
+        return 4;
+    case DynamicObjectType::Truck:
+        return 4;
+    case DynamicObjectType::Bird:
+        return 3;
+    case DynamicObjectType::Rabbit:
+        return 2;
+    default:
+        return 1;
+    }
 }
 #pragma region VEHICLE
-// factor to calculate safe_distance (safe_distance = base_speed *
-// SAFE_DISTANCE_FACTOR)
+// Hệ số dùng để tính toán khoảng cách an toàn (safe_distance = base_speed * SAFE_DISTANCE_FACTOR)
 const unsigned int SAFE_DISTANCE_FACTOR = 2;
 #pragma endregion
 
@@ -211,8 +222,45 @@ const float YELLOW_DURATION = 4; // second
 const unsigned int MIN_DURATION_TRAFFIC = 6;
 const unsigned int MAX_DURATION_TRAFFIC = 8;
 
-enum class TrafficLightColor { Red, Green, Yellow };
+// Khoảng cách nâng đèn giao thông lên phía trên so với mép trên của lane
+const float TRAFFIC_LIGHT_Y_OFFSET = 40.f;
+
+enum class TrafficLightColor
+{
+    Red,
+    Green,
+    Yellow
+};
+#pragma endregion
 #pragma endregion
 
+#pragma region SPRITESHEET
+constexpr int SPRITESHEET_FRAME_SIZE = 800;
+
+struct SpriteFrameRect
+{
+    int content_width;
+    int content_height;
+    int offset_x;
+    int offset_y;
+};
+
+inline SpriteFrameRect getSpriteFrameRect(const DynamicObjectType& type)
+{
+    switch (type)
+    {
+    case DynamicObjectType::Car:
+        return {750, 425, 25, 250};
+    case DynamicObjectType::Rabbit:
+        return {700, 700, (SPRITESHEET_FRAME_SIZE - 700) / 2, (SPRITESHEET_FRAME_SIZE - 700) / 2};
+    case DynamicObjectType::Bird:
+        return {725, 643, (SPRITESHEET_FRAME_SIZE - 725) / 2, (SPRITESHEET_FRAME_SIZE - 643) / 2};
+    case DynamicObjectType::Truck:
+        return {725, 675, (SPRITESHEET_FRAME_SIZE - 725) / 2, (SPRITESHEET_FRAME_SIZE - 675) / 2};
+    default:
+        return {SPRITESHEET_FRAME_SIZE, SPRITESHEET_FRAME_SIZE, 0, 0};
+    }
+}
 #pragma endregion
+
 } // namespace Constants

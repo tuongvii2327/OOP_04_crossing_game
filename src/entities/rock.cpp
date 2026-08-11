@@ -4,13 +4,12 @@
 #pragma region PUBLIC
 
 #pragma region CONSTRUCTOR, DESTRUCTOR
-Rock::Rock(Lane* init_lane,
-    const sf::Vector2f& init_position,
-    const Constants::ObjectColor& init_color)
+Rock::Rock(Lane* init_lane, const sf::Vector2f& init_position,
+           const Constants::ObjectColor& init_color)
     : StaticObject(init_lane, Constants::StaticObjectType::Rock, init_position, init_color)
 {
     rock_color = init_color;
-    setPosition (init_position);
+    setPosition(init_position);
     if (current_lane != nullptr)
     {
         float cell_x = position.x - (Constants::CELL_SIZE - getWidthSprite()) / 2.f;
@@ -23,12 +22,9 @@ Rock::Rock(Lane* init_lane,
 #pragma endregion
 
 #pragma region GET, SET
-Constants::StaticObjectType Rock::getType() const
-{
-    return Constants::StaticObjectType::Rock;
-}
+Constants::StaticObjectType Rock::getType() const { return Constants::StaticObjectType::Rock; }
 
-void Rock::setPosition(const sf::Vector2f &pos)
+void Rock::setPosition(const sf::Vector2f& pos)
 {
     // 1. Khóa Origin về (0,0) và Scale số dương, triệt tiêu lật ảnh sai vị trí
     sf::Vector2f cur_scale = sprite.getScale();
@@ -53,9 +49,6 @@ void Rock::setPosition(const sf::Vector2f &pos)
 
 #pragma region OTHER
 // keep the rock vertically locked to its lane as the map scrolls along Oy
-void Rock::updateState(float delta_time)
-{
-    setPosition(getPosition());
-}
+void Rock::updateState(float delta_time) { setPosition(getPosition()); }
 #pragma endregion
 #pragma endregion
