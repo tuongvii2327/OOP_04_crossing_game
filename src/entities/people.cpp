@@ -13,7 +13,7 @@ People::People(Constants::ObjectColor color)
     : DynamicObject(Constants::DynamicObjectType::People, color, nullptr), is_dead(false),
       step_size(static_cast<float>(Constants::LANE_HEIGHT)), people_color(color),
       current_dir(Direction::Up), current_anim_state(AnimState::Idle), anim_timer(0.f),
-      anim_duration(0.3f), is_animating(false)
+      anim_duration(0.2f), is_animating(false)
 {
     sprite.setOrigin({0.f, 0.f});
 
