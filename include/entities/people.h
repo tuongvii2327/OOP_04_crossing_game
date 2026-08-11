@@ -68,6 +68,7 @@ public:
     void die();
     bool isDead() const;
     bool isAnimating() const { return is_animating; }
+    float getAnimDuration() const { return anim_duration; }
     sf::Vector2f getStartPosition(int init_cell = 6, int init_lane = 10) const;
     void resetPosition();
 

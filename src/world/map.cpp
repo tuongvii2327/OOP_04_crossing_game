@@ -255,9 +255,11 @@ void Map::snapPlayerToGrid(People* player) const
             Wood* wood = river->getWoodAt(target_hitbox);
             if (wood)
             {
-                float wood_x = wood->getPosition().x;
-                float cell0_center = wood_x + Constants::CELL_SIZE / 2.f;
-                float cell1_center = wood_x + Constants::CELL_SIZE + Constants::CELL_SIZE / 2.f;
+                float jump_time = player->getAnimDuration();
+                float wood_x_at_landing = wood->getPosition().x + wood->getVelocity().x * jump_time;
+
+                float cell0_center = wood_x_at_landing + Constants::CELL_SIZE / 2.f;
+                float cell1_center = wood_x_at_landing + Constants::CELL_SIZE + Constants::CELL_SIZE / 2.f;
 
                 float dist0 = std::abs(current_center_x - cell0_center);
                 float dist1 = std::abs(current_center_x - cell1_center);
