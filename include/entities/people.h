@@ -23,10 +23,8 @@ public:
     };
 
 private:
-    static constexpr int SPRITESHEET_SIZE = 3200;
-    static constexpr int GRID_SIZE = 4;
-    static constexpr int FRAME_W = SPRITESHEET_SIZE / GRID_SIZE; // 800
-    static constexpr int FRAME_H = SPRITESHEET_SIZE / GRID_SIZE; // 800
+    static constexpr int FRAME_W = Constants::SPRITESHEET_FRAME_SIZE; // 800
+    static constexpr int FRAME_H = Constants::SPRITESHEET_FRAME_SIZE; // 800
 
     // Jump interpolation
     sf::Vector2f jump_start_pos;

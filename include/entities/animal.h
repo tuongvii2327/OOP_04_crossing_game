@@ -19,6 +19,8 @@ protected:
     float next_sound_time_ = 0.f;
     float randomSoundInterval() const;
 
+    virtual int getStoppedFrame() const; // frame (tick-based, see NUM_OF_DT_PER_FRAME) shown while the animal is stopped
+
 public:
     // contructor, destructor
     Animal(const Constants::DynamicObjectType& init_type, const Constants::ObjectColor& init_color,

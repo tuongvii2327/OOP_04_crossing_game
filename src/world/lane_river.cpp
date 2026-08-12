@@ -174,7 +174,7 @@ void LaneRiver::spawnObject()
 static bool isPlayerOnWood(const sf::FloatRect& player_hitbox, const DynamicObject* wood)
 {
     float player_center_x = player_hitbox.position.x + player_hitbox.size.x / 2.f;
-    float wood_left = wood->getPosition().x;
+    float wood_left = wood->getPosition().x; 
     float wood_right = wood_left + wood->getWidthSprite();
     return player_center_x >= wood_left && player_center_x <= wood_right;
 }
