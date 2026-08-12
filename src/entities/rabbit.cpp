@@ -26,7 +26,7 @@ void Rabbit::setColor(const Constants::ObjectColor& new_color)
     else
     {
         setSprite(Resource().getDynamicObjectTexture(Constants::DynamicObjectType::Rabbit,
-                                                     new_color, current_frame),
+                                                     new_color),
                   Constants::DynamicObjectType::Rabbit);
     }
 }

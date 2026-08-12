@@ -135,7 +135,7 @@ void Vehicle::updateState(float delta_time)
     }
     else
     {
-        setSprite(Resource().getDynamicObjectTexture(getType(), getColor(), current_frame),
+        setSprite(Resource().getDynamicObjectTexture(getType(), getColor()),
                   getType());
     }
 }

@@ -45,12 +45,12 @@ void PlayingState::init()
     std::cout << "2. Load Font thanh cong\n";
 
     score_text_ = std::make_unique<sf::Text>(font);
-    score_text_->setString("Score: 0");
+    score_text_->setString("Score:\n  0");
     score_text_->setCharacterSize(40);
     score_text_->setFillColor(sf::Color::White);
     score_text_->setOutlineColor(sf::Color::Black);
     score_text_->setOutlineThickness(2.f);
-    score_text_->setPosition({5.f, 20.f});
+    score_text_->setPosition({25.f, 20.f});
 
     if (!context_->data->high_scores.empty())
     {
@@ -65,12 +65,12 @@ void PlayingState::init()
 
     // Coin text
     coin_text_ = std::make_unique<sf::Text>(font);
-    coin_text_->setString("Coins: " + std::to_string(context_->data->total_coins));
+    coin_text_->setString("Coins:\n  " + std::to_string(context_->data->total_coins));
     coin_text_->setCharacterSize(40);
     coin_text_->setFillColor(sf::Color::Yellow);
     coin_text_->setOutlineColor(sf::Color::Black);
     coin_text_->setOutlineThickness(2.f);
-    coin_text_->setPosition({5.f, 70.f});
+    coin_text_->setPosition({25.f, 140.f});
 
     const sf::Texture& player_tex =
         Resource().getDynamicObjectTexture(Constants::DynamicObjectType::People);
@@ -99,15 +99,15 @@ void PlayingState::init()
     sidebar_sprite_->setTexture(sb_tex, true);
     sidebar_sprite_->setPosition({ 0.f, 0.f });
     sidebar_sprite_->setScale(
-        { static_cast<float>(Constants::GAME_PLAY_BAR_WIDTH) / sb_tex.getSize().x,
-         static_cast<float>(Constants::GAME_PLAY_BAR_HEIGHT) / sb_tex.getSize().y });
+        { static_cast<float>(Constants::WINDOW_WIDTH) / sb_tex.getSize().x,
+         static_cast<float>(Constants::WINDOW_HEIGHT) / sb_tex.getSize().y });
     std::cout << "6. Khoi tao Side bar thanh cong\n";
 
     // Corner icon buttons
     const float x = 60.0f;
     const float by = static_cast<float>(Constants::WINDOW_HEIGHT) - x;
-    const float y1 = 200.0f;
-    const float y2 = 300.f;
+    const float y1 = 340.0f;
+    const float y2 = 440.f;
 
     std::vector<IconConfig> cfgs = {
         // Pause
@@ -204,7 +204,7 @@ void PlayingState::handleEvent(const sf::Event& event)
     {
         map_.snapPlayerToGrid(player_.get());
         scroll_armed_ = true;
-        score_text_->setString("Score: " + std::to_string(context_->data->current_score));
+        score_text_->setString("Score:\n  " + std::to_string(context_->data->current_score));
     }
 
 
@@ -331,14 +331,6 @@ void PlayingState::updateCamera(float dt)
     scroll_velocity_ = std::max(scroll_velocity_, floor_speed);
 
     center -= scroll_velocity_ * dt;
-
-    if (!context_->config->auto_scroll &&
-        (center - target_center) < (Constants::VISUAL_DISTANCE / 5.f))
-    {
-        center = target_center;
-        scroll_velocity_ = 0.f;
-    }
-
     view_.setCenter({view_.getCenter().x, center});
 }
 
@@ -383,7 +375,7 @@ void PlayingState::update(float dt)
     if (distance_score > context_->data->current_score)
     {
         context_->data->current_score = distance_score;
-        score_text_->setString("Score: " + std::to_string(context_->data->current_score));
+        score_text_->setString("Score:\n  " + std::to_string(context_->data->current_score));
     }
     context_->data->current_level = context_->data->current_score / 10; // do kho
 
@@ -416,7 +408,7 @@ void PlayingState::update(float dt)
     if (newly_collected > 0)
     {
         context_->data->total_coins += newly_collected;
-        coin_text_->setString("Coins: " + std::to_string(context_->data->total_coins));
+        coin_text_->setString("Coins:\n  " + std::to_string(context_->data->total_coins));
 
         // Audio().playSFX(AudioSystem::SFX::Coin);
     }
@@ -515,7 +507,7 @@ void PlayingState::restart()
     std::cout << "[PlayingState] Restarting Game...\n";
 
     load_slot_ = 0;
-    score_text_->setString("Score: 0");
+    score_text_->setString("Score:\n  0");
     score_text_->setFillColor(sf::Color::White); // Trả lại màu chữ trắng ban đầu
 
     if (!context_->data->high_scores.empty())
@@ -565,7 +557,7 @@ void PlayingState::deserialize(std::istream& is)
 
     // 2. Nạp điểm số và cập nhật lên UI
     Serialization::read(is, context_->data->current_score);
-    score_text_->setString("Score: " + std::to_string(context_->data->current_score));
+    score_text_->setString("Score:\n  " + std::to_string(context_->data->current_score));
 
     // 3. Nạp tọa độ tâm Camera
     float cx = 0.f, cy = 0.f;
@@ -581,6 +573,6 @@ void PlayingState::deserialize(std::istream& is)
 
     if (coin_text_)
     {
-        coin_text_->setString("Coins: " + std::to_string(context_->data->total_coins));
+        coin_text_->setString("Coins:\n  " + std::to_string(context_->data->total_coins));
     }
 }

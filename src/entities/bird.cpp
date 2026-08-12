@@ -27,8 +27,7 @@ void Bird::setColor(const Constants::ObjectColor &new_color)
 	}
 	else
 	{
-		setSprite(Resource().getDynamicObjectTexture(Constants::DynamicObjectType::Bird, new_color,
-					  current_frame),
+		setSprite(Resource().getDynamicObjectTexture(Constants::DynamicObjectType::Bird, new_color),
 			Constants::DynamicObjectType::Bird);
 	}
 }

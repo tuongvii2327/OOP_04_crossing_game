@@ -147,7 +147,7 @@ void Animal::updateState(float delta_time)
         }
         else
         {
-            setSprite(Resource().getDynamicObjectTexture(getType(), getColor(), current_frame),
+            setSprite(Resource().getDynamicObjectTexture(getType(), getColor()),
                       getType());
         }
     }
@@ -160,7 +160,7 @@ void Animal::updateState(float delta_time)
         }
         else
         {
-            setSprite(Resource().getDynamicObjectTexture(getType(), getColor(), current_frame),
+            setSprite(Resource().getDynamicObjectTexture(getType(), getColor()),
                       getType());
         }
     }
