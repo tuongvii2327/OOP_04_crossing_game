@@ -37,12 +37,6 @@ People::People(Constants::ObjectColor color)
 	resetPosition();
 }
 
-People::People(float x, float y, Constants::ObjectColor color)
-	: People(color)
-{
-	setPosition(sf::Vector2f(x, y));
-}
-
 Constants::DynamicObjectType People::getType() const
 {
 	return Constants::DynamicObjectType::People;

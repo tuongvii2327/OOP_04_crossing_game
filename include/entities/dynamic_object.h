@@ -11,9 +11,6 @@ class Lane;
 
 class DynamicObject
 {
-private:
-    void updateHitbox(); // update hitbox_position using position and hitbox_offset
-
 protected:
     void applyFacing();    // flip sprite depending on direction.
     sf::Vector2f position; // top left point of sprite
@@ -26,9 +23,7 @@ protected:
     int direction = 1; // 1 = move right, -1 = move left
     int current_frame;
 
-    void setHitbox();       // build hitbox: size, then offset, then position
-    void setHitboxSize();   // hitbox.size = sprite size * HITBOX_SIZE_RATIO
-    void setHitboxOffset(); // hitbox_offset = (sprite size - hitbox.size) / 2
+    virtual void setHitbox();       // build hitbox: size, then offset, then position
 
     int calcDirection() const; // direction taken from current_lane
     void adjustSprite(const Constants::DynamicObjectType& type); // scale sprite down to fit it size

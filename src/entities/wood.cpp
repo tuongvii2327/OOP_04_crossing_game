@@ -5,6 +5,15 @@
 #include <algorithm>
 
 #pragma region PROTECTED
+void Wood::setHitbox()
+{
+	float target_width =
+		static_cast<float>(Constants::getSizeInGame(Constants::DynamicObjectType::Wood).width);
+	hitbox.size = sf::Vector2f{ target_width, Constants::LANE_HEIGHT };
+	hitbox_offset = (sprite.getGlobalBounds().size - hitbox.size) / 2.f;
+	hitbox.position = position + hitbox_offset;
+}
+
 // safe_distance = base_speed * SAFE_DISTANCE_FACTOR
 float Wood::calcSafeDistance() const
 {
@@ -21,17 +30,7 @@ Wood::Wood(const Constants::ObjectColor &init_color, Lane* init_lane)
 	wood_color = init_color;
 	setBaseSpeed(randomSpeed(Constants::DynamicObjectType::Wood));
 	setVelocity({base_speed * direction, 0});
-
-	float target_width =
-		static_cast<float>(Constants::getSizeInGame(Constants::DynamicObjectType::Wood).width);
-	float scaleX = target_width / sprite.getLocalBounds().size.x;
-	float scaleY = Constants::LANE_HEIGHT / sprite.getLocalBounds().size.y;
-	sprite.setScale({std::abs(scaleX), std::abs(scaleY)});
-	sprite.setOrigin({0.f, 0.f});
-
-	// Hitbox phủ 210px x 105px
-	hitbox.size = sf::Vector2f(target_width * Constants::HITBOX_SIZE_RATIO, Constants::LANE_HEIGHT * Constants::HITBOX_SIZE_RATIO);
-	hitbox_offset = sf::Vector2f((target_width - hitbox.size.x) / 2.f, (Constants::LANE_HEIGHT - hitbox.size.y) / 2.f);
+	setHitbox();
 }
 #pragma endregion
 
@@ -78,12 +77,6 @@ void Wood::updateState(float delta_time)
 {
 	if (isOutOfLane() || !is_active)
 		return;
-
-	sf::Vector2f cur_scale = sprite.getScale();
-	if (cur_scale.x < 0.f)
-	{
-		sprite.setScale({std::abs(cur_scale.x), std::abs(cur_scale.y)});
-	}
 
 	float v_wood = base_speed;
 	LaneRiver* river = dynamic_cast<LaneRiver*>(current_lane);

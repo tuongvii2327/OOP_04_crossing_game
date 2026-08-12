@@ -11,6 +11,7 @@ protected:
     float base_speed;    // max speed of this wood
     float safe_distance; // distance to brake or accelerate
 
+    void setHitbox() override;       // build hitbox: size, then offset, then position
     float calcSafeDistance() const; // safe_distance = base_speed * SAFE_DISTANCE_FACTOR
 
 public:

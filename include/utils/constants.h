@@ -57,9 +57,9 @@ namespace Constants
 
 #pragma region CAMERA
 	constexpr float CAMERA_SAFE_DISTANCE = 3.f * LANE_HEIGHT;
-	constexpr float CAMERA_FOLLOW_LANES_PER_SEC = 3.f;
-	constexpr float AUTO_SCROLL_BASE_SPEED = 60.f;
-	constexpr float AUTO_SCROLL_LEVEL_FACTOR = 0.3f;
+	constexpr float CAMERA_FOLLOW_LANES_PER_SEC = 2.5f;
+	constexpr float AUTO_SCROLL_BASE_SPEED = 50.f;
+	constexpr float AUTO_SCROLL_LEVEL_FACTOR = 0.25f;
 #pragma endregion
 
 #pragma region OBJECT
@@ -173,17 +173,17 @@ namespace Constants
 		switch (type)
 		{
 		case DynamicObjectType::People:
-			return {52, 62};
+			return {75, 78};
 		case DynamicObjectType::Car:
 			return {90, 51};
 		case DynamicObjectType::Truck:
-			return {87, 81};
+			return {105, 100};
 		case DynamicObjectType::Bird:
-			return {53, 47};
+			return {73, 60};
 		case DynamicObjectType::Rabbit:
-			return {60, 60};
+			return {70, 70};
 		case DynamicObjectType::Wood:
-			return {210, 60};
+			return {210, 100};
 		default:
 			return {80, 200};
 		}

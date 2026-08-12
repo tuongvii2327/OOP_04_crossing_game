@@ -3,9 +3,6 @@
 #include "world/lane.h"
 
 #pragma region PRIVATE
-// update hitbox_position using position and hitbox_offset
-void DynamicObject::updateHitbox() { hitbox.position = position + hitbox_offset; }
-
 // flip sprite depending on direction.
 void DynamicObject::applyFacing()
 {
@@ -31,21 +28,9 @@ void DynamicObject::applyFacing()
 // build hitbox: compute size, then offset, then position
 void DynamicObject::setHitbox()
 {
-    setHitboxSize();
-    setHitboxOffset();
-    updateHitbox();
-}
-
-// hitbox.size = sprite size * HITBOX_SIZE_RATIO
-void DynamicObject::setHitboxSize()
-{
     hitbox.size = sprite.getGlobalBounds().size * Constants::HITBOX_SIZE_RATIO;
-}
-
-// hitbox_offset = (sprite size - hitbox.size) / 2
-void DynamicObject::setHitboxOffset()
-{
     hitbox_offset = (sprite.getGlobalBounds().size - hitbox.size) / 2.f;
+    hitbox.position = position + hitbox_offset;
 }
 
 // direction taken from current_lane (1 if no lane attached)
@@ -75,7 +60,7 @@ DynamicObject::DynamicObject(const Constants::DynamicObjectType& init_type,
                              const Constants::ObjectColor& init_color, Lane* init_lane)
     : sprite(Resource().hasSpritesheet(init_type)
                  ? Resource().getDynamicObjectSpritesheet(init_type, init_color)
-                 : Resource().getDynamicObjectTexture(init_type, init_color, 1))
+                 : Resource().getDynamicObjectTexture(init_type, init_color))
 {
     setCurFrame(1);
     if (Resource().hasSpritesheet(init_type))
@@ -105,7 +90,7 @@ void DynamicObject::setPosition(const sf::Vector2f& pos)
             current_lane->getPosition().y + (Constants::LANE_HEIGHT - getHeightSprite()) / 2.f;
     }
     sprite.setPosition(position);
-    updateHitbox();
+    hitbox.position = position + hitbox_offset;
 }
 
 sf::Vector2f DynamicObject::getVelocity() const { return velocity; }
