@@ -18,7 +18,7 @@ public:
     void spawnObject() override;
 
     // River is lethal: player dies if standing on water without being on a Wood
-    bool checkLethalCollision(const sf::FloatRect& player_hitbox) const override;
+    Constants::DeathCause checkLethalCollision(const sf::FloatRect& player_hitbox) const override;
 
     // Helper: returns the velocity of the Wood the player is standing on, or
     // {0,0} if none

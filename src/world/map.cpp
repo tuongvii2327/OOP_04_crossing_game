@@ -190,16 +190,17 @@ void Map::render(sf::RenderWindow &window) const
 	}
 }
 
-bool Map::checkLethalCollision(const sf::FloatRect &player_hitbox) const
+Constants::DeathCause Map::checkLethalCollision(const sf::FloatRect &player_hitbox) const
 {
 	for (const auto &lane : lanes)
 	{
-		if (lane->checkLethalCollision(player_hitbox))
+		Constants::DeathCause cause = lane->checkLethalCollision(player_hitbox);
+		if (cause != Constants::DeathCause::None)
 		{
-			return true;
+			return cause;
 		}
 	}
-	return false;
+	return Constants::DeathCause::None;
 }
 
 sf::Vector2f Map::getWoodVelocityAt(const sf::FloatRect &player_hitbox) const

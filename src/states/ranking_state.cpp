@@ -85,8 +85,7 @@ void RankingState::handleEvent(const sf::Event& event)
     // 2. Xử lý di chuột: Hover vào nút "BACK TO MENU" sẽ đổi sang màu Vàng
     if (const auto* mouse_moved = event.getIf<sf::Event::MouseMoved>())
     {
-        sf::Vector2f mouse_pos(static_cast<float>(mouse_moved->position.x),
-                               static_cast<float>(mouse_moved->position.y));
+        sf::Vector2f mouse_pos = context_->window->mapPixelToCoords(mouse_moved->position);
 
         if (!ranking_texts_.empty())
         {
@@ -107,8 +106,7 @@ void RankingState::handleEvent(const sf::Event& event)
     {
         if (mouse_button_pressed->button == sf::Mouse::Button::Left)
         {
-            sf::Vector2f mouse_pos(static_cast<float>(mouse_button_pressed->position.x),
-                                   static_cast<float>(mouse_button_pressed->position.y));
+            sf::Vector2f mouse_pos = context_->window->mapPixelToCoords(mouse_button_pressed->position);
 
             if (!ranking_texts_.empty() && ranking_texts_.back()->getGlobalBounds().contains(mouse_pos))
             {

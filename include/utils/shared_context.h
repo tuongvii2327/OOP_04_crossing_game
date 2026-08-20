@@ -16,7 +16,7 @@ struct GameData
 {
     int current_score = 0; // Điểm hiện tại trong màn chơi
     int current_level = 0; // Độ khó/Level hiện tại
-    int total_coins = 0;   // Tổng số tiền thu thập được
+    int total_coins = 100;  // Tổng số tiền thu thập được (mặc định 100 xu)
 
     // Lưu trữ danh sách 5 điểm số cao nhất của người chơi
     std::vector<int> high_scores;

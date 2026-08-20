@@ -46,7 +46,7 @@ public:
     void initMap(float start_y);
     void update(float camera_top_y, float camera_bottom_y, float delta_time);
     void render(sf::RenderWindow& window) const;
-    bool checkLethalCollision(const sf::FloatRect& player_hitbox) const;
+    Constants::DeathCause checkLethalCollision(const sf::FloatRect& player_hitbox) const;
     sf::Vector2f getWoodVelocityAt(const sf::FloatRect& player_hitbox) const;
     void reset(float start_y);
 

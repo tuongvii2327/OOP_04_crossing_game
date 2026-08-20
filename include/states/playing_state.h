@@ -38,10 +38,27 @@ private:
 
     float death_timer_ = 0.0f;
     float shake_timer_ = 0.0f;
+    float shake_intensity_ = 8.0f; // Cường độ rung (pixel): lớn khi chết, nhỏ khi chạm đất
     sf::RectangleShape flash_overlay_;
+
+    void triggerShake(float duration, float intensity); // Khởi động câm giác rung
 
     int current_top_score_ = 0;
     bool has_beaten_highscore_ = false;
+
+    // ---- Fire Wall (auto-scroll danger zone) ----
+    float fire_anim_timer_ = 0.f;
+    struct Ember {
+        sf::CircleShape shape;
+        sf::Vector2f velocity;
+        float lifetime;
+        float max_lifetime;
+    };
+    std::vector<Ember> embers_;
+    float ember_spawn_timer_ = 0.f;
+    sf::RectangleShape heat_warning_overlay_;
+    void updateFireWall(float dt, float camera_bottom_y);
+    void renderFireWall(sf::RenderWindow& window, float camera_bottom_y);
 
 public:
     PlayingState(SharedContext* context, int load_slot = 0);

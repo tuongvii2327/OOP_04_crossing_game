@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "../entities/coin.h"
 #include "../utils/constants.h"
@@ -78,7 +78,7 @@ public:
               const int& new_direction); // reuse this Lane instance for a newly scrolled-in row
     virtual void spawnObject() = 0;      // probabilistically spawn an object
 
-    virtual bool checkLethalCollision(const sf::FloatRect& player_hitbox) const;
+    virtual Constants::DeathCause checkLethalCollision(const sf::FloatRect& player_hitbox) const;
 
     virtual void serialize(std::ostream& os) const;
     virtual void deserialize(std::istream& is);

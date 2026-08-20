@@ -233,7 +233,7 @@ void Lane::spawnLane(const sf::Vector2f& new_position, const int& new_level,
 }
 
 // true if any active object with a Lethal effect is colliding with player_hitbox
-bool Lane::checkLethalCollision(const sf::FloatRect& player_hitbox) const
+Constants::DeathCause Lane::checkLethalCollision(const sf::FloatRect& player_hitbox) const
 {
     for (const auto& obj : list_dynamic)
     {
@@ -242,10 +242,10 @@ bool Lane::checkLethalCollision(const sf::FloatRect& player_hitbox) const
 
         if (obj->getEffect() == Constants::ObjectEffect::Lethal && obj->isColliding(player_hitbox))
         {
-            return true;
+            return Constants::DeathCause::Car;
         }
     }
-    return false;
+    return Constants::DeathCause::None;
 }
 
 int Lane::checkCoinCollision(const sf::FloatRect& player_hitbox)

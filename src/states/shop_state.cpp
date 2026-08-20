@@ -209,7 +209,7 @@ void ShopState::handleEvent(const sf::Event &event)
 	{
 		if (mb->button == sf::Mouse::Button::Left)
 		{
-			sf::Vector2f mp(static_cast<float>(mb->position.x), static_cast<float>(mb->position.y));
+			sf::Vector2f mp = context_->window->mapPixelToCoords(mb->position);
 
 			if (arrow_left_ && arrow_left_->getGlobalBounds().contains(mp))
 			{

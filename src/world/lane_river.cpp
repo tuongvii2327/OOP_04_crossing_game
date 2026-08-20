@@ -181,7 +181,7 @@ static bool isPlayerOnWood(const sf::FloatRect& player_hitbox, const DynamicObje
 
 // River is lethal: if the player's hitbox overlaps this lane but is NOT
 // standing on any active Wood, they drown.
-bool LaneRiver::checkLethalCollision(const sf::FloatRect& player_hitbox) const
+Constants::DeathCause LaneRiver::checkLethalCollision(const sf::FloatRect& player_hitbox) const
 {
     // 1. Check if player is actually within this lane's vertical bounds
     float lane_top = position.y;
@@ -189,7 +189,7 @@ bool LaneRiver::checkLethalCollision(const sf::FloatRect& player_hitbox) const
     float player_center_y = player_hitbox.position.y + player_hitbox.size.y / 2.f;
 
     if (player_center_y < lane_top || player_center_y > lane_bottom)
-        return false; // player is not on this lane
+        return Constants::DeathCause::None; // player is not on this lane
 
     // 2. Check if player's center X is within any active Wood's bounds
     for (const auto& obj : list_dynamic)
@@ -200,11 +200,11 @@ bool LaneRiver::checkLethalCollision(const sf::FloatRect& player_hitbox) const
             continue;
 
         if (isPlayerOnWood(player_hitbox, obj.get()))
-            return false; // player is on a Wood, safe!
+            return Constants::DeathCause::None; // player is on a Wood, safe!
     }
 
     // 3. Player is on this river lane but not on any Wood -> drown
-    return true;
+    return Constants::DeathCause::Drowning;
 }
 
 // Returns the velocity of the Wood the player is currently standing on,

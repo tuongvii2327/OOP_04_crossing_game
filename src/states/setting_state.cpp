@@ -133,8 +133,7 @@ void SettingState::handleEvent(const sf::Event& event)
 
     if (const auto* mouse_moved = event.getIf<sf::Event::MouseMoved>())
     {
-        sf::Vector2f mouse_pos(static_cast<float>(mouse_moved->position.x),
-                               static_cast<float>(mouse_moved->position.y));
+        sf::Vector2f mouse_pos = context_->window->mapPixelToCoords(mouse_moved->position);
 
         for (size_t i = 0; i < setting_texts_.size(); ++i)
         {
@@ -154,8 +153,7 @@ void SettingState::handleEvent(const sf::Event& event)
     {
         if (mouse_button_pressed->button == sf::Mouse::Button::Left)
         {
-            sf::Vector2f mouse_pos(static_cast<float>(mouse_button_pressed->position.x),
-                                   static_cast<float>(mouse_button_pressed->position.y));
+            sf::Vector2f mouse_pos = context_->window->mapPixelToCoords(mouse_button_pressed->position);
     
             for (size_t i = 0; i < setting_texts_.size(); ++i)
             {

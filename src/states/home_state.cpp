@@ -272,7 +272,7 @@ void HomeState::handleEvent(const sf::Event& event)
 
         if (const auto* mm = event.getIf<sf::Event::MouseMoved>())
         {
-            sf::Vector2f mp(static_cast<float>(mm->position.x), static_cast<float>(mm->position.y));
+            sf::Vector2f mp = context_->window->mapPixelToCoords(mm->position);
             // Hover Yes
             bool hy = popup_btn_yes_->getGlobalBounds().contains(mp);
             if (hy != popup_yes_hovered_)
@@ -297,8 +297,7 @@ void HomeState::handleEvent(const sf::Event& event)
         {
             if (mb->button == sf::Mouse::Button::Left)
             {
-                sf::Vector2f mp(static_cast<float>(mb->position.x),
-                                static_cast<float>(mb->position.y));
+                sf::Vector2f mp = context_->window->mapPixelToCoords(mb->position);
                 if (popup_btn_yes_->getGlobalBounds().contains(mp))
                 {
                     Audio().playSFX(AudioSystem::SFX::Click);
@@ -346,7 +345,7 @@ void HomeState::handleEvent(const sf::Event& event)
 
     if (const auto* mm = event.getIf<sf::Event::MouseMoved>())
     {
-        sf::Vector2f mp(static_cast<float>(mm->position.x), static_cast<float>(mm->position.y));
+        sf::Vector2f mp = context_->window->mapPixelToCoords(mm->position);
 
         // Hover on center text
         for (size_t i = 0; i < menu_options_.size(); ++i)
@@ -388,7 +387,7 @@ void HomeState::handleEvent(const sf::Event& event)
     {
         if (mb->button == sf::Mouse::Button::Left)
         {
-            sf::Vector2f mp(static_cast<float>(mb->position.x), static_cast<float>(mb->position.y));
+            sf::Vector2f mp = context_->window->mapPixelToCoords(mb->position);
 
             // Click center text
             for (size_t i = 0; i < menu_options_.size(); ++i)

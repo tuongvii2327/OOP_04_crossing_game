@@ -37,6 +37,14 @@ namespace Constants
 		River
 	};
 
+	enum class DeathCause
+	{
+		None,
+		Car,
+		Drowning,
+		OutOfBounds
+	};
+
 	inline int getNumberOfTextureVariant(const LaneType &type)
 	{
 		switch (type)

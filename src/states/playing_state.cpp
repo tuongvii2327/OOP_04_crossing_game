@@ -210,7 +210,7 @@ void PlayingState::handleEvent(const sf::Event& event)
 
     if (const auto* mm = event.getIf<sf::Event::MouseMoved>())
     {
-        sf::Vector2f mp(static_cast<float>(mm->position.x), static_cast<float>(mm->position.y));
+        sf::Vector2f mp = context_->window->mapPixelToCoords(mm->position);
 
         // Hover on corner icons
         for (auto& btn : icon_buttons_)
@@ -236,7 +236,7 @@ void PlayingState::handleEvent(const sf::Event& event)
     {
         if (mb->button == sf::Mouse::Button::Left)
         {
-            sf::Vector2f mp(static_cast<float>(mb->position.x), static_cast<float>(mb->position.y));
+            sf::Vector2f mp = context_->window->mapPixelToCoords(mb->position);
 
             // Click corner icons
             for (const auto& btn : icon_buttons_)
@@ -334,30 +334,45 @@ void PlayingState::updateCamera(float dt)
     view_.setCenter({view_.getCenter().x, center});
 }
 
+// Kh\u1edfi \u0111\u1ed9ng hi\u1ec7u \u1ee9ng rung m\u00e0n h\u00ecnh v\u1edbi th\u1eddi gian v\u00e0 c\u01b0\u1eddng \u0111\u1ed9 ch\u1ec9 \u0111\u1ecbnh.
+// N\u1ebfu \u0111ang rung, ch\u1ec9 ghi \u0111\u00e8 n\u1ebfu c\u01b0\u1eddng \u0111\u1ed9 m\u1edbi m\u1ea1nh h\u01a1n (tr\u00e1nh gi\u1eadt nh\u1eb9 l\u00e0m ghi \u0111\u00e8 rung ch\u1ebft).
+void PlayingState::triggerShake(float duration, float intensity)
+{
+    if (intensity >= shake_intensity_ || shake_timer_ <= 0.f)
+    {
+        shake_timer_     = duration;
+        shake_intensity_ = intensity;
+    }
+}
+
 void PlayingState::update(float dt)
 {
     if (!player_)
         return;
+
+    // Screen Shake: giảm bộ đếm mỗi frame (hoạt động mọi lúc, không chỉ khi chết)
+    if (shake_timer_ > 0.0f)
+        shake_timer_ -= dt;
+
     // 1. NẾU NHÂN VẬT ĐÃ CHẾT -> BẮT ĐẦU ĐẾM GIỜ
     if (player_->isDead())
     {
         death_timer_ += dt;
-        if (shake_timer_ > 0.0f)
-        {
-            shake_timer_ -= dt;
-        }
 
-        // Hiệu ứng mờ dần (Fade out) của lớp flash đỏ
+        // Cập nhật hoạt ảnh chết (chìm/teo nhỏ)
+        player_->updateState(dt);
+
+        // Hiệu ứng mờ dần (Fade out) của lớp flash
         sf::Color flash_color = flash_overlay_.getFillColor();
         if (flash_color.a > 0)
         {
             // Tốc độ tan biến: giảm ~600 alpha mỗi giây
             int new_alpha = flash_color.a - static_cast<int>(600 * dt);
-            flash_overlay_.setFillColor(sf::Color(255, 0, 0, std::max(0, new_alpha)));
+            flash_overlay_.setFillColor(sf::Color(flash_color.r, flash_color.g, flash_color.b, std::max(0, new_alpha)));
         }
 
-        // Chờ 0.5 giây để tiếng Crash phát xong
-        if (death_timer_ >= 0.5f)
+        // Chờ 1.0 giây để xem hiệu ứng chết và tiếng Crash phát xong
+        if (death_timer_ >= 1.0f)
         {
             death_timer_ = 0.0f; // Reset lại để dùng cho lần chơi "Try Again"
             context_->state_machine->push(std::make_unique<GameOverState>(context_));
@@ -393,6 +408,9 @@ void PlayingState::update(float dt)
 
     map_.update(camera_top_y, camera_bottom_y, dt);
 
+    // Cập nhật bức tường lửa (auto-scroll)
+    updateFireWall(dt, camera_bottom_y);
+
     // ---River: drift player with Wood they're standing on---
     // Chỉ apply drift khi player đang đứng yên (không nhảy)
     if (!player_->isAnimating())
@@ -415,19 +433,47 @@ void PlayingState::update(float dt)
 
     // Chỉ kiểm tra va chạm chết người khi player đã đặt chân xuống (không đang nhảy)
     // Khi nhảy, player "đang bay" nên miễn nhiễm — giống Crossy Road gốc
-    bool people_die = (!player_->isAnimating() && map_.checkLethalCollision(player_->getHitBox()))
-        || (player_->getPosition().y + player_->getHeightSprite() * 0.5f) >= camera_bottom_y
-        || (player_->getPosition().x + player_->getWidthSprite() * 0.5f) <= Constants::GAME_PLAY_BAR_WIDTH
-        || (player_->getPosition().x + player_->getWidthSprite() * 0.5f) >= Constants::WINDOW_WIDTH;
-    if (people_die)
+    Constants::DeathCause cause_of_death = Constants::DeathCause::None;
+    if (!player_->isAnimating())
     {
-        Audio().stopAllSFX(); // Dọn sạch mọi tạp âm (tiếng còi xe, tiếng chim...) đang dở dang
-        Audio().playSFX(AudioSystem::SFX::Crash);
-        player_->die();
+        cause_of_death = map_.checkLethalCollision(player_->getHitBox());
+    }
 
-        // Kích hoạt rung và nháy đỏ
-        shake_timer_ = 0.4f;                                    // Rung mạnh trong 0.4 giây
-        flash_overlay_.setFillColor(sf::Color(255, 0, 0, 160)); // Lóe đỏ tức thì (Alpha 160)
+    if (cause_of_death == Constants::DeathCause::None)
+    {
+        if ((player_->getPosition().y + player_->getHeightSprite() * 0.5f) >= camera_bottom_y ||
+            (player_->getPosition().x + player_->getWidthSprite() * 0.5f) <= Constants::GAME_PLAY_BAR_WIDTH ||
+            (player_->getPosition().x + player_->getWidthSprite() * 0.5f) >= Constants::WINDOW_WIDTH)
+        {
+            cause_of_death = Constants::DeathCause::OutOfBounds;
+        }
+    }
+
+    if (cause_of_death != Constants::DeathCause::None)
+    {
+        Audio().stopAllSFX();
+        
+        if (cause_of_death == Constants::DeathCause::Car)
+        {
+            Audio().playSFX(AudioSystem::SFX::Crash);
+            triggerShake(0.4f, 10.0f);
+            flash_overlay_.setFillColor(sf::Color(255, 0, 0, 160)); // Red flash
+        }
+        else if (cause_of_death == Constants::DeathCause::Drowning)
+        {
+            // Optional: Audio().playSFX(Splash) if available, for now just use Crash or Jump
+            Audio().playSFX(AudioSystem::SFX::Jump);
+            triggerShake(0.2f, 5.0f);
+            flash_overlay_.setFillColor(sf::Color(0, 100, 255, 160)); // Blue flash
+        }
+        else if (cause_of_death == Constants::DeathCause::OutOfBounds)
+        {
+            Audio().playSFX(AudioSystem::SFX::Crash);
+            triggerShake(0.3f, 7.0f);
+            flash_overlay_.setFillColor(sf::Color(0, 0, 0, 200)); // Black flash
+        }
+
+        player_->die(cause_of_death);
 
         // ---- LOGIC: Xóa sạch file Save trên đĩa khi chết ----
         if (load_slot_ > 0)
@@ -443,14 +489,141 @@ void PlayingState::update(float dt)
     }
 }
 
+// ============================================================
+// BỨC TƯỜNG LỬA (FIRE WALL) - Mép dưới màn hình khi auto-scroll
+// ============================================================
+void PlayingState::updateFireWall(float dt, float camera_bottom_y)
+{
+    if (!context_->config->auto_scroll || !scroll_armed_)
+        return;
+
+    fire_anim_timer_ += dt;
+
+    // Spawn tàn lửa liên tục
+    ember_spawn_timer_ += dt;
+    const float spawn_interval = 0.04f; // ~25 hạt/giây
+    while (ember_spawn_timer_ >= spawn_interval)
+    {
+        ember_spawn_timer_ -= spawn_interval;
+        Ember e;
+        const float r = 2.f + static_cast<float>(std::rand() % 30) / 10.f; // 2~5px
+        e.shape.setRadius(r);
+        e.shape.setOrigin({r, r});
+
+        // Màu ngẫu nhiên: vàng → cam → đỏ
+        int color_roll = std::rand() % 3;
+        if (color_roll == 0)
+            e.shape.setFillColor(sf::Color(255, 200, 50, 220));  // Vàng sáng
+        else if (color_roll == 1)
+            e.shape.setFillColor(sf::Color(255, 130, 20, 220));  // Cam rực
+        else
+            e.shape.setFillColor(sf::Color(255, 60, 10, 200));   // Đỏ thẫm
+
+        float spawn_x = static_cast<float>(Constants::GAME_PLAY_BAR_WIDTH) +
+                         static_cast<float>(std::rand() % (Constants::WINDOW_WIDTH - Constants::GAME_PLAY_BAR_WIDTH));
+        e.shape.setPosition({spawn_x, camera_bottom_y - static_cast<float>(std::rand() % 40)});
+        e.velocity = {(static_cast<float>(std::rand() % 60) - 30.f),
+                       -(static_cast<float>(std::rand() % 80) + 40.f)}; // Bay lên trên
+        e.lifetime = 0.6f + static_cast<float>(std::rand() % 40) / 100.f;
+        e.max_lifetime = e.lifetime;
+        embers_.push_back(std::move(e));
+    }
+
+    // Cập nhật hạt tàn lửa
+    for (auto& e : embers_)
+    {
+        e.lifetime -= dt;
+        e.shape.move(e.velocity * dt);
+        float ratio = std::max(0.f, e.lifetime / e.max_lifetime);
+        sf::Color col = e.shape.getFillColor();
+        e.shape.setFillColor(sf::Color(col.r, col.g, col.b, static_cast<uint8_t>(col.a * ratio)));
+        e.shape.setRadius(e.shape.getRadius() * (0.98f + 0.02f * ratio)); // Co nhỏ dần
+    }
+    embers_.erase(
+        std::remove_if(embers_.begin(), embers_.end(),
+            [](const Ember& e) { return e.lifetime <= 0.f; }),
+        embers_.end());
+}
+
+void PlayingState::renderFireWall(sf::RenderWindow& window, float camera_bottom_y)
+{
+    if (!context_->config->auto_scroll || !scroll_armed_)
+        return;
+
+    const float fire_height = 55.f;
+    const float fire_base_y = camera_bottom_y - fire_height;
+    const float left = static_cast<float>(Constants::GAME_PLAY_BAR_WIDTH);
+    const float width = static_cast<float>(Constants::WINDOW_WIDTH - Constants::GAME_PLAY_BAR_WIDTH);
+
+
+
+    // --- Vẽ các ngọn lửa bằng tam giác nhấp nhô ---
+    const int num_flames = 20;
+    const float flame_w = width / static_cast<float>(num_flames);
+    for (int i = 0; i < num_flames; ++i)
+    {
+        float x = left + i * flame_w;
+        // Chiều cao ngọn lửa nhấp nhô theo sin với phase offset
+        float phase = fire_anim_timer_ * 5.f + static_cast<float>(i) * 1.3f;
+        float h = fire_height * (0.6f + 0.4f * std::sin(phase));
+        float h2 = fire_height * (0.4f + 0.3f * std::sin(phase * 1.7f + 0.5f));
+
+        // Ngọn lửa chính (cam → vàng)
+        sf::ConvexShape flame(3);
+        flame.setPoint(0, {x, camera_bottom_y});
+        flame.setPoint(1, {x + flame_w, camera_bottom_y});
+        flame.setPoint(2, {x + flame_w * 0.5f, camera_bottom_y - h});
+        uint8_t green = static_cast<uint8_t>(80 + 100 * std::abs(std::sin(phase * 0.8f)));
+        flame.setFillColor(sf::Color(255, green, 0, 200));
+        window.draw(flame);
+
+        // Ngọn lửa phụ nhỏ hơn (vàng sáng — lõi lửa)
+        sf::ConvexShape inner(3);
+        inner.setPoint(0, {x + flame_w * 0.2f, camera_bottom_y});
+        inner.setPoint(1, {x + flame_w * 0.8f, camera_bottom_y});
+        inner.setPoint(2, {x + flame_w * 0.5f, camera_bottom_y - h2});
+        inner.setFillColor(sf::Color(255, 240, 100, 180));
+        window.draw(inner);
+    }
+
+    // --- Đáy lửa: dải sáng đỏ rực ---
+    sf::RectangleShape fire_bottom({width, 8.f});
+    fire_bottom.setPosition({left, camera_bottom_y - 8.f});
+    fire_bottom.setFillColor(sf::Color(255, 50, 0, 230));
+    window.draw(fire_bottom);
+
+    // --- Vẽ tàn lửa (ember particles) ---
+    for (const auto& e : embers_)
+        window.draw(e.shape);
+
+    // --- Heat Warning: Viền đỏ nhấp nháy khi player gần mép dưới ---
+    if (player_ && !player_->isDead())
+    {
+        float player_bottom = player_->getPosition().y + player_->getHeightSprite();
+        float danger_dist = camera_bottom_y - player_bottom;
+        float warn_threshold = 2.f * static_cast<float>(Constants::LANE_HEIGHT);
+        if (danger_dist < warn_threshold)
+        {
+            float intensity = 1.0f - (danger_dist / warn_threshold); // 0→1 khi gần sát
+            float pulse = 0.5f + 0.5f * std::sin(fire_anim_timer_ * 10.f); // Nhấp nháy
+            uint8_t alpha = static_cast<uint8_t>(120 * intensity * pulse);
+            sf::RectangleShape warn({width, static_cast<float>(Constants::WINDOW_HEIGHT)});
+            warn.setPosition({left, camera_bottom_y - static_cast<float>(Constants::WINDOW_HEIGHT)});
+            warn.setFillColor(sf::Color(255, 0, 0, alpha));
+            window.draw(warn);
+        }
+    }
+}
+
 void PlayingState::render(sf::RenderWindow& window)
 {
     if (shake_timer_ > 0.0f)
     {
         sf::View shake_view = view_;
-        // Tạo độ lệch ngẫu nhiên từ -8 đến +8 pixels
-        float offset_x = static_cast<float>(rand() % 16 - 8);
-        float offset_y = static_cast<float>(rand() % 16 - 8);
+        // Cường độ rung được kiểm soát bởi shake_intensity_ (nhẹ khi chạm đất, mạnh khi chết)
+        int range = static_cast<int>(shake_intensity_) * 2;
+        float offset_x = static_cast<float>(rand() % std::max(1, range) - static_cast<int>(shake_intensity_));
+        float offset_y = static_cast<float>(rand() % std::max(1, range) - static_cast<int>(shake_intensity_));
         shake_view.move({offset_x, offset_y});
         window.setView(shake_view);
     }
@@ -458,12 +631,20 @@ void PlayingState::render(sf::RenderWindow& window)
         window.setView(view_);
     map_.render(window);
 
+    // Vẽ bức tường lửa (trước player để lửa nằm phía dưới sprite)
+    float cam_bottom = view_.getCenter().y + view_.getSize().y / 2.f;
+    renderFireWall(window, cam_bottom);
+
     if (player_)
     {
         player_->render(window);
     }
 
-    window.setView(window.getDefaultView());
+    sf::View hud_view(sf::FloatRect(
+        {0.f, 0.f},
+        {static_cast<float>(Constants::WINDOW_WIDTH), static_cast<float>(Constants::WINDOW_HEIGHT)}
+    ));
+    window.setView(hud_view);
 
     if (flash_overlay_.getFillColor().a > 0)
     {
