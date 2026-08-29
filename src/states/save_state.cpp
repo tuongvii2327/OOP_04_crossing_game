@@ -339,7 +339,7 @@ void SaveState::render(sf::RenderWindow& window)
         sf::FloatRect bounds = overwrite_prompt_text_->getLocalBounds();
         overwrite_prompt_text_->setPosition(
             {(Constants::WINDOW_WIDTH - bounds.size.x) / 2.0f, 450.0f});
-        window.draw(*overwrite_prompt_text_);
+        Resource().drawTextWithShadow(window, *overwrite_prompt_text_);
     }
 
     else if (current_mode_ == Mode::NamingMode)
@@ -347,15 +347,15 @@ void SaveState::render(sf::RenderWindow& window)
         // Hiển thị khung nhập tên
         sf::FloatRect p_bounds = prompt_text_->getLocalBounds();
         prompt_text_->setPosition({(Constants::WINDOW_WIDTH - p_bounds.size.x) / 2.0f, 350.0f});
-        window.draw(*prompt_text_);
-        window.draw(*input_display_text_);
+        Resource().drawTextWithShadow(window, *prompt_text_);
+        Resource().drawTextWithShadow(window, *input_display_text_);
 
         if (error_text_->getString() != "")
         {
             sf::FloatRect err_bounds = error_text_->getLocalBounds();
             error_text_->setPosition(
                 {(Constants::WINDOW_WIDTH - err_bounds.size.x) / 2.0f, 600.0f});
-            window.draw(*error_text_);
+            Resource().drawTextWithShadow(window, *error_text_);
         }
     }
 
@@ -364,7 +364,7 @@ void SaveState::render(sf::RenderWindow& window)
         // Chế độ chọn thường: vẽ các Slot lựa chọn
         for (const auto& slot_text : save_slot_texts_)
         {
-            window.draw(*slot_text);
+            Resource().drawTextWithShadow(window, *slot_text);
         }
     }
 }

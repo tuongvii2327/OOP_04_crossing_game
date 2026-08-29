@@ -183,11 +183,11 @@ void GameOverState::update(float delta_time) {}
 void GameOverState::render(sf::RenderWindow& window)
 {
     window.draw(background_overlay_);
-    window.draw(*title_text_);
-    window.draw(*score_text_);
+    Resource().drawTextWithShadow(window, *title_text_);
+    Resource().drawTextWithShadow(window, *score_text_);
     for (const auto& text : menu_texts_)
     {
-        window.draw(*text);
+        Resource().drawTextWithShadow(window, *text);
     }
 }
 

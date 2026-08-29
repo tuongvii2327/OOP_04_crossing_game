@@ -125,7 +125,7 @@ void RankingState::render(sf::RenderWindow& window)
     {
         if (ranking_text)
         {
-            window.draw(*ranking_text);
+            Resource().drawTextWithShadow(window, *ranking_text);
         }
     }
 }

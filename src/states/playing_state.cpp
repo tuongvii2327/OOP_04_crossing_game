@@ -650,12 +650,12 @@ void PlayingState::render(sf::RenderWindow& window)
 
     if (score_text_)
     {
-        window.draw(*score_text_);
+        Resource().drawTextWithShadow(window, *score_text_);
     }
 
     if (coin_text_)
     {
-        window.draw(*coin_text_);
+        Resource().drawTextWithShadow(window, *coin_text_);
     }
 
     for (const auto& btn : icon_buttons_)

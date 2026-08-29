@@ -161,13 +161,13 @@ void PauseState::render(sf::RenderWindow& window)
     window.draw(background_overlay_);
     if (title_text_)
     {
-        window.draw(*title_text_);
+        Resource().drawTextWithShadow(window, *title_text_);
     }
     for (const auto& menu_text : menu_texts_)
     {
         if (menu_text)
         {
-            window.draw(*menu_text);
+            Resource().drawTextWithShadow(window, *menu_text);
         }
     }
 }

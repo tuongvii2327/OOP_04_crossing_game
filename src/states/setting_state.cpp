@@ -213,7 +213,7 @@ void SettingState::render(sf::RenderWindow& window)
     {
         if (setting_text)
         {
-            window.draw(*setting_text);
+            Resource().drawTextWithShadow(window, *setting_text);
         }
     }
 }

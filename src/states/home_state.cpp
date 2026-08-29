@@ -407,10 +407,10 @@ void HomeState::render(sf::RenderWindow& window)
     if (coin_sprite_)
         window.draw(*coin_sprite_);
     if (coin_text_)
-        window.draw(*coin_text_);
+        Resource().drawTextWithShadow(window, *coin_text_);
 
     for (const auto& opt : menu_options_)
-        window.draw(*opt);
+        Resource().drawTextWithShadow(window, *opt);
 
     for (const auto& btn : icon_buttons_)
         if (btn.sprite)
@@ -424,11 +424,11 @@ void HomeState::render(sf::RenderWindow& window)
         if (popup_bg_)
             window.draw(*popup_bg_);
         if (popup_title_)
-            window.draw(*popup_title_);
+            Resource().drawTextWithShadow(window, *popup_title_);
         if (popup_btn_yes_)
-            window.draw(*popup_btn_yes_);
+            Resource().drawTextWithShadow(window, *popup_btn_yes_);
         if (popup_btn_no_)
-            window.draw(*popup_btn_no_);
+            Resource().drawTextWithShadow(window, *popup_btn_no_);
     }
 }
 

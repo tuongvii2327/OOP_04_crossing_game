@@ -133,7 +133,7 @@ void HelpState::update(float delta_time) {}
 void HelpState::render(sf::RenderWindow& window)
 {
     window.clear(sf::Color(25, 25, 30));
-    if (title_text_) window.draw(*title_text_);
-    for (const auto& line : lines_text_) if (line) window.draw(*line);
-    if (back_btn_) window.draw(*back_btn_); // Luôn vẽ nút Back cố định
+    if (title_text_) Resource().drawTextWithShadow(window, *title_text_);
+    for (const auto& line : lines_text_) if (line) Resource().drawTextWithShadow(window, *line);
+    if (back_btn_) Resource().drawTextWithShadow(window, *back_btn_); // Luôn vẽ nút Back cố định
 }

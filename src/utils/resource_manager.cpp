@@ -83,6 +83,16 @@ void ResourceManager::setTextButtonHovered(sf::Text &text, bool hovered)
 	}
 }
 
+void ResourceManager::drawTextWithShadow(sf::RenderWindow& window, const sf::Text& text, float offset)
+{
+	sf::Text shadow = text;
+	shadow.setFillColor(TEXT_SHADOW_COLOR);
+	shadow.setOutlineColor(sf::Color::Transparent);
+	shadow.move({offset, offset});
+	window.draw(shadow);
+	window.draw(text);
+}
+
 const sf::Texture &
 ResourceManager::getDynamicObjectTexture(const Constants::DynamicObjectType &type,
 	const Constants::ObjectColor &color)

@@ -217,7 +217,7 @@ void LoadState::render(sf::RenderWindow& window)
 
     for (const auto& slot_text : save_slot_texts_)
     {
-        window.draw(slot_text);
+        Resource().drawTextWithShadow(window, slot_text);
     }
 }
 

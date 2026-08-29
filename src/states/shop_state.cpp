@@ -239,20 +239,20 @@ void ShopState::render(sf::RenderWindow &window)
 	if (coin_sprite_)
 		window.draw(*coin_sprite_);
 	if (coin_text_)
-		window.draw(*coin_text_);
+		Resource().drawTextWithShadow(window, *coin_text_);
 
 	// Nhân vật và mũi tên
 	window.draw(char_sprite_);
 	if (arrow_left_)
-		window.draw(*arrow_left_);
+		Resource().drawTextWithShadow(window, *arrow_left_);
 	if (arrow_right_)
-		window.draw(*arrow_right_);
+		Resource().drawTextWithShadow(window, *arrow_right_);
 
 	// Menu text
 	for (const auto &text : menu_texts_)
 	{
 		if (text)
-			window.draw(*text);
+			Resource().drawTextWithShadow(window, *text);
 	}
 }
 
