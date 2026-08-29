@@ -255,6 +255,6 @@ void LoadState::loadGameData(int slot_index)
     }
     test_file.close();
 
-    // Khởi động LoadingState và yêu cầu nạp từ slot_index sau khi load xong
-    context_->state_machine->switchState(std::make_unique<LoadingState>(context_, slot_index));
+    // Khởi động PlayingState và nạp từ slot_index
+    context_->state_machine->switchState(std::make_unique<PlayingState>(context_, slot_index));
 }

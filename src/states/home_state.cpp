@@ -442,8 +442,8 @@ void HomeState::executeChoice(int index)
     switch (index)
     {
         case 0:
-            std::cout << "Transition to: Loading\n";
-            context_->state_machine->push(std::make_unique<LoadingState>(context_));
+            std::cout << "Transition to: Playing\n";
+            context_->state_machine->push(std::make_unique<PlayingState>(context_));
             break;
         case 1:
             std::cout << "Transition to: Shop\n";

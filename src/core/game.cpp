@@ -1,5 +1,6 @@
 #include "core/game.h"
 #include "states/home_state.h"
+#include "states/loading_state.h"
 #include "utils/audio_system.h"
 #include "utils/constants.h"
 #include "utils/resource_manager.h"
@@ -54,13 +55,6 @@ Game::Game()
     // Giới hạn FPS để đảm bảo trò chơi chạy mượt mà mà không tiêu tốn quá nhiều tài nguyên
     window.setFramerateLimit(Constants::FPS_LIMIT);
 
-    // Tải trước toàn bộ âm thanh để tránh giật lag khi đang chơi
-    Audio().preloadAll();
-    Audio().setMusicVolume(config_.music_volume);
-    Audio().setSFXVolume(config_.sfx_volume);
-    // Phát nhạc nền mặc định ngay khi vào game
-    Audio().playMusic(AudioSystem::Music::Background);
-
     context_.window = &window;
     context_.state_machine = &state_machine;
     context_.config = &config_;
@@ -87,8 +81,8 @@ Game::Game()
     // Tải dữ liệu tiến trình (số lượng coin, nhân vật hiện tại) của người chơi
     loadPlayerData();
     
-    // Thêm màn hình chính (Home) làm state đầu tiên của stack
-    state_machine.push(std::make_unique<HomeState>(&context_));
+    // Thêm màn hình Loading làm state đầu tiên để nạp tài nguyên game
+    state_machine.push(std::make_unique<LoadingState>(&context_));
 }
 
 Game::~Game()

@@ -10,9 +10,7 @@
 class LoadingState : public State
 {
 private:
-    int load_slot_index_ = -1; // -1: Game mới, >0: Slot đã lưu
-
-    // Background & Sidebar giống PlayingState
+    // Background & Sidebar giống phong cách game
     std::vector<std::unique_ptr<sf::Sprite>> grass_lanes_;
     std::unique_ptr<sf::Sprite> sidebar_sprite_;
     sf::RectangleShape overlay_dim_;
@@ -40,7 +38,7 @@ private:
     float progress_ = 0.f;
     float finish_delay_ = 0.25f; // Thời gian dừng nhẹ sau khi chạm 100% để chuyển cảnh mượt
     bool is_done_loading_ = false;
-    bool transitioned_ = false;  // Đảm bảo chỉ gọi switchState đúng 1 lần
+    bool transitioned_ = false;  // Đảm bảo chỉ chuyển sang HomeState 1 lần duy nhất
 
     void initBackground();
     void initCoinSprite();
@@ -50,7 +48,7 @@ private:
     void updateProgressBar();
 
 public:
-    LoadingState(SharedContext* context, int load_slot_index = -1);
+    explicit LoadingState(SharedContext* context);
     ~LoadingState() override = default;
 
     void init() override;
