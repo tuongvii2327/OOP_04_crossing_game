@@ -1,39 +1,54 @@
-### STRUCTURE
-```text
-OOP-CROSSY-ROAD
-├───assets/                        <-- Tài nguyên thô của game (Tải vào RAM khi chạy)
-│   ├───audio/                     <-- Âm thanh (Nhạc nền, tiếng bước nhảy, va chạm)
-│   ├───fonts/                     <-- Font chữ (Dùng để hiển thị điểm số, UI Menu)
-│   └───textures/                  <-- Hình ảnh (Spritesheet nhân vật, xe cộ, gạch nền)
-├───bin/                           <-- Chứa sản phẩm thực thi cuối cùng (Nếu cần đóng gói)
-├───build/                         <-- Thư mục sinh ra tự động khi biên dịch
-│   └─── CrossyRoad.exe            <-- File chạy game và các file .dll đi kèm sau khi build
-├───data/
-│   └───saves/                     <-- File text/nhị phân lưu điểm cao (Highscore), dữ liệu game
-├───libs/                          <-- Bộ thư viện bên thứ ba (SFML 3.1.0) để liên kết
-│   ├───SFML-3.1.0-windows-gcc-14.2.0-mingw-64-bit/ <-- Dùng cho bản VS Code (MinGW)
-│   └───SFML-3.1.0-windows-vc17-64-bit/             <-- Dùng khi mở bằng Visual Studio 2022 (MSVC)
-├───include/                       <-- NƠI KHAI BÁO CÁC CLASS, INTERFACE (File .h)
-│   ├───core/                      <-- Quản lý vòng lặp game (Game Loop) & State Machine
-│   ├───entities/                  <-- Đối tượng trong game (Player, Car, Truck, Obstacle)
-│   ├───states/                    <-- Các màn hình game (MainMenuState, GameState, PauseState)
-│   ├───utils/                     <-- Tiện ích hệ thống (Hằng số Constants, ResourceManager)
-│   └───world/                     <-- Môi trường (Quản lý các làn đường Lane, sinh bản đồ Map)
-└───src/                           <-- NƠI TRIỂN KHAI LOGIC CHI TIẾT (File .cpp)
-    ├───core/                      
-    ├───entities/                  
-    ├───states/                    
-    ├───utils/                     
-    ├───world/                     
-    └───main.cpp                   <-- Điểm khởi đầu của chương trình (Hàm main)
-```
-### CONVENTION
-```text
-variable:	snake_case
-function:	camelCase
-class/struct:	PascalCase
-namespace:	PascalCase
-const/constexpr:	UPPER_SNAKE_CASE 
-file:	snake_case
-enum:	PascalCase
-```
+# CROSSY ROAD (OOP Project - HCMUS)
+
+Dự án game **Crossy Road** được xây dựng bằng ngôn ngữ **C++17** và thư viện đồ họa **SFML 3.1.0**, áp dụng các nguyên lý Lập trình hướng đối tượng (OOP) và Design Patterns.
+
+---
+
+## 🛠️ YÊU CẦU HỆ THỐNG
+- **Hệ điều hành:** Windows 10/11 (64-bit).
+- **Trình biên dịch / IDE:**
+  - **Visual Studio 2022** (Đã cài gói *Desktop development with C++* và *C++ CMake tools for Windows*).
+  - Hoặc **VS Code** kèm bộ biên dịch **MinGW-w64 (GCC 14.2.0 trở lên)** và **CMake (>= 3.15)**.
+- **Thư viện SFML 3.1.0:** Đã được tích hợp sẵn trong thư mục `libs/`, không cần cài đặt thêm thủ công.
+
+---
+
+## 🚀 HƯỚNG DẪN BUILD & CHẠY GAME
+
+### Cách 1: Sử dụng Visual Studio 2022 (Khuyên dùng)
+
+1. **Mở dự án:**
+   - Khởi động **Visual Studio 2022**.
+   - Chọn **Open a local folder** (Mở thư mục cục bộ).
+   - Trỏ đến thư mục chứa mã nguồn: `oop-crossy-road`.
+
+2. **Chờ nạp CMake:**
+   - Visual Studio sẽ tự động đọc `CMakeLists.txt` và `CMakeSettings.json`.
+   - Đợi thanh tiến trình ở góc dưới báo `CMake generation finished`.
+
+3. **Chọn cấu hình và chạy:**
+   - Trên thanh công cụ trên cùng, chọn cấu hình: **`x64-Debug`** hoặc **`x64-Release`**.
+   - Chọn mục khởi động (Startup Item): **`CrossyRoad.exe`**.
+   - Nhấn **F5** (hoặc bấm nút **▶ Play**) để biên dịch và chạy game.
+
+> *(Hệ thống build sẽ tự động sao chép thư mục `assets/`, `data/` và các file DLL của SFML vào thư mục thực thi tương ứng).*
+
+---
+
+### Cách 2: Sử dụng dòng lệnh (CMake CLI / MinGW)
+
+1. Mở Terminal / PowerShell tại thư mục gốc của dự án.
+2. Tạo thư mục build và cấu hình:
+   ```bash
+   cmake -B build -G "MinGW Makefiles"
+   ```
+3. Tiến hành biên dịch:
+   ```bash
+   cmake --build build
+   ```
+4. Chạy game:
+   ```bash
+   ./build/CrossyRoad.exe
+   ```
+
+---
