@@ -1,4 +1,5 @@
 #include "states/load_state.h"
+#include "states/loading_state.h"
 #include "states/playing_state.h"
 #include "utils/audio_system.h"
 #include "utils/constants.h"
@@ -254,6 +255,6 @@ void LoadState::loadGameData(int slot_index)
     }
     test_file.close();
 
-    // Khởi động PlayingState và yêu cầu nạp từ slot_index
-    context_->state_machine->switchState(std::make_unique<PlayingState>(context_, slot_index));
+    // Khởi động LoadingState và yêu cầu nạp từ slot_index sau khi load xong
+    context_->state_machine->switchState(std::make_unique<LoadingState>(context_, slot_index));
 }

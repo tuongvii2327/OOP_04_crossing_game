@@ -1,4 +1,5 @@
 #include "states/home_state.h"
+#include "states/loading_state.h"
 #include "states/shop_state.h"
 #include "utils/constants.h"
 #include "utils/resource_manager.h"
@@ -441,8 +442,8 @@ void HomeState::executeChoice(int index)
     switch (index)
     {
         case 0:
-            std::cout << "Transition to: Playing\n";
-            context_->state_machine->push(std::make_unique<PlayingState>(context_));
+            std::cout << "Transition to: Loading\n";
+            context_->state_machine->push(std::make_unique<LoadingState>(context_));
             break;
         case 1:
             std::cout << "Transition to: Shop\n";

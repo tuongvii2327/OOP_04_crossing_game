@@ -16,13 +16,11 @@ endif()
 find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System Audio)
 
 # TỰ ĐỘNG QUÉT TOÀN BỘ FILE TRONG DỰ ÁN
-file(GLOB_RECURSE SOURCES "src/*.cpp")
-file(GLOB_RECURSE HEADERS "include/*.h" "include/*.hpp")
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
+file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "include/*.h" "include/*.hpp")
 
 # CHỈ TRUYỀN 2 BIẾN QUÉT TỰ ĐỘNG VÀO ĐÂY, KHÔNG ĐIỀN TÊN FILE THỦ CÔNG
-add_executable(CrossyRoad ${SOURCES} ${HEADERS}
-    src/states/game_over_state.cpp
-    include/states/shop_state.h "src/world/lane_river.cpp" "include/world/lane_river.h" "include/entities/wood.h" "src/entities/wood.cpp")
+add_executable(CrossyRoad ${SOURCES} ${HEADERS})
 
 if(MSVC)
     target_include_directories(CrossyRoad PRIVATE include)
