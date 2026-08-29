@@ -10,7 +10,9 @@
 #include "states/setting_state.h"
 #include "utils/audio_system.h"
 #include "utils/shared_context.h"
-
+#include "states/help_state.h"
+#include "states/about_state.h"
+#include "states/credit_state.h"
 HomeState::HomeState(SharedContext* context) : State(context), selected_index_(0) {}
 
 // ---------------------------------------------------------------------------
@@ -165,8 +167,13 @@ void HomeState::init()
     }
 
     // Central text menu
-    std::vector<std::pair<std::string, float>> menu_data = {{"New Game", 500.f},
-                                                            {"Load File", 620.f}};
+    std::vector<std::pair<std::string, float>> menu_data = {
+        {"New Game", 320.f},
+        {"Load File", 400.f},
+        {"Help", 480.f},
+        {"About", 560.f},
+        {"Credits", 640.f}
+    };
     menu_options_.clear();
     for (const auto& d : menu_data)
     {
@@ -315,6 +322,7 @@ void HomeState::handleEvent(const sf::Event& event)
     }
 
     // ── Normal input ─────────────────────────────────────────────────────────
+    const int choice_map[] = {0, 2, 8, 9, 10};
     if (const auto* kp = event.getIf<sf::Event::KeyPressed>())
     {
         if (kp->code == sf::Keyboard::Key::Up || kp->code == sf::Keyboard::Key::W)
@@ -334,7 +342,7 @@ void HomeState::handleEvent(const sf::Event& event)
         else if (kp->code == sf::Keyboard::Key::Enter)
         {
             Audio().playSFX(AudioSystem::SFX::Click);
-            executeChoice((selected_index_ == 0) ? 0 : 2);
+            executeChoice(choice_map[selected_index_]); 
         }
         else if (kp->code == sf::Keyboard::Key::Escape)
         {
@@ -396,7 +404,7 @@ void HomeState::handleEvent(const sf::Event& event)
                 {
                     selected_index_ = static_cast<int>(i);
                     Audio().playSFX(AudioSystem::SFX::Click);
-                    executeChoice((selected_index_ == 0) ? 0 : 2);
+                    executeChoice(choice_map[selected_index_]); 
                     return;
                 }
             }
@@ -468,47 +476,65 @@ void HomeState::executeChoice(int index)
 {
     switch (index)
     {
-    case 0:
-        std::cout << "Transition to: Playing\n";
-        context_->state_machine->push(std::make_unique<PlayingState>(context_));
+        case 0:
+            std::cout << "Transition to: Playing\n";
+            context_->state_machine->push(std::make_unique<PlayingState>(context_));
+            break;
+        case 1:
+            std::cout << "Transition to: Shop\n";
+            context_->state_machine->push(std::make_unique<ShopState>(context_));
+            break;
+        case 2:
+            std::cout << "Transition to: Load File\n";
+            context_->state_machine->push(std::make_unique<LoadState>(context_));
+            break;
+        case 3:
+            std::cout << "Transition to: Settings\n";
+            context_->state_machine->push(std::make_unique<SettingState>(context_));
+            break;
+        case 4:
+            std::cout << "Transition to: Ranking\n";
+            context_->state_machine->push(std::make_unique<RankingState>(context_));
+            break;
+        case 5:
+            // Show popup instead of quitting immediately
+            showExitPopup();
+            break;
+        case 6:
+        {
+            int vol = (Audio().getSFXVolume() > 0.f) ? 0 : 7;
+            Audio().setSFXVolume(vol);
+            context_->config->sfx_volume = vol;
+            updateSoundIconTextures();
+            std::cout << "SFX volume: " << vol << "\n";
+            break;
+        }
+        case 7:
+        {
+            int vol = (Audio().getMusicVolume() > 0.f) ? 0 : 5;
+            Audio().setMusicVolume(vol);
+            context_->config->music_volume = vol;
+            updateSoundIconTextures();
+            std::cout << "Music volume: " << vol << "\n";
+            break;
+        }
+        case 8:
+        {
+            std::cout << "Transition to: Help\n";
+            context_->state_machine->push(std::make_unique<HelpState>(context_));
+            break;
+        }
+        case 9:
+        {
+            std::cout << "Transition to: About\n";
+            context_->state_machine->push(std::make_unique<AboutState>(context_));
+            break;
+        }
+        case 10:
+        {
+        std::cout << "Transition to: Credits\n";
+        context_->state_machine->push(std::make_unique<CreditState>(context_));
         break;
-    case 1:
-        std::cout << "Transition to: Shop\n";
-        context_->state_machine->push(std::make_unique<ShopState>(context_));
-        break;
-    case 2:
-        std::cout << "Transition to: Load File\n";
-        context_->state_machine->push(std::make_unique<LoadState>(context_));
-        break;
-    case 3:
-        std::cout << "Transition to: Settings\n";
-        context_->state_machine->push(std::make_unique<SettingState>(context_));
-        break;
-    case 4:
-        std::cout << "Transition to: Ranking\n";
-        context_->state_machine->push(std::make_unique<RankingState>(context_));
-        break;
-    case 5:
-        // Show popup instead of quitting immediately
-        showExitPopup();
-        break;
-    case 6:
-    {
-        int vol = (Audio().getSFXVolume() > 0.f) ? 0 : 7;
-        Audio().setSFXVolume(vol);
-        context_->config->sfx_volume = vol;
-        updateSoundIconTextures();
-        std::cout << "SFX volume: " << vol << "\n";
-        break;
-    }
-    case 7:
-    {
-        int vol = (Audio().getMusicVolume() > 0.f) ? 0 : 5;
-        Audio().setMusicVolume(vol);
-        context_->config->music_volume = vol;
-        updateSoundIconTextures();
-        std::cout << "Music volume: " << vol << "\n";
-        break;
-    }
+        }
     }
 }

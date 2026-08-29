@@ -1,0 +1,12 @@
+	----------------------------------------
+	Crossy Road 2D is an exciting arcade 
+	survival game built with C++ and SFML.
+
+	Your mission is to guide your character 
+	as far as possible across endless roads, 
+	busy highways, and treacherous rivers.
+
+	Watch out for fast-moving traffic, avoid 
+	drowning in rivers, and grab shiny gold 
+	coins to unlock unique character skins!
+

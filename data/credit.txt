@@ -1,0 +1,18 @@
+--------------------------------------------------------
+PROJECT: OOP C++ - Crossy Road 2D
+DEVELOPED BY: GROUP 04
+--------------------------------------------------------
+
+TEAM MEMBERS & ROLES:
+- Nguyen Ba Duy : Technical Lead
+- Nguyen Duy Khang: 2D Game Designer
+- Trinh Tran Huong Mai: Core Developer
+- Tran Ngoc Nghia: Core Developer
+- Thai Mac Tuong Vi: Team Coordinate & QA
+
+SPECIAL THANKS TO:
+- Dr. Truong Toan Thinh for his invaluable guidance, support, 
+and dedication throughout the development of this project.
+- SFML Community for open-source resources.
+
+				THANK YOU FOR PLAYING OUR GAME!

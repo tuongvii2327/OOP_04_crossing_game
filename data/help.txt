@@ -1,0 +1,25 @@
+HOW TO PLAY & CONTROLS
+----------------------------------------------
+W / Up Arrow: Jump Forward
+S / Down Arrow: Jump Backward
+A / Left Arrow: Jump Left
+D / Right Arrow: Jump Right
+
+SYSTEM HOTKEYS
+----------------------------------------------
+P / ESC: Pause Game
+Enter: Confirm / Select Menu
+ESC: Return to Previous Menu
+
+GAME SETTINGS & OPTIONS
+----------------------------------------------
+- Music Volume: Adjust background music level (0-100%)
+- SFX Volume: Adjust sound effects level (0-100%)
+- Auto Scroll: ON = Camera moves automatically forward
+			   OFF = Camera follows player movement
+
+RANKING & SAVE SYSTEM
+---------------------------------------------
+- High Scores: View Top 5 highest scores ever achieved
+- Save Slots: Save/Load your game progress anytime
+			 (BE CAREFUL! Dying clears the current save slot)
