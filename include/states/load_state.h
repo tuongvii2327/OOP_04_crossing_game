@@ -15,7 +15,7 @@ private:
     int selected_index_;
 
     // Setup save slot UI
-    void setupUI(const sf::Font& font);
+    void setupUI();
     // Move selection up
     void moveUp();
     // Move selection down

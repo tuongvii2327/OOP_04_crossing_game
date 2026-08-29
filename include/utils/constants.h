@@ -50,9 +50,9 @@ namespace Constants
 		switch (type)
 		{
 		case LaneType::Grass:
-			return 55;
+			return 50;
 		case LaneType::Safe:
-			return 44;
+			return 42;
 		case LaneType::Road:
 			return 3;
 		case LaneType::River:

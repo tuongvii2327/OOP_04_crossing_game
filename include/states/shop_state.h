@@ -31,7 +31,7 @@ private:
     const int char_prices_[3] = {0, 50, 100};
     const std::string char_names_[3] = {"PERSON", "ROBOT", "USAGI"};
 
-    void setupUI(const sf::Font& font);
+    void setupUI();
     void updateUI();
 
     void moveUp();

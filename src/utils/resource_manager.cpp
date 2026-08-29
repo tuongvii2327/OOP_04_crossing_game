@@ -47,6 +47,42 @@ const sf::SoundBuffer &ResourceManager::getSoundBuffer(const std::string &filepa
 	return *(sound_buffers_.emplace(filepath, std::move(buffer)).first->second);
 }
 
+sf::Text ResourceManager::createText(const std::string &str, const TextStyle &style, bool is_button_text)
+{
+	const sf::Font &font = getFont("assets/fonts/VT323-Regular.ttf");
+	sf::Text text(font);
+	text.setString(str);
+	text.setCharacterSize(style.size);
+	if (is_button_text)
+	{
+		text.setFillColor(sf::Color::White);
+		text.setOutlineColor(OUTLINE_BUTTON_COLOR);
+	}
+	else
+	{
+		text.setFillColor(style.fill);
+		text.setOutlineColor(style.outline_color);
+	}
+	text.setOutlineThickness(style.outline_thickness);
+	sf::FloatRect bounds = text.getLocalBounds();
+	text.setOrigin({bounds.size.x / 2.f, bounds.size.y / 2.f});
+	return text;
+}
+
+void ResourceManager::setTextButtonHovered(sf::Text &text, bool hovered)
+{
+	if (hovered)
+	{
+		text.setFillColor(FILL_BUTTON_COLOR);
+		text.setScale({BUTTON_HOVER_SCALE, BUTTON_HOVER_SCALE});
+	}
+	else
+	{
+		text.setFillColor(sf::Color::White);
+		text.setScale({1.f, 1.f});
+	}
+}
+
 const sf::Texture &
 ResourceManager::getDynamicObjectTexture(const Constants::DynamicObjectType &type,
 	const Constants::ObjectColor &color)

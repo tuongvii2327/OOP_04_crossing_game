@@ -38,7 +38,7 @@ private:
     // Update speaker/music icon textures based on current volume state
     void updateSoundIconTextures();
     // Initialize exit confirmation popup elements
-    void initExitPopup(const sf::Font& font);
+    void initExitPopup();
     // Show exit confirmation popup
     void showExitPopup();
 

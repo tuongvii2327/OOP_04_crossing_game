@@ -17,7 +17,7 @@ private:
 
     std::vector<std::string> buildDisplayStrings() const;
 
-    void setupUI(const sf::Font& font);
+    void setupUI();
     void updateUI();
     void moveUp();
     void moveDown();

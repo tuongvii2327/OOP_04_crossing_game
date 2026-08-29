@@ -41,13 +41,9 @@ void GameOverState::init()
 
     if (is_new_highscore)
     {
-        title_text_->setString("NEW HIGHSCORE!");
-        title_text_->setFillColor(
-            sf::Color::Magenta); // Đổi thành màu Cyan (hoặc Green/Magenta) cho ngầu
-
-        // Canh giữa lại tọa độ X vì độ dài chữ "NEW HIGHSCORE!" khác với "GAME OVER"
+        *title_text_ = Resource().createText("NEW HIGHSCORE!", {110, sf::Color::Magenta});
         sf::FloatRect title_bounds = title_text_->getLocalBounds();
-        title_text_->setPosition({(Constants::WINDOW_WIDTH - title_bounds.size.x) / 2.f, 220.f});
+        title_text_->setPosition({Constants::WINDOW_WIDTH / 2.f, 220.f + title_bounds.size.y / 2.f});
     }
 }
 
@@ -78,37 +74,30 @@ void GameOverState::setupUI(const sf::Font& font)
                                  static_cast<float>(Constants::WINDOW_HEIGHT)});
     background_overlay_.setFillColor(sf::Color(0, 0, 0, 180)); // 180/255 độ tối
 
-    title_text_->setString("GAME OVER");
-    title_text_->setCharacterSize(110);
-    title_text_->setFillColor(sf::Color::Red);
+    *title_text_ = Resource().createText("GAME OVER", {110, sf::Color::Red});
     sf::FloatRect title_bounds = title_text_->getLocalBounds();
-    title_text_->setPosition({(Constants::WINDOW_WIDTH - title_bounds.size.x) / 2.f, 220.f});
+    title_text_->setPosition({Constants::WINDOW_WIDTH / 2.f, 220.f + title_bounds.size.y / 2.f});
 
-    score_text_->setString("YOUR SCORE: " + std::to_string(context_->data->current_score));
-    score_text_->setCharacterSize(55);
-    score_text_->setFillColor(sf::Color::Yellow);
+    *score_text_ = Resource().createText(
+        "YOUR SCORE: " + std::to_string(context_->data->current_score), {60, sf::Color::Yellow});
     sf::FloatRect score_bounds = score_text_->getLocalBounds();
-    score_text_->setPosition({(Constants::WINDOW_WIDTH - score_bounds.size.x) / 2.f, 360.f});
+    score_text_->setPosition({Constants::WINDOW_WIDTH / 2.f, 400.f + score_bounds.size.y / 2.f});
 
     std::vector<std::string> options = {"TRY AGAIN", "MAIN MENU"};
-    float initial_y = 520.f;
-    float spacing = 85.f;
+    float initial_y = 550.f;
+    float spacing = 100.f;
 
     menu_texts_.clear();
     for (size_t i = 0; i < options.size(); ++i)
     {
-        auto text = std::make_unique<sf::Text>(font);
-        text->setString(options[i]);
-        text->setCharacterSize(50);
+        auto text = std::make_unique<sf::Text>(Resource().createText(options[i], {60}, true));
 
         if (static_cast<int>(i) == selected_index_)
-            text->setFillColor(sf::Color::Yellow);
-        else
-            text->setFillColor(sf::Color::White);
+            Resource().setTextButtonHovered(*text, true);
 
         sf::FloatRect bounds = text->getLocalBounds();
         text->setPosition(
-            {(Constants::WINDOW_WIDTH - bounds.size.x) / 2.f, initial_y + i * spacing});
+            {Constants::WINDOW_WIDTH / 2.f, initial_y + i * spacing + bounds.size.y / 2.f});
         menu_texts_.push_back(std::move(text));
     }
 }
@@ -151,9 +140,9 @@ void GameOverState::handleEvent(const sf::Event& event)
             {
                 if (selected_index_ != static_cast<int>(i))
                 {
-                    menu_texts_[selected_index_]->setFillColor(sf::Color::White);
+                    Resource().setTextButtonHovered(*menu_texts_[selected_index_], false);
                     selected_index_ = static_cast<int>(i);
-                    menu_texts_[selected_index_]->setFillColor(sf::Color::Yellow);
+                    Resource().setTextButtonHovered(*menu_texts_[selected_index_], true);
                 }
                 break;
             }
@@ -204,18 +193,18 @@ void GameOverState::render(sf::RenderWindow& window)
 
 void GameOverState::moveUp()
 {
-    menu_texts_[selected_index_]->setFillColor(sf::Color::White);
+    Resource().setTextButtonHovered(*menu_texts_[selected_index_], false);
     selected_index_--;
     if (selected_index_ < 0)
         selected_index_ = static_cast<int>(menu_texts_.size()) - 1;
-    menu_texts_[selected_index_]->setFillColor(sf::Color::Yellow);
+    Resource().setTextButtonHovered(*menu_texts_[selected_index_], true);
 }
 
 void GameOverState::moveDown()
 {
-    menu_texts_[selected_index_]->setFillColor(sf::Color::White);
+    Resource().setTextButtonHovered(*menu_texts_[selected_index_], false);
     selected_index_++;
     if (selected_index_ >= static_cast<int>(menu_texts_.size()))
         selected_index_ = 0;
-    menu_texts_[selected_index_]->setFillColor(sf::Color::Yellow);
+    Resource().setTextButtonHovered(*menu_texts_[selected_index_], true);
 }

@@ -23,19 +23,15 @@ void RankingState::init()
 
     const sf::Font& font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
     title_text_ = std::make_unique<sf::Text>(font);
-    setupUI(font);
+    setupUI();
 }
 
 // Setup ranking display UI with scores
-void RankingState::setupUI(const sf::Font& font)
+void RankingState::setupUI()
 {
-    title_text_->setString("HIGH SCORES");
-    title_text_->setCharacterSize(72);
-    title_text_->setFillColor(sf::Color::Red);
-
+    *title_text_ = Resource().createText("HIGH SCORES", {72, sf::Color::Red});
     sf::FloatRect title_bounds = title_text_->getLocalBounds();
-    float title_x = (Constants::WINDOW_WIDTH - title_bounds.size.x) / 2.0f;
-    title_text_->setPosition({title_x, 150.0f});
+    title_text_->setPosition({Constants::WINDOW_WIDTH / 2.0f, 150.0f + title_bounds.size.y / 2.0f});
 
     std::vector<std::string> rankings;
     for (size_t i = 0; i < 5; ++i)
@@ -48,20 +44,17 @@ void RankingState::setupUI(const sf::Font& font)
     rankings.push_back("");
     rankings.push_back("BACK TO MENU");
 
-    float initial_y = 420.0f;
-    float spacing = 60.0f;
+    float initial_y = 350.0f;
+    float spacing = 80.0f;
 
     ranking_texts_.clear();
     for (size_t i = 0; i < rankings.size(); ++i)
     {
-        auto ranking_text = std::make_unique<sf::Text>(font);
-        ranking_text->setString(rankings[i]);
-        ranking_text->setCharacterSize(40);
-        ranking_text->setFillColor(sf::Color::White);
+        auto ranking_text = std::make_unique<sf::Text>(Resource().createText(rankings[i], {60}));
 
         sf::FloatRect text_bounds = ranking_text->getLocalBounds();
-        float x_position = (Constants::WINDOW_WIDTH - text_bounds.size.x) / 2.0f;
-        float y_position = initial_y + (static_cast<float>(i) * spacing);
+        float x_position = Constants::WINDOW_WIDTH / 2.0f;
+        float y_position = initial_y + (static_cast<float>(i) * spacing) + text_bounds.size.y / 2.0f;
 
         ranking_text->setPosition({x_position, y_position});
         ranking_texts_.push_back(std::move(ranking_text));
@@ -90,14 +83,7 @@ void RankingState::handleEvent(const sf::Event& event)
         if (!ranking_texts_.empty())
         {
             auto& back_btn = ranking_texts_.back(); // Nút BACK TO MENU ở vị trí cuối vector
-            if (back_btn->getGlobalBounds().contains(mouse_pos))
-            {
-                back_btn->setFillColor(sf::Color::Yellow);
-            }
-            else
-            {
-                back_btn->setFillColor(sf::Color::White);
-            }
+            Resource().setTextButtonHovered(*back_btn, back_btn->getGlobalBounds().contains(mouse_pos));
         }
     }
 

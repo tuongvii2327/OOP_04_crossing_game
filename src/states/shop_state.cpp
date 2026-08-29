@@ -40,41 +40,27 @@ void ShopState::init()
 
 	viewing_char_index_ = context_->data->selected_character;
 
-	setupUI(font);
+	setupUI();
 }
 
-void ShopState::setupUI(const sf::Font &font)
+void ShopState::setupUI()
 {
 	// Tiêu đề Shop
-	title_text_->setString("CHARACTER SHOP");
-	title_text_->setCharacterSize(72);
-	title_text_->setFillColor(sf::Color::Yellow);
+	*title_text_ = Resource().createText("CHARACTER SHOP", {48, sf::Color::Yellow});
 	sf::FloatRect title_bounds = title_text_->getLocalBounds();
-	title_text_->setPosition({(Constants::WINDOW_WIDTH - title_bounds.size.x) / 2.f, 120.f});
+	title_text_->setPosition({Constants::WINDOW_WIDTH / 2.f, 120.f + title_bounds.size.y / 2.f});
 
 	// Coin text: chỉ số, top-left (giống HomeState)
-	coin_text_->setCharacterSize(48);
-	coin_text_->setFillColor(sf::Color::Yellow);
-	coin_text_->setOutlineColor(sf::Color::Black);
-	coin_text_->setOutlineThickness(3.f);
+	*coin_text_ = Resource().createText("", {60, sf::Color::Yellow});
 
 	// Mũi tên đổi nhân vật
-	arrow_left_ = std::make_unique<sf::Text>(font);
-	arrow_right_ = std::make_unique<sf::Text>(font);
-	for (auto* arr : {arrow_left_.get(), arrow_right_.get()})
-	{
-		arr->setCharacterSize(90);
-		arr->setFillColor(sf::Color::White);
-		arr->setOutlineColor(sf::Color::Black);
-		arr->setOutlineThickness(3.f);
-	}
-	arrow_left_->setString("<");
-	arrow_right_->setString(">");
+	arrow_left_ = std::make_unique<sf::Text>(Resource().createText("<", {120}));
+	arrow_right_ = std::make_unique<sf::Text>(Resource().createText(">", {120}));
 
 	// 2 dòng menu: Action (index 0), Back (index 1)
 	for (int i = 0; i < 2; ++i)
 	{
-		menu_texts_.push_back(std::make_unique<sf::Text>(font));
+		menu_texts_.push_back(std::make_unique<sf::Text>(Resource().createText("", {60}, true)));
 	}
 
 	updateUI();
@@ -115,7 +101,7 @@ void ShopState::updateUI()
 	// Khoảng hiển thị nhân vật: y = 280 đến 570 (290px)
 	sf::FloatRect sprite_bounds = char_sprite_.getGlobalBounds();
 	float sprite_x = (Constants::WINDOW_WIDTH - sprite_bounds.size.x) / 2.f;
-	float sprite_y = 280.f + (290.f - sprite_bounds.size.y) / 2.f;
+	float sprite_y = 350.f;
 	char_sprite_.setPosition({sprite_x, sprite_y});
 
 	// --- Mũi tên hai bên nhân vật ---
@@ -150,18 +136,17 @@ void ShopState::updateUI()
 	}
 
 	std::vector<std::string> display_strings = {action_str, "BACK TO MENU"};
-	float initial_y = 570.f;
-	float spacing = 90.f;
+	float initial_y = 650.f;
+	float spacing = 80.f;
 
 	for (size_t i = 0; i < menu_texts_.size(); ++i)
 	{
 		menu_texts_[i]->setString(display_strings[i]);
-		menu_texts_[i]->setCharacterSize(55);
-		menu_texts_[i]->setFillColor(static_cast<int>(i) == selected_index_ ? sf::Color::Yellow
-																			: sf::Color::White);
 		sf::FloatRect tb = menu_texts_[i]->getLocalBounds();
-		float x = (Constants::WINDOW_WIDTH - tb.size.x) / 2.f;
-		float y = initial_y + static_cast<float>(i) * spacing;
+		menu_texts_[i]->setOrigin({tb.size.x / 2.f, tb.size.y / 2.f});
+		Resource().setTextButtonHovered(*menu_texts_[i], static_cast<int>(i) == selected_index_);
+		float x = Constants::WINDOW_WIDTH / 2.f;
+		float y = initial_y + static_cast<float>(i) * spacing + tb.size.y / 2.f;
 		menu_texts_[i]->setPosition({x, y});
 	}
 }

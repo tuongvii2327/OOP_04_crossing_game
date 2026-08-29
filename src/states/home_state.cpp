@@ -21,13 +21,7 @@ HomeState::HomeState(SharedContext* context) : State(context), selected_index_(0
 
 void HomeState::setupMenuOption(sf::Text& text, const std::string& str, float y_position)
 {
-    text.setString(str);
-    text.setCharacterSize(65);
-    text.setFillColor(sf::Color::White);
-    text.setOutlineColor(sf::Color::Black);
-    text.setOutlineThickness(4.0f);
-    sf::FloatRect r = text.getLocalBounds();
-    text.setOrigin({r.size.x / 2.0f, r.size.y / 2.0f});
+    text = Resource().createText(str, {85}, true);
     text.setPosition({Constants::WINDOW_WIDTH / 2.0f, y_position});
 }
 
@@ -55,7 +49,7 @@ void HomeState::updateSoundIconTextures()
     icon_buttons_[1].sprite->setOrigin({music_tex.getSize().x / 2.f, music_tex.getSize().y / 2.f});
 }
 
-void HomeState::initExitPopup(const sf::Font& font)
+void HomeState::initExitPopup()
 {
     const float pw = 440.f, ph = 220.f;
     const float px = (Constants::WINDOW_WIDTH - pw) / 2.f;
@@ -75,43 +69,17 @@ void HomeState::initExitPopup(const sf::Font& font)
     popup_bg_->setPosition({px, py});
 
     // Title text
-    popup_title_ = std::make_unique<sf::Text>(font);
-    popup_title_->setString("Thoat game?");
-    popup_title_->setCharacterSize(48);
-    popup_title_->setFillColor(sf::Color::White);
-    popup_title_->setOutlineColor(sf::Color::Black);
-    popup_title_->setOutlineThickness(2.f);
-    {
-        sf::FloatRect r = popup_title_->getLocalBounds();
-        popup_title_->setOrigin({r.size.x / 2.f, r.size.y / 2.f});
-        popup_title_->setPosition({px + pw / 2.f, py + 65.f});
-    }
+    popup_title_ = std::make_unique<sf::Text>(Resource().createText("Exit game?", {60}));
+    popup_title_->setPosition({px + pw / 2.f, py + 65.f});
 
     // Yes button
-    popup_btn_yes_ = std::make_unique<sf::Text>(font);
-    popup_btn_yes_->setString("Yes");
-    popup_btn_yes_->setCharacterSize(52);
-    popup_btn_yes_->setFillColor(sf::Color::White); // mặc định trắng
-    popup_btn_yes_->setOutlineColor(sf::Color::Black);
-    popup_btn_yes_->setOutlineThickness(2.f);
-    {
-        sf::FloatRect r = popup_btn_yes_->getLocalBounds();
-        popup_btn_yes_->setOrigin({r.size.x / 2.f, r.size.y / 2.f});
-        popup_btn_yes_->setPosition({px + pw * 0.30f, py + 155.f});
-    }
+    popup_btn_yes_ = std::make_unique<sf::Text>(Resource().createText("Yes", {52}, true));
+    popup_btn_yes_->setPosition({px + pw * 0.30f, py + 155.f});
 
     // No button
-    popup_btn_no_ = std::make_unique<sf::Text>(font);
-    popup_btn_no_->setString("No");
-    popup_btn_no_->setCharacterSize(52);
-    popup_btn_no_->setFillColor(sf::Color::Yellow); // mặc định vàng (No được chọn)
-    popup_btn_no_->setOutlineColor(sf::Color::Black);
-    popup_btn_no_->setOutlineThickness(2.f);
-    {
-        sf::FloatRect r = popup_btn_no_->getLocalBounds();
-        popup_btn_no_->setOrigin({r.size.x / 2.f, r.size.y / 2.f});
-        popup_btn_no_->setPosition({px + pw * 0.70f, py + 155.f});
-    }
+    popup_btn_no_ = std::make_unique<sf::Text>(Resource().createText("No", {52}, true));
+    popup_btn_no_->setPosition({px + pw * 0.70f, py + 155.f});
+    Resource().setTextButtonHovered(*popup_btn_no_, true);
 }
 
 void HomeState::showExitPopup()
@@ -120,11 +88,11 @@ void HomeState::showExitPopup()
     popup_selected_ = 1; // mặc định No
     popup_yes_hovered_ = false;
     popup_no_hovered_ = false;
-    // No được chọn: No vàng, Yes trắng
+    // No được chọn: No hover, Yes thường
     if (popup_btn_yes_)
-        popup_btn_yes_->setFillColor(sf::Color::White);
+        Resource().setTextButtonHovered(*popup_btn_yes_, false);
     if (popup_btn_no_)
-        popup_btn_no_->setFillColor(sf::Color::Yellow);
+        Resource().setTextButtonHovered(*popup_btn_no_, true);
 }
 
 // ---------------------------------------------------------------------------
@@ -154,12 +122,8 @@ void HomeState::init()
     coin_sprite_->setPosition({40.f, 45.f});
     coin_sprite_->setScale({3.5f, 3.5f});
 
-    coin_text_ = std::make_unique<sf::Text>(font);
-    coin_text_->setString(std::to_string(context_->data->total_coins));
-    coin_text_->setCharacterSize(48);
-    coin_text_->setFillColor(sf::Color::Yellow);
-    coin_text_->setOutlineColor(sf::Color::Black);
-    coin_text_->setOutlineThickness(3.f);
+    coin_text_ = std::make_unique<sf::Text>(
+        Resource().createText(std::to_string(context_->data->total_coins), {48, sf::Color::Yellow}));
     {
         sf::FloatRect r = coin_text_->getLocalBounds();
         coin_text_->setOrigin({0.f, r.size.y / 2.f});
@@ -181,7 +145,7 @@ void HomeState::init()
         setupMenuOption(*t, d.first, d.second);
         menu_options_.push_back(std::move(t));
     }
-    menu_options_[selected_index_]->setFillColor(sf::Color::Yellow);
+    Resource().setTextButtonHovered(*menu_options_[selected_index_], true);
 
     // Corner icon buttons
     const float rx = static_cast<float>(Constants::WINDOW_WIDTH) - 55.f;
@@ -220,7 +184,7 @@ void HomeState::init()
 
     // Initialise exit popup (hidden by default)
     show_exit_popup_ = false;
-    initExitPopup(font);
+    initExitPopup();
 }
 
 // ---------------------------------------------------------------------------
@@ -247,19 +211,19 @@ void HomeState::handleEvent(const sf::Event& event)
                 Audio().playSFX(AudioSystem::SFX::Hover);
                 if (popup_selected_ == 0)
                 {
-                    // Yes đang chọn: Yes vàng, No trắng
+                    // Yes đang chọn: Yes hover, No thường
                     if (popup_btn_yes_)
-                        popup_btn_yes_->setFillColor(sf::Color::Yellow);
+                        Resource().setTextButtonHovered(*popup_btn_yes_, true);
                     if (popup_btn_no_)
-                        popup_btn_no_->setFillColor(sf::Color::White);
+                        Resource().setTextButtonHovered(*popup_btn_no_, false);
                 }
                 else
                 {
-                    // No đang chọn: No vàng, Yes trắng
+                    // No đang chọn: No hover, Yes thường
                     if (popup_btn_yes_)
-                        popup_btn_yes_->setFillColor(sf::Color::White);
+                        Resource().setTextButtonHovered(*popup_btn_yes_, false);
                     if (popup_btn_no_)
-                        popup_btn_no_->setFillColor(sf::Color::Yellow);
+                        Resource().setTextButtonHovered(*popup_btn_no_, true);
                 }
             }
             else if (kp->code == sf::Keyboard::Key::Enter)
@@ -285,7 +249,7 @@ void HomeState::handleEvent(const sf::Event& event)
             if (hy != popup_yes_hovered_)
             {
                 popup_yes_hovered_ = hy;
-                popup_btn_yes_->setFillColor(hy ? sf::Color::White : sf::Color(255, 80, 80));
+                Resource().setTextButtonHovered(*popup_btn_yes_, hy);
                 if (hy)
                     Audio().playSFX(AudioSystem::SFX::Hover);
             }
@@ -294,7 +258,7 @@ void HomeState::handleEvent(const sf::Event& event)
             if (hn != popup_no_hovered_)
             {
                 popup_no_hovered_ = hn;
-                popup_btn_no_->setFillColor(hn ? sf::Color::White : sf::Color(80, 200, 80));
+                Resource().setTextButtonHovered(*popup_btn_no_, hn);
                 if (hn)
                     Audio().playSFX(AudioSystem::SFX::Hover);
             }
@@ -328,16 +292,16 @@ void HomeState::handleEvent(const sf::Event& event)
         if (kp->code == sf::Keyboard::Key::Up || kp->code == sf::Keyboard::Key::W)
         {
             Audio().playSFX(AudioSystem::SFX::Hover);
-            menu_options_[selected_index_]->setFillColor(sf::Color::White);
+            Resource().setTextButtonHovered(*menu_options_[selected_index_], false);
             selected_index_ = (selected_index_ - 1 + menu_options_.size()) % menu_options_.size();
-            menu_options_[selected_index_]->setFillColor(sf::Color::Yellow);
+            Resource().setTextButtonHovered(*menu_options_[selected_index_], true);
         }
         else if (kp->code == sf::Keyboard::Key::Down || kp->code == sf::Keyboard::Key::S)
         {
             Audio().playSFX(AudioSystem::SFX::Hover);
-            menu_options_[selected_index_]->setFillColor(sf::Color::White);
+            Resource().setTextButtonHovered(*menu_options_[selected_index_], false);
             selected_index_ = (selected_index_ + 1) % menu_options_.size();
-            menu_options_[selected_index_]->setFillColor(sf::Color::Yellow);
+            Resource().setTextButtonHovered(*menu_options_[selected_index_], true);
         }
         else if (kp->code == sf::Keyboard::Key::Enter)
         {
@@ -362,9 +326,9 @@ void HomeState::handleEvent(const sf::Event& event)
             {
                 if (selected_index_ != static_cast<int>(i))
                 {
-                    menu_options_[selected_index_]->setFillColor(sf::Color::White);
+                    Resource().setTextButtonHovered(*menu_options_[selected_index_], false);
                     selected_index_ = static_cast<int>(i);
-                    menu_options_[selected_index_]->setFillColor(sf::Color::Yellow);
+                    Resource().setTextButtonHovered(*menu_options_[selected_index_], true);
                     Audio().playSFX(AudioSystem::SFX::Hover);
                 }
                 break;

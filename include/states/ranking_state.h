@@ -16,7 +16,7 @@ private:
     std::vector<std::unique_ptr<sf::Text>> ranking_texts_;
 
     // Setup ranking display UI
-    void setupUI(const sf::Font& font);
+    void setupUI();
 
 public:
     RankingState(SharedContext* context);

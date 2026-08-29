@@ -10,6 +10,18 @@
 #include <unordered_map>
 #include <vector>
 
+inline constexpr sf::Color OUTLINE_BUTTON_COLOR(0x11, 0x27, 0x00); // outline color shared by every text
+inline constexpr sf::Color FILL_BUTTON_COLOR(0xFC, 0xCB, 0xC8);    // fill color for a hovered button text
+inline constexpr float BUTTON_HOVER_SCALE = 1.1f;        // fixed grow ratio applied on hover
+
+struct TextStyle
+{
+	unsigned int size = 40;               // character size in pixels
+	sf::Color fill = sf::Color::White;    // fill color used by plain text
+	sf::Color outline_color = OUTLINE_BUTTON_COLOR; // outline color
+	float outline_thickness = 3.f * size / 40.f;        // outline thickness
+};
+
 class ResourceManager
 {
 public:
@@ -21,6 +33,9 @@ public:
 	const sf::Texture &getTexture(const std::string &filepath);         // load-or-return the cached texture for a file path
 	const sf::Font &getFont(const std::string &filepath);               // load-or-return the cached font for a file path
 	const sf::SoundBuffer &getSoundBuffer(const std::string &filepath); // load-or-return the cached sound buffer for a file path
+
+	sf::Text createText(const std::string &str, const TextStyle &style = {}, bool is_button_text = false); // build a styled text (font loaded internally, origin centered)
+	void setTextButtonHovered(sf::Text &text, bool hovered);                                                // toggle a button text between its normal and hovered look
 
 	const sf::Texture &getDynamicObjectTexture(const Constants::DynamicObjectType &type, const Constants::ObjectColor &color = Constants::ObjectColor::None); // cached procedural texture for a DynamicObject type+color
 	const sf::Texture &getStaticObjectTexture(const Constants::StaticObjectType &type, const Constants::ObjectColor &color = Constants::ObjectColor::None);                      // cached procedural texture for a StaticObject type+color

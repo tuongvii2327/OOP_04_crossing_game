@@ -27,7 +27,7 @@ void SettingState::init()
 
     title_text_ = std::make_unique<sf::Text>(font);
 
-    setupUI(font);
+    setupUI();
 }
 
 std::vector<std::string> SettingState::buildDisplayStrings() const
@@ -38,21 +38,17 @@ std::vector<std::string> SettingState::buildDisplayStrings() const
             "BACK TO MENU"}; // phai luon de back o cuoi
 }
 
-void SettingState::setupUI(const sf::Font& font)
+void SettingState::setupUI()
 {
-    title_text_->setString("SETTINGS");
-    title_text_->setCharacterSize(72);
-    title_text_->setFillColor(sf::Color::Magenta);
-
+    *title_text_ = Resource().createText("SETTINGS", {72, sf::Color::Magenta});
     sf::FloatRect title_bounds = title_text_->getLocalBounds();
-    float title_x = (Constants::WINDOW_WIDTH - title_bounds.size.x) / 2.0f;
-    title_text_->setPosition({title_x, 150.0f});
+    title_text_->setPosition({Constants::WINDOW_WIDTH / 2.0f, 150.0f + title_bounds.size.y / 2.0f});
 
     setting_texts_.clear();
     size_t item_count = buildDisplayStrings().size();
     for (int i = 0; i < item_count; ++i)
     {
-        setting_texts_.push_back(std::make_unique<sf::Text>(font));
+        setting_texts_.push_back(std::make_unique<sf::Text>(Resource().createText("", {70}, true)));
     }
 
     updateUI();
@@ -66,25 +62,19 @@ void SettingState::updateUI()
 
     std::vector<std::string> display_strings = buildDisplayStrings();
 
-    float initial_y = 450.0f;
-    float spacing = 80.0f;
+    float initial_y = 350.0f;
+    float spacing = 100.0f;
 
     for (size_t i = 0; i < setting_texts_.size(); ++i)
     {
         setting_texts_[i]->setString(display_strings[i]);
 
-        if (static_cast<int>(i) == selected_index_)
-        {
-            setting_texts_[i]->setFillColor(sf::Color::Yellow);
-        }
-        else
-        {
-            setting_texts_[i]->setFillColor(sf::Color::White);
-        }
-
         sf::FloatRect text_bounds = setting_texts_[i]->getLocalBounds();
-        float x_position = (Constants::WINDOW_WIDTH - text_bounds.size.x) / 2.0f;
-        float y_position = initial_y + (static_cast<float>(i) * spacing);
+        setting_texts_[i]->setOrigin({text_bounds.size.x / 2.0f, text_bounds.size.y / 2.0f});
+        Resource().setTextButtonHovered(*setting_texts_[i], static_cast<int>(i) == selected_index_);
+
+        float x_position = Constants::WINDOW_WIDTH / 2.0f;
+        float y_position = initial_y + (static_cast<float>(i) * spacing) + text_bounds.size.y / 2.0f;
 
         setting_texts_[i]->setPosition({x_position, y_position});
     }

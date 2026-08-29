@@ -27,7 +27,7 @@ void LoadState::init()
 
     const sf::Font& font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
     title_text_ = std::make_unique<sf::Text>(font);
-    setupUI(font);
+    setupUI();
 }
 
 // ---- HÀM ĐỌC NHANH THÔNG TIN FILE LƯU ----
@@ -45,21 +45,17 @@ bool getSlotMetadata(int slot_index, std::string& out_name, int& out_score)
 }
 
 // Setup load menu UI with save slots
-void LoadState::setupUI(const sf::Font& font)
+void LoadState::setupUI()
 {
-    title_text_->setString("LOAD GAME");
-    title_text_->setCharacterSize(72);
-    title_text_->setFillColor(sf::Color::Cyan);
-
+    *title_text_ = Resource().createText("LOAD GAME", {72, sf::Color::Cyan});
     sf::FloatRect title_bounds = title_text_->getLocalBounds();
-    float title_x = (Constants::WINDOW_WIDTH - title_bounds.size.x) / 2.0f;
-    title_text_->setPosition({title_x, 150.0f});
+    title_text_->setPosition({Constants::WINDOW_WIDTH / 2.0f, 150.0f + title_bounds.size.y / 2.0f});
 
     std::vector<std::string> save_options = {"SAVE SLOT 1", "SAVE SLOT 2", "SAVE SLOT 3",
                                              "BACK TO MENU"};
 
-    float initial_y = 420.0f;
-    float spacing = 80.0f;
+    float initial_y = 350.0f;
+    float spacing = 100.0f;
 
     save_slot_texts_.clear();
     for (size_t i = 0; i < save_options.size(); ++i)
@@ -86,22 +82,16 @@ void LoadState::setupUI(const sf::Font& font)
             display_str = save_options[i]; // "BACK TO MENU"
         }
 
-        sf::Text slot_text(font);
-        slot_text.setString(display_str);
-        slot_text.setCharacterSize(42);
+        sf::Text slot_text = Resource().createText(display_str, {70}, true);
 
         if (static_cast<int>(i) == selected_index_)
         {
-            slot_text.setFillColor(sf::Color::Yellow);
-        }
-        else
-        {
-            slot_text.setFillColor(sf::Color::White);
+            Resource().setTextButtonHovered(slot_text, true);
         }
 
         sf::FloatRect text_bounds = slot_text.getLocalBounds();
-        float x_position = (Constants::WINDOW_WIDTH - text_bounds.size.x) / 2.0f;
-        float y_position = initial_y + (static_cast<float>(i) * spacing);
+        float x_position = Constants::WINDOW_WIDTH / 2.0f;
+        float y_position = initial_y + (static_cast<float>(i) * spacing) + text_bounds.size.y / 2.0f;
 
         slot_text.setPosition({x_position, y_position});
         save_slot_texts_.push_back(std::move(slot_text));
@@ -168,9 +158,9 @@ void LoadState::handleEvent(const sf::Event& event)
             {
                 if (selected_index_ != static_cast<int>(i))
                 {
-                    save_slot_texts_[selected_index_].setFillColor(sf::Color::White);
+                    Resource().setTextButtonHovered(save_slot_texts_[selected_index_], false);
                     selected_index_ = static_cast<int>(i);
-                    save_slot_texts_[selected_index_].setFillColor(sf::Color::Yellow);
+                    Resource().setTextButtonHovered(save_slot_texts_[selected_index_], true);
 
                     Audio().playSFX(AudioSystem::SFX::Hover);
                 }
@@ -234,21 +224,21 @@ void LoadState::render(sf::RenderWindow& window)
 // Move selection up
 void LoadState::moveUp()
 {
-    save_slot_texts_[selected_index_].setFillColor(sf::Color::White);
+    Resource().setTextButtonHovered(save_slot_texts_[selected_index_], false);
     selected_index_--;
     if (selected_index_ < 0)
         selected_index_ = static_cast<int>(save_slot_texts_.size()) - 1;
-    save_slot_texts_[selected_index_].setFillColor(sf::Color::Yellow);
+    Resource().setTextButtonHovered(save_slot_texts_[selected_index_], true);
 }
 
 // Move selection down
 void LoadState::moveDown()
 {
-    save_slot_texts_[selected_index_].setFillColor(sf::Color::White);
+    Resource().setTextButtonHovered(save_slot_texts_[selected_index_], false);
     selected_index_++;
     if (selected_index_ >= static_cast<int>(save_slot_texts_.size()))
         selected_index_ = 0;
-    save_slot_texts_[selected_index_].setFillColor(sf::Color::Yellow);
+    Resource().setTextButtonHovered(save_slot_texts_[selected_index_], true);
 }
 
 // Load game data from save file

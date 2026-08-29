@@ -25,36 +25,28 @@ void PauseState::setupUI(const sf::Font& font)
                                  static_cast<float>(Constants::WINDOW_HEIGHT)});
     background_overlay_.setFillColor(sf::Color(0, 0, 0, 150));
 
-    title_text_->setString("PAUSED");
-    title_text_->setCharacterSize(90);
-    title_text_->setFillColor(sf::Color::White);
+    *title_text_ = Resource().createText("PAUSED", {120});
 
     sf::FloatRect title_bounds = title_text_->getLocalBounds();
-    float title_x = (Constants::WINDOW_WIDTH - title_bounds.size.x) / 2.0f;
-    title_text_->setPosition({title_x, 200.0f});
+    title_text_->setPosition({Constants::WINDOW_WIDTH / 2.0f, 100.0f + title_bounds.size.y / 2.0f});
 
     std::vector<std::string> options = {"RESUME", "SAVE GAME", "SETTINGS", "HOME"};
-    float initial_y = 450.0f;
-    float spacing = 80.0f;
+    float initial_y = 400.0f;
+    float spacing = 100.0f;
 
     for (size_t i = 0; i < options.size(); ++i)
     {
-        std::unique_ptr<sf::Text> option_text = std::make_unique<sf::Text>(font);
-        option_text->setString(options[i]);
-        option_text->setCharacterSize(50);
+        std::unique_ptr<sf::Text> option_text =
+            std::make_unique<sf::Text>(Resource().createText(options[i], {70}, true));
 
         if (static_cast<int>(i) == selected_index_)
         {
-            option_text->setFillColor(sf::Color::Yellow);
-        }
-        else
-        {
-            option_text->setFillColor(sf::Color::White);
+            Resource().setTextButtonHovered(*option_text, true);
         }
 
         sf::FloatRect text_bounds = option_text->getLocalBounds();
-        float x_position = (Constants::WINDOW_WIDTH - text_bounds.size.x) / 2.0f;
-        float y_position = initial_y + (static_cast<float>(i) * spacing);
+        float x_position = Constants::WINDOW_WIDTH / 2.0f;
+        float y_position = initial_y + (static_cast<float>(i) * spacing) + text_bounds.size.y / 2.0f;
 
         option_text->setPosition({x_position, y_position});
         menu_texts_.push_back(std::move(option_text));
@@ -115,9 +107,9 @@ void PauseState::handleEvent(const sf::Event& event)
                 // change color to yellow for selected option and white for others
                 if (selected_index_ != static_cast<int>(i))
                 {
-                    menu_texts_[selected_index_]->setFillColor(sf::Color::White);
+                    Resource().setTextButtonHovered(*menu_texts_[selected_index_], false);
                     selected_index_ = static_cast<int>(i);
-                    menu_texts_[selected_index_]->setFillColor(sf::Color::Yellow);
+                    Resource().setTextButtonHovered(*menu_texts_[selected_index_], true);
                     Audio().playSFX(AudioSystem::SFX::Hover);
                 }
                 break;
@@ -183,19 +175,19 @@ void PauseState::render(sf::RenderWindow& window)
 // Move selection up
 void PauseState::moveUp()
 {
-    menu_texts_[selected_index_]->setFillColor(sf::Color::White);
+    Resource().setTextButtonHovered(*menu_texts_[selected_index_], false);
     selected_index_--;
     if (selected_index_ < 0)
         selected_index_ = static_cast<int>(menu_texts_.size()) - 1;
-    menu_texts_[selected_index_]->setFillColor(sf::Color::Yellow);
+    Resource().setTextButtonHovered(*menu_texts_[selected_index_], true);
 }
 
 // Move selection down
 void PauseState::moveDown()
 {
-    menu_texts_[selected_index_]->setFillColor(sf::Color::White);
+    Resource().setTextButtonHovered(*menu_texts_[selected_index_], false);
     selected_index_++;
     if (selected_index_ >= static_cast<int>(menu_texts_.size()))
         selected_index_ = 0;
-    menu_texts_[selected_index_]->setFillColor(sf::Color::Yellow);
+    Resource().setTextButtonHovered(*menu_texts_[selected_index_], true);
 }

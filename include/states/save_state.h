@@ -37,7 +37,7 @@ private:
     std::unique_ptr<sf::Text> overwrite_prompt_text_;
 
     // Setup save slot UI
-    void setupUI(const sf::Font& font);
+    void setupUI();
     // Move selection up
     void moveUp();
     // Move selection down

@@ -41,15 +41,10 @@ void PlayingState::init()
 
     std::cout << "1. Bat dau PlayingState::init()\n";
 
-    const sf::Font& font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
     std::cout << "2. Load Font thanh cong\n";
 
-    score_text_ = std::make_unique<sf::Text>(font);
-    score_text_->setString("Score:\n  0");
-    score_text_->setCharacterSize(40);
-    score_text_->setFillColor(sf::Color::White);
-    score_text_->setOutlineColor(sf::Color::Black);
-    score_text_->setOutlineThickness(2.f);
+    score_text_ = std::make_unique<sf::Text>(Resource().createText("Score:\n  0", {40}));
+    score_text_->setOrigin({0.f, 0.f});
     score_text_->setPosition({25.f, 20.f});
 
     if (!context_->data->high_scores.empty())
@@ -64,12 +59,9 @@ void PlayingState::init()
     std::cout << "3. Tao Score Text thanh cong\n";
 
     // Coin text
-    coin_text_ = std::make_unique<sf::Text>(font);
-    coin_text_->setString("Coins:\n  " + std::to_string(context_->data->total_coins));
-    coin_text_->setCharacterSize(40);
-    coin_text_->setFillColor(sf::Color::Yellow);
-    coin_text_->setOutlineColor(sf::Color::Black);
-    coin_text_->setOutlineThickness(2.f);
+    coin_text_ = std::make_unique<sf::Text>(Resource().createText(
+        "Coins:\n  " + std::to_string(context_->data->total_coins), {40, sf::Color::Yellow}));
+    coin_text_->setOrigin({0.f, 0.f});
     coin_text_->setPosition({25.f, 140.f});
 
     const sf::Texture& player_tex =

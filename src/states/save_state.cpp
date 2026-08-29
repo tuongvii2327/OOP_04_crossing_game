@@ -33,18 +33,18 @@ void SaveState::init()
     input_display_text_ = std::make_unique<sf::Text>(font);
     error_text_ = std::make_unique<sf::Text>(font);
     overwrite_prompt_text_ = std::make_unique<sf::Text>(font);
-    setupUI(font);
+    setupUI();
 }
 
 // Setup save menu UI with save slots
-void SaveState::setupUI(const sf::Font& font)
+void SaveState::setupUI()
 {
     save_slot_texts_.clear();
 
     // (Title removed — background image already contains it)
 
-    float initial_y = 450.0f;
-    float spacing = 80.0f;
+    float initial_y = 350.0f;
+    float spacing = 100.0f;
 
     save_slot_texts_.clear();
 
@@ -64,61 +64,48 @@ void SaveState::setupUI(const sf::Font& font)
             display_str = "SLOT " + std::to_string(i) + ": - EMPTY -";
         }
 
-        auto slot_text = std::make_unique<sf::Text>(font);
-        slot_text->setString(display_str);
-        slot_text->setCharacterSize(48);
+        auto slot_text = std::make_unique<sf::Text>(Resource().createText(display_str, {70}, true));
 
         if (i - 1 == selected_index_)
         {
-            slot_text->setFillColor(sf::Color::Yellow);
-        }
-        else
-        {
-            slot_text->setFillColor(sf::Color::White);
+            Resource().setTextButtonHovered(*slot_text, true);
         }
 
         sf::FloatRect text_bounds = slot_text->getLocalBounds();
-        float x_position = (Constants::WINDOW_WIDTH - text_bounds.size.x) / 2.0f;
-        float y_position = initial_y + (i - 1) * spacing;
+        float x_position = Constants::WINDOW_WIDTH / 2.0f;
+        float y_position = initial_y + (i - 1) * spacing + text_bounds.size.y / 2.0f;
 
         slot_text->setPosition({x_position, y_position});
         save_slot_texts_.push_back(std::move(slot_text));
     }
 
     // NÚT BACK
-    auto back_text = std::make_unique<sf::Text>(font);
-    back_text->setString("BACK");
-    back_text->setCharacterSize(48);
+    auto back_text = std::make_unique<sf::Text>(Resource().createText("BACK TO MENU", {70}, true));
     if (selected_index_ == 3)
-        back_text->setFillColor(sf::Color::Yellow);
-    else
-        back_text->setFillColor(sf::Color::White);
+        Resource().setTextButtonHovered(*back_text, true);
 
     sf::FloatRect back_bounds = back_text->getLocalBounds();
     back_text->setPosition(
-        {(Constants::WINDOW_WIDTH - back_bounds.size.x) / 2.0f, initial_y + 3 * spacing});
+        {Constants::WINDOW_WIDTH / 2.0f, initial_y + 3 * spacing + back_bounds.size.y / 2.0f});
     save_slot_texts_.push_back(std::move(back_text));
 
     // 2. SETUP UI CẢNH BÁO GHI ĐÈ (OVERWRITE PROMPT)
-    overwrite_prompt_text_->setString("SLOT ALREADY EXISTS!\nOVERWRITE SAVE? (ENTER / ESC)");
-    overwrite_prompt_text_->setCharacterSize(48);
-    overwrite_prompt_text_->setFillColor(sf::Color::Red);
+    *overwrite_prompt_text_ =
+        Resource().createText("\tSLOT ALREADY EXISTS!\nOVERWRITE SAVE? (ENTER / ESC)", {75, sf::Color::Yellow });
+    overwrite_prompt_text_->setOrigin({0.f, 0.f});
 
     // 3. UI GÕ TÊN
-    prompt_text_->setString("ENTER YOU NAME (3 - 15 CHARS):");
-    prompt_text_->setCharacterSize(48);
-    prompt_text_->setFillColor(sf::Color::Cyan);
+    *prompt_text_ = Resource().createText("ENTER YOU NAME (3 - 15 CHARS):", {60, sf::Color::Yellow });
+    prompt_text_->setOrigin({0.f, 0.f});
     sf::FloatRect p_bounds = prompt_text_->getLocalBounds();
-    prompt_text_->setPosition({(Constants::WINDOW_WIDTH - p_bounds.size.x) / 2.0f, 320.0f});
+    prompt_text_->setPosition({(Constants::WINDOW_WIDTH - p_bounds.size.x) / 2.0f, 250.0f});
 
-    input_display_text_->setString("_");
-    input_display_text_->setCharacterSize(60);
-    input_display_text_->setFillColor(sf::Color::Yellow);
-    input_display_text_->setPosition({100.f, 530.0f});
+    *input_display_text_ = Resource().createText("_", {60, FILL_BUTTON_COLOR });
+    input_display_text_->setOrigin({0.f, 0.f});
+    input_display_text_->setPosition({100.f, 480.0f});
 
-    error_text_->setString("");
-    error_text_->setCharacterSize(36);
-    error_text_->setFillColor(sf::Color::Red);
+    *error_text_ = Resource().createText("", {60, sf::Color::Red, sf::Color::White});
+    error_text_->setOrigin({0.f, 0.f});
 }
 
 void SaveState::handleEvent(const sf::Event& event)
@@ -187,7 +174,7 @@ void SaveState::handleEvent(const sf::Event& event)
             input_display_text_->setString(input_name_ + "_");
             sf::FloatRect input_bounds = input_display_text_->getLocalBounds();
             input_display_text_->setPosition(
-                {(Constants::WINDOW_WIDTH - input_bounds.size.x) / 2.0f, 530.0f});
+                {(Constants::WINDOW_WIDTH - input_bounds.size.x) / 2.0f, 480.0f});
         }
 
         // 2. Xử lý nhấn Enter hoặc Esc
@@ -272,11 +259,11 @@ void SaveState::handleEvent(const sf::Event& event)
             {
                 if (selected_index_ != static_cast<int>(i))
                 {
-                    // Trả chữ cũ về màu trắng
-                    save_slot_texts_[selected_index_]->setFillColor(sf::Color::White);
-                    // Đổi chữ mới thành màu vàng
+                    // Trả chữ cũ về trạng thái thường
+                    Resource().setTextButtonHovered(*save_slot_texts_[selected_index_], false);
+                    // Đổi chữ mới sang trạng thái hover
                     selected_index_ = static_cast<int>(i);
-                    save_slot_texts_[selected_index_]->setFillColor(sf::Color::Yellow);
+                    Resource().setTextButtonHovered(*save_slot_texts_[selected_index_], true);
                 }
                 break;
             }
@@ -359,7 +346,7 @@ void SaveState::render(sf::RenderWindow& window)
     {
         // Hiển thị khung nhập tên
         sf::FloatRect p_bounds = prompt_text_->getLocalBounds();
-        prompt_text_->setPosition({(Constants::WINDOW_WIDTH - p_bounds.size.x) / 2.0f, 450.0f});
+        prompt_text_->setPosition({(Constants::WINDOW_WIDTH - p_bounds.size.x) / 2.0f, 350.0f});
         window.draw(*prompt_text_);
         window.draw(*input_display_text_);
 
@@ -367,7 +354,7 @@ void SaveState::render(sf::RenderWindow& window)
         {
             sf::FloatRect err_bounds = error_text_->getLocalBounds();
             error_text_->setPosition(
-                {(Constants::WINDOW_WIDTH - err_bounds.size.x) / 2.0f, 580.0f});
+                {(Constants::WINDOW_WIDTH - err_bounds.size.x) / 2.0f, 600.0f});
             window.draw(*error_text_);
         }
     }
@@ -385,21 +372,21 @@ void SaveState::render(sf::RenderWindow& window)
 // Move selection up
 void SaveState::moveUp()
 {
-    save_slot_texts_[selected_index_]->setFillColor(sf::Color::White);
+    Resource().setTextButtonHovered(*save_slot_texts_[selected_index_], false);
     selected_index_--;
     if (selected_index_ < 0)
         selected_index_ = static_cast<int>(save_slot_texts_.size()) - 1;
-    save_slot_texts_[selected_index_]->setFillColor(sf::Color::Yellow);
+    Resource().setTextButtonHovered(*save_slot_texts_[selected_index_], true);
 }
 
 // Move selection down
 void SaveState::moveDown()
 {
-    save_slot_texts_[selected_index_]->setFillColor(sf::Color::White);
+    Resource().setTextButtonHovered(*save_slot_texts_[selected_index_], false);
     selected_index_++;
     if (selected_index_ >= static_cast<int>(save_slot_texts_.size()))
         selected_index_ = 0;
-    save_slot_texts_[selected_index_]->setFillColor(sf::Color::Yellow);
+    Resource().setTextButtonHovered(*save_slot_texts_[selected_index_], true);
 }
 
 // Save game data to save file
@@ -423,8 +410,7 @@ void SaveState::saveGameData(int slot_index, const std::string& name)
             save_slot_texts_[slot_index - 1]->setString("SAVE SLOT " + std::to_string(slot_index) +
                                                         " - SAVED!");
 
-            const sf::Font& font = Resource().getFont("assets/fonts/VT323-Regular.ttf");
-            setupUI(font);
+            setupUI();
         }
         else
         {
