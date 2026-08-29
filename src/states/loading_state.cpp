@@ -23,14 +23,12 @@ void LoadingState::initBackground()
 {
     grass_lanes_.clear();
 
-    // 1. Ghép 10 dải cỏ từ trên xuống dưới, bắt đầu từ x = GAME_PLAY_BAR_WIDTH (140px)
+    // 1. Dùng duy nhất 1 ảnh cỏ cơ bản cho toàn bộ 10 dải nền — init xong gần như tức thì (~1ms).
+    //    Các biến thể cỏ còn lại (grass_2 → grass_50) sẽ được tải dần trong initPreloadQueue().
     const float lane_x = static_cast<float>(Constants::GAME_PLAY_BAR_WIDTH);
+    const sf::Texture& grass_tex = Resource().getTexture("assets/textures/lane/grass_1.png");
     for (int i = 0; i < 10; ++i)
     {
-        int variant = ((i * 7) % 50) + 1;
-        std::string grass_path = "assets/textures/lane/grass_" + std::to_string(variant) + ".png";
-
-        const sf::Texture& grass_tex = Resource().getTexture(grass_path);
         auto lane = std::make_unique<sf::Sprite>(grass_tex);
         lane->setPosition({lane_x, static_cast<float>(i * Constants::LANE_HEIGHT)});
         grass_lanes_.push_back(std::move(lane));
@@ -57,7 +55,7 @@ void LoadingState::initCoinSprite()
     const sf::Texture& coin_tex = Resource().getTexture("assets/textures/coin/final_spinning_coin.png");
     coin_sprite_ = std::make_unique<sf::Sprite>(coin_tex);
 
-    current_frame_ = 0;
+    coin_clock_.restart();
     coin_sprite_->setTextureRect(sf::IntRect(
         sf::Vector2i(0, 0),
         sf::Vector2i(COIN_FRAME_WIDTH, COIN_FRAME_HEIGHT)
@@ -105,43 +103,67 @@ void LoadingState::initUI()
 
 void LoadingState::initPreloadQueue()
 {
-    // Danh sách toàn bộ tài nguyên game cần nạp trước khi vào Main Menu
+    // ── UI Screens ────────────────────────────────────────────────────────────
     textures_to_preload_ = {
-        // UI Screens
         "assets/textures/ui/home.png",
         "assets/textures/ui/shop.png",
         "assets/textures/ui/setting.png",
         "assets/textures/ui/ranking.png",
         "assets/textures/ui/load.png",
         "assets/textures/ui/save.png",
-        // Icons
-        "assets/textures/icon/Coin.png",
-        "assets/textures/icon/Exit.png",
-        "assets/textures/icon/Gear.png",
-        "assets/textures/icon/SpeakerOn.png",
-        "assets/textures/icon/SpeakerMute.png",
-        "assets/textures/icon/music_on.png",
-        "assets/textures/icon/music_off.png",
-        "assets/textures/icon/ShoppingCart.png",
-        "assets/textures/icon/Trophy.png",
-        "assets/textures/icon/PlayPause.png",
-        // Game Entities
-        "assets/textures/people/none.png",
-        "assets/textures/car/none.png",
-        "assets/textures/truck/none.png",
-        "assets/textures/bird/none.png",
-        "assets/textures/rabbit/none.png",
-        "assets/textures/wood/none.png",
-        "assets/textures/lane/road_1.png",
-        "assets/textures/lane/grass_1.png",
-        "assets/textures/lane/river_1.png",
-        "assets/textures/lane/safe_1.png",
-        "assets/textures/traffic/traffic.png"
+        "assets/textures/ui/sidebar.png",
     };
 
+    // ── Icons ─────────────────────────────────────────────────────────────────
+    const std::vector<std::string> icons = {
+        "Coin", "Exit", "Gear", "SpeakerOn", "SpeakerMute",
+        "music_on", "music_off", "ShoppingCart", "Trophy", "PlayPause"
+    };
+    for (const auto& icon : icons)
+        textures_to_preload_.push_back("assets/textures/icon/" + icon + ".png");
+
+    // ── Lane: Grass ─────────────────────────────────────────────
+    for (int i = 1; i <= Constants::getNumberOfTextureVariant(Constants::LaneType::Grass); ++i)
+        textures_to_preload_.push_back("assets/textures/lane/grass_" + std::to_string(i) + ".png");
+
+    // ── Lane: Safe ──────────────────────────────────────────────
+    for (int i = 1; i <= Constants::getNumberOfTextureVariant(Constants::LaneType::Safe); ++i)
+        textures_to_preload_.push_back("assets/textures/lane/safe_" + std::to_string(i) + ".png");
+
+    // ── Lane: Road ───────────────────────────────────────────────
+    for (int i = 1; i <= Constants::getNumberOfTextureVariant(Constants::LaneType::Road); ++i)
+        textures_to_preload_.push_back("assets/textures/lane/road_" + std::to_string(i) + ".png");
+
+    // ── Lane: River ──────────────────────────────────────────────
+    for (int i = 1; i <= Constants::getNumberOfTextureVariant(Constants::LaneType::River); ++i)
+        textures_to_preload_.push_back("assets/textures/lane/river_" + std::to_string(i) + ".png");
+
+    // ── Game Entities ─────────────────────────────────────────────────────────
+
+    // People (nhân vật: none, blue, green)
+    for (const auto& c : {Constants::ObjectColor::None, Constants::ObjectColor::Blue, Constants::ObjectColor::Green})
+        textures_to_preload_.push_back(std::string("assets/textures/people/") + Constants::getObjectColorString(c) + ".png");
+
+    // Car, Truck, Bird, Rabbit (mỗi loại 5 màu)
+    for (const auto& entity : {"car", "truck", "bird", "rabbit"})
+    {
+        for (int c_idx = 0; c_idx <= static_cast<int>(Constants::ObjectColor::None); ++c_idx)
+        {
+            auto color = static_cast<Constants::ObjectColor>(c_idx);
+            textures_to_preload_.push_back(
+                std::string("assets/textures/") + entity + "/" + Constants::getObjectColorString(color) + ".png");
+        }
+    }
+
+    // Wood, Rock (chỉ có none)
+    textures_to_preload_.push_back("assets/textures/wood/none.png");
+    textures_to_preload_.push_back("assets/textures/rock/none.png");
+
+    // ── Misc ──────────────────────────────────────────────────────────────────
+    textures_to_preload_.push_back("assets/textures/traffic/traffic.png");
+    textures_to_preload_.push_back("assets/textures/coin/final_spinning_coin.png");
+
     current_preload_index_ = 0;
-    // +2 cho Audio preload và phát nhạc
-    total_tasks_ = textures_to_preload_.size() + 2;
 }
 
 void LoadingState::updateCoinAnimation(float dt)
@@ -149,16 +171,14 @@ void LoadingState::updateCoinAnimation(float dt)
     if (!coin_sprite_)
         return;
 
-    anim_timer_ += dt;
-    if (anim_timer_ >= COIN_FRAME_DURATION)
-    {
-        anim_timer_ = 0.f;
-        current_frame_ = (current_frame_ + 1) % COIN_TOTAL_FRAMES;
-        coin_sprite_->setTextureRect(sf::IntRect(
-            sf::Vector2i(current_frame_ * COIN_FRAME_WIDTH, 0),
-            sf::Vector2i(COIN_FRAME_WIDTH, COIN_FRAME_HEIGHT)
-        ));
-    }
+    // Sử dụng đồng hồ thời gian thực (Real-time Clock) độc lập tuyệt đối.
+    // Điều này đảm bảo coin xoay mượt mà ngay cả khi Main Thread bị block vài chục ms do load file.
+    float real_time = coin_clock_.getElapsedTime().asSeconds();
+    int frame_idx = static_cast<int>(real_time / COIN_FRAME_DURATION) % COIN_TOTAL_FRAMES;
+    coin_sprite_->setTextureRect(sf::IntRect(
+        sf::Vector2i(frame_idx * COIN_FRAME_WIDTH, 0),
+        sf::Vector2i(COIN_FRAME_WIDTH, COIN_FRAME_HEIGHT)
+    ));
 }
 
 void LoadingState::updateProgressBar()
@@ -167,7 +187,8 @@ void LoadingState::updateProgressBar()
 
     if (percent_text_)
     {
-        percent_text_->setString(std::to_string(static_cast<int>(progress_ * 100)) + "%");
+        int percent = std::clamp(static_cast<int>(progress_ * 100.f), 0, 100);
+        percent_text_->setString(std::to_string(percent) + "%");
         sf::FloatRect bounds = percent_text_->getLocalBounds();
         percent_text_->setOrigin({bounds.size.x / 2.f, bounds.size.y / 2.f});
     }
@@ -183,45 +204,83 @@ void LoadingState::update(float delta_time)
     // 1. Cập nhật Animation xoay đồng xu
     updateCoinAnimation(delta_time);
 
-    // 2. Nạp dần textures qua từng frame
-    if (current_preload_index_ < textures_to_preload_.size())
+    // 2. Backend: Nạp tài nguyên theo định mức thời gian (Time-budgeted Loading)
+    //    Thay vì nạp một số lượng ảnh cố định, chúng ta cho phép nạp liên tục 
+    //    nhưng TỐI ĐA 5ms mỗi frame. Điều này ĐẢM BẢO game luôn dư thời gian 
+    //    để vẽ (render) đồng xu ở tốc độ mượt mà tuyệt đối 60 FPS (16.6ms/frame).
+    sf::Clock frame_budget_clock;
+    while (current_preload_index_ < textures_to_preload_.size())
     {
         Resource().getTexture(textures_to_preload_[current_preload_index_]);
         current_preload_index_++;
+        
+        // Nếu đã nạp quá 5ms trong frame này thì dừng lại để nhường CPU cho việc vẽ đồng xu
+        if (frame_budget_clock.getElapsedTime().asMilliseconds() >= 5)
+            break;
     }
-    else if (!is_done_loading_)
+
+    if (current_preload_index_ >= textures_to_preload_.size() && !is_done_loading_)
     {
         // Tải âm thanh và khởi động nhạc nền
         Audio().preloadAll();
+        // Phải gọi playMusic() trước setMusicVolume() vì sf::Music cần openFromFile() trước khi setVolume()
+        Audio().playMusic(AudioSystem::Music::Background);
         if (context_->config)
         {
             Audio().setMusicVolume(context_->config->music_volume);
             Audio().setSFXVolume(context_->config->sfx_volume);
         }
-        Audio().playMusic(AudioSystem::Music::Background);
-
-        current_preload_index_ = total_tasks_;
         is_done_loading_ = true;
     }
 
-    // Tăng dần thanh progress tiến độ mượt mà
-    float target_progress = static_cast<float>(current_preload_index_) / static_cast<float>(total_tasks_);
-    progress_ += (target_progress - progress_) * 8.f * delta_time;
-    if (is_done_loading_ && std::abs(progress_ - 1.0f) < 0.02f)
+    // 3. Frontend UX: Thanh tiến trình 3 giai đoạn tâm lý
+    //    ┌─────────────────────────────────────────────────────────────────────────┐
+    //    │ Phase 1 (0→40%):   0.25s — Chạy nhanh, tạo cảm giác phản hồi tức thì    │
+    //    │ Phase 2 (40→80%):  0.65s — Chậm dần (ease-out), xây dựng sự kỳ vọng     │
+    //    │ Phase 3 (80→100%): 0.15s — Đợi tải xong, rồi vọt lên 100% dứt khoát     │
+    //    └─────────────────────────────────────────────────────────────────────────┘
+    loading_timer_ += delta_time;
+
+    constexpr float PHASE1_DURATION = 0.25f; // Thời gian giai đoạn 1 (0% -> 40%)
+    constexpr float PHASE2_DURATION = 0.65f; // Thời gian giai đoạn 2 (40% -> 80%)
+    constexpr float PHASE3_DURATION = 0.15f; // Thời gian giai đoạn 3 (80% -> 100%)
+
+    if (loading_timer_ <= PHASE1_DURATION)
     {
-        progress_ = 1.0f;
+        // Phase 1: Chạy nhanh từ 0% lên 40% (linear)
+        progress_ = (loading_timer_ / PHASE1_DURATION) * 0.40f;
     }
+    else if (loading_timer_ <= PHASE1_DURATION + PHASE2_DURATION)
+    {
+        // Phase 2: Chậm dần từ 40% lên 80% (ease-out)
+        float phase_t = (loading_timer_ - PHASE1_DURATION) / PHASE2_DURATION;
+        float eased = 1.0f - std::pow(1.0f - phase_t, 1.5f);
+        progress_ = 0.40f + 0.40f * eased;
+    }
+    else
+    {
+        // Phase 3: Khi đạt mốc 80%
+        if (is_done_loading_)
+        {
+            // Tải thực tế đã xong -> vọt nhanh từ 80% lên 100% trong 0.15s
+            float phase3_t = (loading_timer_ - (PHASE1_DURATION + PHASE2_DURATION)) / PHASE3_DURATION;
+            progress_ = 0.80f + 0.20f * std::min(phase3_t, 1.0f);
+        }
+        else
+        {
+            // Tải thực tế chưa xong -> neo ở 80% chờ backend hoàn tất
+            progress_ = 0.80f;
+        }
+    }
+
+    progress_ = std::clamp(progress_, 0.0f, 1.0f);
     updateProgressBar();
 
-    // 3. Khi hoàn tất 100%, chờ một thoáng rồi chuyển sang HomeState (Main Menu)
-    if (progress_ >= 0.999f && !transitioned_)
+    // 4. Chuyển cảnh khi thanh chạm 100% VÀ tài nguyên đã tải xong thực tế
+    if (progress_ >= 1.0f && is_done_loading_ && !transitioned_)
     {
-        finish_delay_ -= delta_time;
-        if (finish_delay_ <= 0.f)
-        {
-            transitioned_ = true;
-            context_->state_machine->switchState(std::make_unique<HomeState>(context_));
-        }
+        transitioned_ = true;
+        context_->state_machine->switchState(std::make_unique<HomeState>(context_));
     }
 }
 

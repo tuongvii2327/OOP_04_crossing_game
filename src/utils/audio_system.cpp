@@ -1,5 +1,6 @@
 #include "utils/audio_system.h"
 #include "utils/resource_manager.h"
+#include "utils/game_exceptions.h"
 #include <iostream>
 
 // Khởi tạo map liên kết giữa Enum và đường dẫn file âm thanh tương ứng
@@ -29,7 +30,7 @@ void AudioSystem::preloadAll()
         {
             Resource().getSoundBuffer(pair.second);
         }
-        catch (const std::exception& e)
+        catch (const ResourceException& e)
         {
             std::cerr << "[AudioSystem] Preload lỗi: " << e.what() << '\n';
         }
@@ -49,7 +50,10 @@ void AudioSystem::setSFXVolume(int volume_level)
 void AudioSystem::setMusicVolume(int volume_level)
 {
     music_volume_ = static_cast<float>(volume_level) * 10.f;
-    bg_music_->setVolume(music_volume_);
+    if (is_music_loaded_ && bg_music_)
+    {
+        bg_music_->setVolume(music_volume_);
+    }
 }
 
 void AudioSystem::playSFX(SFX sfx)
@@ -71,7 +75,7 @@ void AudioSystem::playSFX(SFX sfx)
         // Đẩy vào danh sách các âm thanh đang phát để quản lý
         active_sounds_.push_back(std::move(sound));
     }
-    catch (const std::exception& e)
+    catch (const ResourceException& e)
     {
         std::cerr << "[AudioSystem] Lỗi phát SFX: " << e.what() << '\n';
     }
@@ -86,8 +90,10 @@ void AudioSystem::playMusic(Music music)
     if (!bg_music_->openFromFile(it->second))
     {
         std::cerr << "[AudioSystem] Lỗi tải nhạc nền: " << it->second << '\n';
+        is_music_loaded_ = false;
         return;
     }
+    is_music_loaded_ = true;
     bg_music_->setVolume(music_volume_);
     bg_music_->setLooping(true);
     bg_music_->play();
@@ -95,7 +101,7 @@ void AudioSystem::playMusic(Music music)
 
 void AudioSystem::pauseMusic()
 {
-    if (bg_music_->getStatus() == sf::Music::Status::Playing)
+    if (is_music_loaded_ && bg_music_ && bg_music_->getStatus() == sf::Music::Status::Playing)
     {
         bg_music_->pause();
     }
@@ -103,6 +109,9 @@ void AudioSystem::pauseMusic()
 
 void AudioSystem::resumeMusic()
 {
+    if (!is_music_loaded_ || !bg_music_)
+        return;
+
     if (bg_music_->getStatus() != sf::Music::Status::Playing)
     {
         bg_music_->play();
@@ -127,5 +136,8 @@ void AudioSystem::update()
 void AudioSystem::clearAll()
 {
     active_sounds_.clear();
-    bg_music_->stop();
+    if (is_music_loaded_ && bg_music_)
+    {
+        bg_music_->stop();
+    }
 }

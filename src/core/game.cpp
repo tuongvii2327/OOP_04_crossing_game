@@ -60,6 +60,12 @@ Game::Game()
     context_.config = &config_;
     context_.data = &data_;
 
+    // Khởi tạo LoadingState và render ngay Frame 0 lên cửa sổ trước khi đọc bất kỳ file nào,
+    // đảm bảo màn hình Loading xuất hiện tức thì — không có màn hình trắng của Windows.
+    state_machine.push(std::make_unique<LoadingState>(&context_));
+    state_machine.processTransitions();
+    render();
+
     // Đọc danh sách điểm cao (High score) đã được mã hóa ở dạng binary
     std::ifstream file("data/highscore.bin", std::ios::binary);
     if (file.is_open())
@@ -80,9 +86,6 @@ Game::Game()
 
     // Tải dữ liệu tiến trình (số lượng coin, nhân vật hiện tại) của người chơi
     loadPlayerData();
-    
-    // Thêm màn hình Loading làm state đầu tiên để nạp tài nguyên game
-    state_machine.push(std::make_unique<LoadingState>(&context_));
 }
 
 Game::~Game()
@@ -98,6 +101,10 @@ Game::~Game()
 
 void Game::run()
 {
+    // Đảm bảo đồng hồ được reset đúng lúc bắt đầu vòng lặp,
+    // loại bỏ toàn bộ thời gian khởi tạo cửa sổ và đọc file để frame đầu tiên không bị nhảy vọt dt.
+    clock.restart();
+
     while (window.isOpen())
     {
         if (state_machine.processTransitions())
@@ -113,7 +120,10 @@ void Game::run()
             break;
         }
 
-        float dt = clock.restart().asSeconds();
+        // Khóa dt tối đa (max_dt) để tránh lag spike quá dài làm lỗi physics. 
+        // Lấy 3.0f chia cho FPS_LIMIT để đảm bảo game không bị slow-motion khi FPS_LIMIT thấp.
+        const float max_dt = 3.0f / static_cast<float>(Constants::FPS_LIMIT);
+        float dt = std::min(clock.restart().asSeconds(), max_dt);
         handleEvent();
         update(dt);
         render();
@@ -192,7 +202,7 @@ void Game::loadPlayerData()
         // ─── XỬ LÝ KHI PHÁT HIỆN LỆCH KHÓA MÃ HÓA ───
         if (is_corrupted)
         {
-            std::cout << "[Game] Key Mismatch / Corrupted Data detected! Resetting player data to default...\n";
+            // std::cout << "[Game] Key Mismatch / Corrupted Data detected! Resetting player data to default...\n";
             
             // Reset về dữ liệu mặc định cho người chơi
             data_.total_coins = 100;
@@ -208,7 +218,7 @@ void Game::loadPlayerData()
             {
                 data_.total_coins = 100;
             }
-            std::cout << "[Game] Loaded Total Coins: " << data_.total_coins << "\n";
+            // std::cout << "[Game] Loaded Total Coins: " << data_.total_coins << "\n";
         }
     }
     else
@@ -236,6 +246,6 @@ void Game::savePlayerData()
         }
 
         file.close();
-        std::cout << "[Game] Saved Total Coins: " << data_.total_coins << "\n";
+        // std::cout << "[Game] Saved Total Coins: " << data_.total_coins << "\n";
     }
 }

@@ -1,6 +1,7 @@
 // src/core/state_machine.cpp
 #include "core/state_machine.h"
 #include "states/state.h"
+#include "utils/game_exceptions.h"
 #include <stdexcept>
 
 StateMachine::StateMachine() {}
@@ -76,7 +77,7 @@ State& StateMachine::getActiveState()
 {
     if (states.empty())
     {
-        throw std::runtime_error("No active state in StateMachine!");
+        throw EmptyStateException("No active state in StateMachine!");
     }
     return *states.back();
 }

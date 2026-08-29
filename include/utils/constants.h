@@ -1,11 +1,11 @@
 #pragma once
-
+#include <string>
 namespace Constants
 {
 	const unsigned int WINDOW_WIDTH = 1400;
 	const unsigned int WINDOW_HEIGHT = 1050;
 	const char* const GAME_TITLE = "Crossy Road";
-	const unsigned int FPS_LIMIT = 24;
+	const unsigned int FPS_LIMIT = 60;
 
 	// Số lượng ô grid trên bản đồ
 	const unsigned int NUMBER_OF_LANES = 10;
@@ -21,8 +21,9 @@ namespace Constants
 	// Tỷ lệ hitbox so với kích thước thật của sprite (áp dụng cho mọi đối tượng có thể di chuyển)
 	constexpr float HITBOX_SIZE_RATIO = 0.95f;
 
-	// Một frame hình trong animation kéo dài bao nhiêu lần dt (thời gian 1 frame = dt * NUM_OF_DT_PER_FRAME)
-	const int NUM_OF_DT_PER_FRAME = 4;
+	// Thời lượng của 1 khung hình hoạt ảnh (tính bằng giây).
+	// 0.166s tương đương tốc độ 6 hình/giây.
+	constexpr float ANIMATION_TICK = 0.166f;
 
 #pragma region LANE
 	const unsigned int LANE_HEIGHT = 105;
@@ -268,5 +269,24 @@ namespace Constants
 		}
 	}
 #pragma endregion
+
+	inline std::string getObjectColorString(const ObjectColor &color)
+	{
+		switch (color)
+		{
+		case ObjectColor::Red:
+			return "red";
+		case ObjectColor::Blue:
+			return "blue";
+		case ObjectColor::Green:
+			return "green";
+		case ObjectColor::Grey:
+			return "grey";
+		case ObjectColor::None:
+			return "none";
+		default:
+			return "none";
+		}
+	}
 
 } // namespace Constants

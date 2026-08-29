@@ -21,7 +21,7 @@ void Rabbit::setColor(const Constants::ObjectColor& new_color)
     if (Resource().hasSpritesheet(Constants::DynamicObjectType::Rabbit))
     {
         setTextureRect(Resource().getDynamicObjectSpritesheetRect(
-            Constants::DynamicObjectType::Rabbit, current_frame));
+            Constants::DynamicObjectType::Rabbit, anim_timer_));
     }
     else
     {

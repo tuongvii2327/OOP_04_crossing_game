@@ -62,7 +62,7 @@ DynamicObject::DynamicObject(const Constants::DynamicObjectType& init_type,
                  ? Resource().getDynamicObjectSpritesheet(init_type, init_color)
                  : Resource().getDynamicObjectTexture(init_type, init_color))
 {
-    setCurFrame(1);
+    setAnimTimer(0.f);
     if (Resource().hasSpritesheet(init_type))
     {
         setTextureRect(Resource().getDynamicObjectSpritesheetRect(init_type, 1));
@@ -135,9 +135,9 @@ void DynamicObject::setDirection(const int& direct)
     applyFacing();
 }
 
-int DynamicObject::getCurFrame() const { return current_frame; }
+float DynamicObject::getAnimTimer() const { return anim_timer_; }
 
-void DynamicObject::setCurFrame(int new_frame) { current_frame = new_frame; }
+void DynamicObject::setAnimTimer(float new_timer) { anim_timer_ = new_timer; }
 
 float DynamicObject::getWidthSprite() const { return sprite.getGlobalBounds().size.x; }
 

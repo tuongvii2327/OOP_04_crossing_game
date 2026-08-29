@@ -1,4 +1,5 @@
 #include "utils/resource_manager.h"
+#include "utils/game_exceptions.h"
 #include <algorithm>
 #include <iostream>
 
@@ -16,7 +17,7 @@ const sf::Texture &ResourceManager::getTexture(const std::string &filepath)
 
 	auto texture = std::make_unique<sf::Texture>();
 	if (!texture->loadFromFile(filepath))
-		throw std::runtime_error("[ResourceManager] FATAL: Cannot load Texture -> " + filepath);
+		throw TextureLoadException(filepath);
 
 	return *(textures_.emplace(filepath, std::move(texture)).first->second);
 }
@@ -29,7 +30,7 @@ const sf::Font &ResourceManager::getFont(const std::string &filepath)
 
 	auto font = std::make_unique<sf::Font>();
 	if (!font->openFromFile(filepath))
-		throw std::runtime_error("[ResourceManager] FATAL: Cannot load Font -> " + filepath);
+		throw FontLoadException(filepath);
 
 	return *(fonts_.emplace(filepath, std::move(font)).first->second);
 }
@@ -42,7 +43,7 @@ const sf::SoundBuffer &ResourceManager::getSoundBuffer(const std::string &filepa
 
 	auto buffer = std::make_unique<sf::SoundBuffer>();
 	if (!buffer->loadFromFile(filepath))
-		throw std::runtime_error("[ResourceManager] FATAL: Cannot load SoundBuffer -> " + filepath);
+		throw AudioLoadException(filepath);
 
 	return *(sound_buffers_.emplace(filepath, std::move(buffer)).first->second);
 }
@@ -325,11 +326,11 @@ ResourceManager::getDynamicObjectSpritesheet(const Constants::DynamicObjectType 
 	return getTexture(path);
 }
 
-sf::IntRect ResourceManager::getDynamicObjectSpritesheetRect(const Constants::DynamicObjectType &type, int frame, bool is_stopped)
+sf::IntRect ResourceManager::getDynamicObjectSpritesheetRect(const Constants::DynamicObjectType &type, float time_elapsed, bool is_stopped)
 {
 	const int FRAME_SIZE = Constants::SPRITESHEET_FRAME_SIZE;
 	int numFrames = Constants::getNumberOfFrames(type);
-	int idx = (frame / Constants::NUM_OF_DT_PER_FRAME) % numFrames;
+	int idx = static_cast<int>(time_elapsed / Constants::ANIMATION_TICK) % numFrames;
 	// Bird sheet (1600x1600) is a 2x2 grid of 800x800 cells: r0c0, r0c1 and r1c0
 	// are the flying frames; r1c1 (cell 3) is the standing frame shown while stopped.
 	if (type == Constants::DynamicObjectType::Bird && is_stopped)

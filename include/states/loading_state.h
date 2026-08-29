@@ -17,8 +17,7 @@ private:
 
     // Animation đồng xu từ Spritesheet 360 độ thực sự (192 x 32 -> 6 frames x 32 px)
     std::unique_ptr<sf::Sprite> coin_sprite_;
-    float anim_timer_ = 0.f;
-    int current_frame_ = 0;
+    sf::Clock coin_clock_; // Đồng hồ độc lập tuyệt đối dành riêng cho đồng xu
 
     static constexpr int COIN_FRAME_WIDTH = 32;
     static constexpr int COIN_FRAME_HEIGHT = 32;
@@ -32,11 +31,11 @@ private:
     sf::RectangleShape progress_bar_fill_;
 
     // Quá trình chuẩn bị tài nguyên và thanh tiến trình
+    static constexpr float TARGET_DURATION = 0.7f; // Thời gian hiển thị loading lý tưởng (giây)
     std::vector<std::string> textures_to_preload_;
     size_t current_preload_index_ = 0;
-    size_t total_tasks_ = 0;
+    float loading_timer_ = 0.f;  // Đồng hồ đếm thời gian cho đường cong Ease-Out
     float progress_ = 0.f;
-    float finish_delay_ = 0.25f; // Thời gian dừng nhẹ sau khi chạm 100% để chuyển cảnh mượt
     bool is_done_loading_ = false;
     bool transitioned_ = false;  // Đảm bảo chỉ chuyển sang HomeState 1 lần duy nhất
 

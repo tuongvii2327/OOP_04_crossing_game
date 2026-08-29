@@ -20,7 +20,7 @@ file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS "include/*.h" "include/*.hpp")
 
 # CHỈ TRUYỀN 2 BIẾN QUÉT TỰ ĐỘNG VÀO ĐÂY, KHÔNG ĐIỀN TÊN FILE THỦ CÔNG
-add_executable(CrossyRoad ${SOURCES} ${HEADERS})
+add_executable(CrossyRoad WIN32 ${SOURCES} ${HEADERS})
 
 if(MSVC)
     target_include_directories(CrossyRoad PRIVATE include)

@@ -47,9 +47,9 @@ float Animal::randomSoundInterval() const
     return dist(rng);
 }
 
-int Animal::getStoppedFrame() const
+float Animal::getStoppedTimer() const
 {
-    return 1;
+    return Constants::ANIMATION_TICK;
 }
 #pragma endregion
 
@@ -140,10 +140,10 @@ void Animal::updateState(float delta_time)
     if (is_move)
     {
         moveBy(velocity * delta_time);
-        current_frame++;
+        anim_timer_ += delta_time;
         if (Resource().hasSpritesheet(getType()))
         {
-            setTextureRect(Resource().getDynamicObjectSpritesheetRect(getType(), current_frame));
+            setTextureRect(Resource().getDynamicObjectSpritesheetRect(getType(), anim_timer_));
         }
         else
         {
@@ -153,10 +153,10 @@ void Animal::updateState(float delta_time)
     }
     else
     {
-        current_frame = getStoppedFrame();
+        anim_timer_ = getStoppedTimer();
         if (Resource().hasSpritesheet(getType()))
         {
-            setTextureRect(Resource().getDynamicObjectSpritesheetRect(getType(), current_frame, true));
+            setTextureRect(Resource().getDynamicObjectSpritesheetRect(getType(), anim_timer_, true));
         }
         else
         {

@@ -406,7 +406,7 @@ void SaveState::saveGameData(int slot_index, const std::string& name)
             file.close();
             active_game->setLoadSlot(slot_index);
 
-            std::cout << "Successfully saved game to Slot " << slot_index << "!" << std::endl;
+            // std::cout << "Successfully saved game to Slot " << slot_index << "!" << std::endl;
             save_slot_texts_[slot_index - 1]->setString("SAVE SLOT " + std::to_string(slot_index) +
                                                         " - SAVED!");
 

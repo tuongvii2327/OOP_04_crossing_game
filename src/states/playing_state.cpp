@@ -39,9 +39,9 @@ void PlayingState::init()
     Audio().pauseMusic();
     context_->data->current_score = 0;
 
-    std::cout << "1. Bat dau PlayingState::init()\n";
+    // std::cout << "1. Bat dau PlayingState::init()\n";
 
-    std::cout << "2. Load Font thanh cong\n";
+    // std::cout << "2. Load Font thanh cong\n";
 
     score_text_ = std::make_unique<sf::Text>(Resource().createText("Score:\n  0", {40}));
     score_text_->setOrigin({0.f, 0.f});
@@ -56,7 +56,7 @@ void PlayingState::init()
         current_top_score_ = 0; // neu khong co high score, > 50 thi duoc chuc mung
     }
     has_beaten_highscore_ = false;
-    std::cout << "3. Tao Score Text thanh cong\n";
+    // std::cout << "3. Tao Score Text thanh cong\n";
 
     // Coin text
     coin_text_ = std::make_unique<sf::Text>(Resource().createText(
@@ -66,7 +66,7 @@ void PlayingState::init()
 
     const sf::Texture& player_tex =
         Resource().getDynamicObjectTexture(Constants::DynamicObjectType::People);
-    std::cout << "4. Load Texture Player thanh cong\n";
+    // std::cout << "4. Load Texture Player thanh cong\n";
 
     Constants::ObjectColor selected_color = Constants::ObjectColor::None;
     switch (context_->data->selected_character)
@@ -83,7 +83,7 @@ void PlayingState::init()
     }
 
     player_ = std::make_unique<People>(selected_color);
-    std::cout << "5. Khoi tao Player thanh cong\n";
+    // std::cout << "5. Khoi tao Player thanh cong\n";
 
     // sidebar
     const sf::Texture& sb_tex = Resource().getTexture("assets/textures/ui/sidebar.png");
@@ -93,7 +93,7 @@ void PlayingState::init()
     sidebar_sprite_->setScale(
         { static_cast<float>(Constants::WINDOW_WIDTH) / sb_tex.getSize().x,
          static_cast<float>(Constants::WINDOW_HEIGHT) / sb_tex.getSize().y });
-    std::cout << "6. Khoi tao Side bar thanh cong\n";
+    // std::cout << "6. Khoi tao Side bar thanh cong\n";
 
     // Corner icon buttons
     const float x = 60.0f;
@@ -124,7 +124,7 @@ void PlayingState::init()
         btn.is_hovered = false;
         icon_buttons_.push_back(std::move(btn));
     }
-    std::cout << "7. Khoi tao Buttons thanh cong\n";
+    // std::cout << "7. Khoi tao Buttons thanh cong\n";
 
 
     if (load_slot_ > 0)
@@ -135,7 +135,7 @@ void PlayingState::init()
         {
             deserialize(file);
             file.close();
-            std::cout << "[PlayingState] Loaded successfully from slot " << load_slot_ << "\n";
+            // std::cout << "[PlayingState] Loaded successfully from slot " << load_slot_ << "\n";
         }
         else
         {
@@ -143,14 +143,14 @@ void PlayingState::init()
                       << "! Starting fresh.\n";
             context_->data->current_score = 0; // Reset điểm về 0
             setupWorld();
-            std::cout << "6. Setup World (Map) thanh cong\n";
+            // std::cout << "6. Setup World (Map) thanh cong\n";
         }
     }
     else
     {
         context_->data->current_score = 0; // ĐẢM BẢO reset điểm về 0 khi chơi New Game hoàn toàn
         setupWorld();
-        std::cout << "6. Setup World (Map) thanh cong\n";
+        // std::cout << "6. Setup World (Map) thanh cong\n";
     }
 
     flash_overlay_.setSize({static_cast<float>(Constants::WINDOW_WIDTH),
@@ -249,15 +249,15 @@ void PlayingState::executeChoice(int index)
     switch (index)
     {
     case 0:
-        std::cout << "Transition to: Pause\n";
+        // std::cout << "Transition to: Pause\n";
         context_->state_machine->push(std::make_unique<PauseState>(context_));
         break;
     case 1:
-        std::cout << "Transition to: Settings\n";
+        // std::cout << "Transition to: Settings\n";
         context_->state_machine->push(std::make_unique<SettingState>(context_));
         break;
     case 2:
-        std::cout << "Transition to: Home\n";
+        // std::cout << "Transition to: Home\n";
         context_->state_machine->push(std::make_unique<HomeState>(context_));
         break;
     }
@@ -472,8 +472,8 @@ void PlayingState::update(float dt)
         {
             std::string file_path = "data/saves/slot_" + std::to_string(load_slot_) + ".bin";
             std::remove(file_path.c_str()); // Xóa file vật lý khỏi thư mục saves
-            std::cout << "[PlayingState] Deleted save file " << file_path
-                      << " due to player death.\n";
+            // std::cout << "[PlayingState] Deleted save file " << file_path
+            //           << " due to player death.\n";
             load_slot_ = 0; // Đưa trạng thái slot về không
         }
         // context_->state_machine->push(std::make_unique<GameOverState>(context_));
@@ -663,12 +663,12 @@ void PlayingState::render(sf::RenderWindow& window)
             window.draw(*btn.sprite);
 }
 
-void PlayingState::pause() { std::cout << "[PlayingState] Paused\n"; }
+void PlayingState::pause() { /* std::cout << "[PlayingState] Paused\n"; */ }
 
 void PlayingState::resume()
 {
     Audio().pauseMusic();
-    std::cout << "[PlayingState] Resumed\n";
+    // std::cout << "[PlayingState] Resumed\n";
     if (player_ && player_->isDead())
     {
         restart();
@@ -677,7 +677,7 @@ void PlayingState::resume()
 
 void PlayingState::restart()
 {
-    std::cout << "[PlayingState] Restarting Game...\n";
+    // std::cout << "[PlayingState] Restarting Game...\n";
 
     load_slot_ = 0;
     score_text_->setString("Score:\n  0");
@@ -713,8 +713,8 @@ void PlayingState::serialize(std::ostream& os, const std::string& slot_name) con
     Serialization::write(os, view_.getCenter().x);
     Serialization::write(os, view_.getCenter().y);
 
-    std::cout << "[DEBUG SAVE] Saving Score: " << context_->data->current_score
-              << " | Camera Center Y: " << view_.getCenter().y << "\n";
+    // std::cout << "[DEBUG SAVE] Saving Score: " << context_->data->current_score
+    //           << " | Camera Center Y: " << view_.getCenter().y << "\n";
 
     // 3. Yêu cầu Player và Map tự lưu dữ liệu của chúng
     player_->serialize(os);

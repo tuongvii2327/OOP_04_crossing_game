@@ -22,7 +22,7 @@ void Truck::setColor(const Constants::ObjectColor& new_color)
         Resource().getDynamicObjectSpritesheet(Constants::DynamicObjectType::Truck, new_color);
     sprite.setTexture(tex, true);
     setTextureRect(Resource().getDynamicObjectSpritesheetRect(Constants::DynamicObjectType::Truck,
-                                                              current_frame));
+                                                              anim_timer_));
     adjustSprite(Constants::DynamicObjectType::Truck);
     applyFacing();
     setHitbox();

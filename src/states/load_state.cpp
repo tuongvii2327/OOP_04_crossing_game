@@ -250,7 +250,7 @@ void LoadState::loadGameData(int slot_index)
                             std::ios::binary);
     if (!test_file.is_open())
     {
-        std::cout << "[LoadState] Slot " << slot_index << " is empty. Cannot load!" << std::endl;
+        // std::cout << "[LoadState] Slot " << slot_index << " is empty. Cannot load!" << std::endl;
         return; // File không tồn tại, chặn không cho load
     }
     test_file.close();

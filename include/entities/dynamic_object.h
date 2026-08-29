@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <iostream>
 #include <random>
@@ -21,7 +21,7 @@ protected:
     bool is_active;             // inside map or not
     Lane* current_lane;
     int direction = 1; // 1 = move right, -1 = move left
-    int current_frame;
+    float anim_timer_;
 
     virtual void setHitbox();       // build hitbox: size, then offset, then position
 
@@ -62,8 +62,8 @@ public:
     int getDirection() const;             // 1 = right, -1 = left
     void setDirection(const int& direct); // accepts only 1 or -1; re-flips the sprite accordingly
 
-    int getCurFrame() const;
-    void setCurFrame(int new_frame);
+    float getAnimTimer() const;
+    void setAnimTimer(float new_timer);
 
     float getWidthSprite() const;
     float getHeightSprite() const;

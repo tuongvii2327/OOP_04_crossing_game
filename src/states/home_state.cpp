@@ -232,7 +232,7 @@ void HomeState::handleEvent(const sf::Event& event)
                 Audio().playSFX(AudioSystem::SFX::Click);
                 if (popup_selected_ == 0)
                 {
-                    std::cout << "Exit game!\n";
+                    // std::cout << "Exit game!\n";
                     context_->window->close();
                 }
                 else
@@ -273,7 +273,7 @@ void HomeState::handleEvent(const sf::Event& event)
                 if (popup_btn_yes_->getGlobalBounds().contains(mp))
                 {
                     Audio().playSFX(AudioSystem::SFX::Click);
-                    std::cout << "Exit game!\n";
+                    // std::cout << "Exit game!\n";
                     context_->window->close();
                 }
                 else if (popup_btn_no_->getGlobalBounds().contains(mp))
@@ -442,23 +442,23 @@ void HomeState::executeChoice(int index)
     switch (index)
     {
         case 0:
-            std::cout << "Transition to: Playing\n";
+            // std::cout << "Transition to: Playing\n";
             context_->state_machine->push(std::make_unique<PlayingState>(context_));
             break;
         case 1:
-            std::cout << "Transition to: Shop\n";
+            // std::cout << "Transition to: Shop\n";
             context_->state_machine->push(std::make_unique<ShopState>(context_));
             break;
         case 2:
-            std::cout << "Transition to: Load File\n";
+            // std::cout << "Transition to: Load File\n";
             context_->state_machine->push(std::make_unique<LoadState>(context_));
             break;
         case 3:
-            std::cout << "Transition to: Settings\n";
+            // std::cout << "Transition to: Settings\n";
             context_->state_machine->push(std::make_unique<SettingState>(context_));
             break;
         case 4:
-            std::cout << "Transition to: Ranking\n";
+            // std::cout << "Transition to: Ranking\n";
             context_->state_machine->push(std::make_unique<RankingState>(context_));
             break;
         case 5:
@@ -471,7 +471,7 @@ void HomeState::executeChoice(int index)
             Audio().setSFXVolume(vol);
             context_->config->sfx_volume = vol;
             updateSoundIconTextures();
-            std::cout << "SFX volume: " << vol << "\n";
+            // std::cout << "SFX volume: " << vol << "\n";
             break;
         }
         case 7:
@@ -480,26 +480,26 @@ void HomeState::executeChoice(int index)
             Audio().setMusicVolume(vol);
             context_->config->music_volume = vol;
             updateSoundIconTextures();
-            std::cout << "Music volume: " << vol << "\n";
+            // std::cout << "Music volume: " << vol << "\n";
             break;
         }
         case 8:
         {
-            std::cout << "Transition to: Help\n";
+            // std::cout << "Transition to: Help\n";
             context_->state_machine->push(std::make_unique<HelpState>(context_));
             break;
         }
         case 9:
         {
-            std::cout << "Transition to: About\n";
+            // std::cout << "Transition to: About\n";
             context_->state_machine->push(std::make_unique<AboutState>(context_));
             break;
         }
         case 10:
         {
-        std::cout << "Transition to: Credits\n";
-        context_->state_machine->push(std::make_unique<CreditState>(context_));
-        break;
+            // std::cout << "Transition to: Credits\n";
+            context_->state_machine->push(std::make_unique<CreditState>(context_));
+            break;
         }
     }
 }

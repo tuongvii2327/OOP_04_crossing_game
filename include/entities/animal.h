@@ -19,7 +19,7 @@ protected:
     float next_sound_time_ = 0.f;
     float randomSoundInterval() const;
 
-    virtual int getStoppedFrame() const; // frame (tick-based, see NUM_OF_DT_PER_FRAME) shown while the animal is stopped
+    virtual float getStoppedTimer() const; // time value that resolves to the stopped animation frame
 
 public:
     // contructor, destructor

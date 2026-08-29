@@ -34,6 +34,7 @@ public:
 private:
     std::list<std::unique_ptr<sf::Sound>> active_sounds_;
     std::unique_ptr<sf::Music> bg_music_;
+    bool is_music_loaded_ = false;
 
     float sfx_volume_ = 70.f;
     float music_volume_ = 50.f;

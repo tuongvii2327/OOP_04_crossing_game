@@ -21,7 +21,7 @@ void Car::setColor(const Constants::ObjectColor& new_color)
     if (Resource().hasSpritesheet(Constants::DynamicObjectType::Car))
     {
         setTextureRect(Resource().getDynamicObjectSpritesheetRect(Constants::DynamicObjectType::Car,
-                                                                  current_frame));
+                                                                  anim_timer_));
     }
     else
     {

@@ -127,11 +127,11 @@ void Vehicle::updateState(float delta_time)
     setVelocity({v_target * direction, 0.0f});
     moveBy(velocity * delta_time);
 
-    current_frame++;
+    anim_timer_ += delta_time;
 
     if (Resource().hasSpritesheet(getType()))
     {
-        setTextureRect(Resource().getDynamicObjectSpritesheetRect(getType(), current_frame));
+        setTextureRect(Resource().getDynamicObjectSpritesheetRect(getType(), anim_timer_));
     }
     else
     {
