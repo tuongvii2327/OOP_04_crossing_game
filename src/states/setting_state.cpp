@@ -35,7 +35,7 @@ std::vector<std::string> SettingState::buildDisplayStrings() const
     return {"MUSIC VOLUME: < " + std::to_string(context_->config->music_volume * 10) + "% >",
             "SFX VOLUME: < " + std::to_string(context_->config->sfx_volume * 10) + "% >",
             "AUTO SCROLL: < " + std::string(context_->config->auto_scroll ? "ON" : "OFF") + " >",
-            "BACK TO MENU"}; // phai luon de back o cuoi
+            "BACK"}; // phai luon de back o cuoi
 }
 
 void SettingState::setupUI()

@@ -80,8 +80,8 @@ void HelpState::setupUI(const sf::Font& font)
         lines_text_.push_back(std::move(t));
     }
 
-    // 5. NÚT BACK TO MENU CỐ ĐỊNH Ở ĐÁY MÀN HÌNH
-    back_btn_->setString("BACK TO MENU");
+    // 5. NÚT BACK CỐ ĐỊNH Ở ĐÁY MÀN HÌNH
+    back_btn_->setString("BACK");
     back_btn_->setCharacterSize(48);
     back_btn_->setFillColor(sf::Color::White);
     sf::FloatRect back_bounds = back_btn_->getLocalBounds();

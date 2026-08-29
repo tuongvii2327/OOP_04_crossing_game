@@ -72,7 +72,7 @@ void AboutState::setupUI(const sf::Font& font)
         lines_text_.push_back(std::move(t));
     }
 
-    back_btn_->setString("BACK TO MENU");
+    back_btn_->setString("BACK");
     back_btn_->setCharacterSize(48);
     back_btn_->setFillColor(sf::Color::White);
     sf::FloatRect back_bounds = back_btn_->getLocalBounds();

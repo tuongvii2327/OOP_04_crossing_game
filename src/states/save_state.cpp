@@ -80,7 +80,7 @@ void SaveState::setupUI()
     }
 
     // NÚT BACK
-    auto back_text = std::make_unique<sf::Text>(Resource().createText("BACK TO MENU", {70}, true));
+    auto back_text = std::make_unique<sf::Text>(Resource().createText("BACK", {70}, true));
     if (selected_index_ == 3)
         Resource().setTextButtonHovered(*back_text, true);
 

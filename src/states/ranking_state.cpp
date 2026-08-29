@@ -42,7 +42,7 @@ void RankingState::setupUI()
     }
 
     rankings.push_back("");
-    rankings.push_back("BACK TO MENU");
+    rankings.push_back("BACK");
 
     float initial_y = 350.0f;
     float spacing = 80.0f;

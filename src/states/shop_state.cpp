@@ -135,7 +135,7 @@ void ShopState::updateUI()
 		action_str = "[ EQUIP ]";
 	}
 
-	std::vector<std::string> display_strings = {action_str, "BACK TO MENU"};
+	std::vector<std::string> display_strings = {action_str, "BACK"};
 	float initial_y = 650.f;
 	float spacing = 80.f;
 

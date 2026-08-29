@@ -53,7 +53,7 @@ void LoadState::setupUI()
     title_text_->setPosition({Constants::WINDOW_WIDTH / 2.0f, 150.0f + title_bounds.size.y / 2.0f});
 
     std::vector<std::string> save_options = {"SAVE SLOT 1", "SAVE SLOT 2", "SAVE SLOT 3",
-                                             "BACK TO MENU"};
+                                             "BACK"};
 
     float initial_y = 350.0f;
     float spacing = 100.0f;
