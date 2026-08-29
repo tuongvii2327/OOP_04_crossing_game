@@ -13,7 +13,7 @@ else()
     set(SFML_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libs/SFML-3.1.0-windows-gcc-14.2.0-mingw-64-bit/lib/cmake/SFML")
 endif()
 
-find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System Audio)
+find_package(SFML 3 REQUIRED COMPONENTS Graphics Window System Audio Main)
 
 # TỰ ĐỘNG QUÉT TOÀN BỘ FILE TRONG DỰ ÁN
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
@@ -30,8 +30,12 @@ else()
     target_include_directories(CrossyRoad SYSTEM PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/libs/SFML-3.1.0-windows-gcc-14.2.0-mingw-64-bit/include")
 endif()
 
-target_link_libraries(CrossyRoad PRIVATE SFML::Graphics SFML::Window SFML::System SFML::Audio)
+target_link_libraries(CrossyRoad PRIVATE SFML::Graphics SFML::Window SFML::System SFML::Audio SFML::Main)
 
+# Đặt thư mục làm việc (Working Directory) cho trình gỡ lỗi Visual Studio về thư mục gốc
+if(MSVC)
+    set_target_properties(CrossyRoad PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
+endif()
 # Copy assets folder to build directory
 add_custom_command(TARGET CrossyRoad POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
