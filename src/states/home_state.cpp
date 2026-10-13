@@ -35,12 +35,17 @@ void HomeState::setupMenuOption(sf::Text& text, const std::string& str, float y_
 //   [5] Ranking(choice 4)   – Bottom-Right
 void HomeState::updateSoundIconTextures()
 {
+    constexpr float BASE_SIZE = 64.f;
+    constexpr float HOVER_SIZE = 76.8f;
+
     // SFX icon (index 0): SpeakerOn / SpeakerMute
     bool sfx_on = Audio().getSFXVolume() > 0.f;
     const sf::Texture& sfx_tex = Resource().getTexture(
         sfx_on ? "assets/textures/icon/SpeakerOn.png" : "assets/textures/icon/SpeakerMute.png");
     icon_buttons_[0].sprite->setTexture(sfx_tex, true);
     icon_buttons_[0].sprite->setOrigin({sfx_tex.getSize().x / 2.f, sfx_tex.getSize().y / 2.f});
+    float sfx_size = icon_buttons_[0].is_hovered ? HOVER_SIZE : BASE_SIZE;
+    icon_buttons_[0].sprite->setScale({sfx_size / sfx_tex.getSize().x, sfx_size / sfx_tex.getSize().y});
 
     // Music icon (index 1): music_on / music_off
     bool music_on = Audio().getMusicVolume() > 0.f;
@@ -48,6 +53,8 @@ void HomeState::updateSoundIconTextures()
         music_on ? "assets/textures/icon/music_on.png" : "assets/textures/icon/music_off.png");
     icon_buttons_[1].sprite->setTexture(music_tex, true);
     icon_buttons_[1].sprite->setOrigin({music_tex.getSize().x / 2.f, music_tex.getSize().y / 2.f});
+    float music_size = icon_buttons_[1].is_hovered ? HOVER_SIZE : BASE_SIZE;
+    icon_buttons_[1].sprite->setScale({music_size / music_tex.getSize().x, music_size / music_tex.getSize().y});
 }
 
 void HomeState::initExitPopup()
@@ -121,7 +128,7 @@ void HomeState::init()
     coin_sprite_->setTexture(coin_tex, true);
     coin_sprite_->setOrigin({coin_tex.getSize().x / 2.f, coin_tex.getSize().y / 2.f});
     coin_sprite_->setPosition({40.f, 45.f});
-    coin_sprite_->setScale({3.5f, 3.5f});
+    coin_sprite_->setScale({56.f / coin_tex.getSize().x, 56.f / coin_tex.getSize().y});
 
     coin_text_ = std::make_unique<sf::Text>(
         Resource().createText(std::to_string(context_->data->total_coins), {48, sf::Color::Yellow}));
@@ -175,7 +182,7 @@ void HomeState::init()
         btn.sprite->setTexture(tex, true);
         btn.sprite->setOrigin({tex.getSize().x / 2.f, tex.getSize().y / 2.f});
         btn.sprite->setPosition(c.pos);
-        btn.sprite->setScale({4.f, 4.f});
+        btn.sprite->setScale({64.f / tex.getSize().x, 64.f / tex.getSize().y});
         btn.choice_index = c.choice;
         btn.is_hovered = false;
         icon_buttons_.push_back(std::move(btn));
@@ -344,14 +351,16 @@ void HomeState::handleEvent(const sf::Event& event)
                 if (!btn.is_hovered)
                 {
                     btn.is_hovered = true;
-                    btn.sprite->setScale({4.8f, 4.8f});
+                    const auto texSize = btn.sprite->getTexture().getSize();
+                    btn.sprite->setScale({76.8f / texSize.x, 76.8f / texSize.y});
                     Audio().playSFX(AudioSystem::SFX::Hover);
                 }
             }
             else if (btn.is_hovered)
             {
                 btn.is_hovered = false;
-                btn.sprite->setScale({4.f, 4.f});
+                const auto texSize = btn.sprite->getTexture().getSize();
+                btn.sprite->setScale({64.f / texSize.x, 64.f / texSize.y});
             }
         }
     }

@@ -36,7 +36,7 @@ void ShopState::init()
 	coin_sprite_->setTexture(coin_tex, true);
 	coin_sprite_->setOrigin({coin_tex.getSize().x / 2.f, coin_tex.getSize().y / 2.f});
 	coin_sprite_->setPosition({40.f, 45.f});
-	coin_sprite_->setScale({3.5f, 3.5f});
+	coin_sprite_->setScale({56.f / coin_tex.getSize().x, 56.f / coin_tex.getSize().y});
 
 	viewing_char_index_ = context_->data->selected_character;
 
@@ -50,12 +50,15 @@ void ShopState::setupUI()
 	sf::FloatRect title_bounds = title_text_->getLocalBounds();
 	title_text_->setPosition({Constants::WINDOW_WIDTH / 2.f, 120.f + title_bounds.size.y / 2.f});
 
+	// Tên nhân vật
+	char_name_text_ = std::make_unique<sf::Text>(Resource().createText("", {55, sf::Color(255, 230, 100)}, true));
+
 	// Coin text: chỉ số, top-left (giống HomeState)
 	*coin_text_ = Resource().createText("", {60, sf::Color::Yellow});
 
 	// Mũi tên đổi nhân vật
-	arrow_left_ = std::make_unique<sf::Text>(Resource().createText("<", {120}));
-	arrow_right_ = std::make_unique<sf::Text>(Resource().createText(">", {120}));
+	arrow_left_ = std::make_unique<sf::Text>(Resource().createText("<", {90}, true));
+	arrow_right_ = std::make_unique<sf::Text>(Resource().createText(">", {90}, true));
 
 	// 2 dòng menu: Action (index 0), Back (index 1)
 	for (int i = 0; i < 2; ++i)
@@ -74,6 +77,15 @@ void ShopState::updateUI()
 		sf::FloatRect r = coin_text_->getLocalBounds();
 		coin_text_->setOrigin({0.f, r.size.y / 2.f});
 		coin_text_->setPosition({70.f, 40.f});
+	}
+
+	// --- Tên nhân vật ---
+	if (char_name_text_)
+	{
+		char_name_text_->setString(char_names_[viewing_char_index_]);
+		sf::FloatRect nb = char_name_text_->getLocalBounds();
+		char_name_text_->setOrigin({nb.size.x / 2.f, nb.size.y / 2.f});
+		char_name_text_->setPosition({Constants::WINDOW_WIDTH / 2.f, 325.f});
 	}
 
 	// --- Ảnh nhân vật ---
@@ -95,27 +107,28 @@ void ShopState::updateUI()
 		sf::Vector2i(Constants::SPRITESHEET_FRAME_SIZE,
 			Constants::SPRITESHEET_FRAME_SIZE)));
 
-	float preview_scale = 0.32f;
+	// Frame size = 200px -> Scale 1.35f cho ra kích thước 270x270px sắc nét và cân đối
+	float preview_scale = 1.35f;
 	char_sprite_.setScale({preview_scale, preview_scale});
 
-	// Khoảng hiển thị nhân vật: y = 280 đến 570 (290px)
+	// Khoảng hiển thị nhân vật
 	sf::FloatRect sprite_bounds = char_sprite_.getGlobalBounds();
 	float sprite_x = (Constants::WINDOW_WIDTH - sprite_bounds.size.x) / 2.f;
-	float sprite_y = 350.f;
+	float sprite_y = 380.f;
 	char_sprite_.setPosition({sprite_x, sprite_y});
 
 	// --- Mũi tên hai bên nhân vật ---
-	const float arrow_margin = 30.f;
+	const float arrow_margin = 45.f;
 	float sprite_center_y = sprite_y + sprite_bounds.size.y / 2.f;
 
 	{
 		sf::FloatRect lr = arrow_left_->getLocalBounds();
-		arrow_left_->setOrigin({lr.size.x, lr.size.y / 2.f});
+		arrow_left_->setOrigin({lr.size.x / 2.f, lr.size.y / 2.f});
 		arrow_left_->setPosition({sprite_x - arrow_margin, sprite_center_y});
 	}
 	{
 		sf::FloatRect rr = arrow_right_->getLocalBounds();
-		arrow_right_->setOrigin({0.f, rr.size.y / 2.f});
+		arrow_right_->setOrigin({rr.size.x / 2.f, rr.size.y / 2.f});
 		arrow_right_->setPosition(
 			{sprite_x + sprite_bounds.size.x + arrow_margin, sprite_center_y});
 	}
@@ -136,7 +149,7 @@ void ShopState::updateUI()
 	}
 
 	std::vector<std::string> display_strings = {action_str, "BACK"};
-	float initial_y = 650.f;
+	float initial_y = 690.f;
 	float spacing = 80.f;
 
 	for (size_t i = 0; i < menu_texts_.size(); ++i)
@@ -186,6 +199,36 @@ void ShopState::handleEvent(const sf::Event &event)
 		{
 			Audio().playSFX(AudioSystem::SFX::Back);
 			context_->state_machine->pop();
+		}
+	}
+
+	// Di chuyển chuột: Cập nhật hover cho menu và mũi tên
+	if (const auto* mm = event.getIf<sf::Event::MouseMoved>())
+	{
+		sf::Vector2f mp = context_->window->mapPixelToCoords(mm->position);
+		for (size_t i = 0; i < menu_texts_.size(); ++i)
+		{
+			if (menu_texts_[i] && menu_texts_[i]->getGlobalBounds().contains(mp))
+			{
+				if (selected_index_ != static_cast<int>(i))
+				{
+					selected_index_ = static_cast<int>(i);
+					Audio().playSFX(AudioSystem::SFX::Hover);
+					updateUI();
+				}
+				break;
+			}
+		}
+
+		if (arrow_left_)
+		{
+			bool h = arrow_left_->getGlobalBounds().contains(mp);
+			arrow_left_->setFillColor(h ? sf::Color::Yellow : sf::Color::White);
+		}
+		if (arrow_right_)
+		{
+			bool h = arrow_right_->getGlobalBounds().contains(mp);
+			arrow_right_->setFillColor(h ? sf::Color::Yellow : sf::Color::White);
 		}
 	}
 
@@ -240,6 +283,10 @@ void ShopState::render(sf::RenderWindow &window)
 		window.draw(*coin_sprite_);
 	if (coin_text_)
 		Resource().drawTextWithShadow(window, *coin_text_);
+
+	// Tên nhân vật
+	if (char_name_text_)
+		Resource().drawTextWithShadow(window, *char_name_text_);
 
 	// Nhân vật và mũi tên
 	window.draw(char_sprite_);

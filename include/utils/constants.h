@@ -242,7 +242,7 @@ namespace Constants
 #pragma endregion
 
 #pragma region SPRITESHEET
-	constexpr int SPRITESHEET_FRAME_SIZE = 800;
+	constexpr int SPRITESHEET_FRAME_SIZE = 200;
 
 	struct SpriteFrameRect
 	{
@@ -257,13 +257,13 @@ namespace Constants
 		switch (type)
 		{
 		case DynamicObjectType::Car:
-			return {750, 425, 25, 250};
+			return {187, 106, 6, 62};
 		case DynamicObjectType::Rabbit:
-			return {700, 700, (SPRITESHEET_FRAME_SIZE - 700) / 2, (SPRITESHEET_FRAME_SIZE - 700) / 2};
+			return {175, 175, (SPRITESHEET_FRAME_SIZE - 175) / 2, (SPRITESHEET_FRAME_SIZE - 175) / 2};
 		case DynamicObjectType::Bird:
-			return {725, 643, (SPRITESHEET_FRAME_SIZE - 725) / 2, (SPRITESHEET_FRAME_SIZE - 643) / 2};
+			return {181, 161, (SPRITESHEET_FRAME_SIZE - 181) / 2, (SPRITESHEET_FRAME_SIZE - 161) / 2};
 		case DynamicObjectType::Truck:
-			return {725, 675, (SPRITESHEET_FRAME_SIZE - 725) / 2, (SPRITESHEET_FRAME_SIZE - 675) / 2};
+			return {181, 169, (SPRITESHEET_FRAME_SIZE - 181) / 2, (SPRITESHEET_FRAME_SIZE - 169) / 2};
 		default:
 			return {SPRITESHEET_FRAME_SIZE, SPRITESHEET_FRAME_SIZE, 0, 0};
 		}

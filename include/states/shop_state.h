@@ -13,6 +13,7 @@ class ShopState : public State
 private:
     std::unique_ptr<sf::Sprite> background_sprite_;
     std::unique_ptr<sf::Text> title_text_;
+    std::unique_ptr<sf::Text> char_name_text_;          // Tên nhân vật đang xem
     std::unique_ptr<sf::Text> coin_text_;
     std::unique_ptr<sf::Sprite> coin_sprite_;           // Icon đồng xu (top-left)
     std::vector<std::unique_ptr<sf::Text>> menu_texts_; // [0]=Action, [1]=Back

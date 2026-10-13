@@ -119,7 +119,7 @@ void PlayingState::init()
         btn.sprite->setTexture(tex, true);
         btn.sprite->setOrigin({ tex.getSize().x / 2.f, tex.getSize().y / 2.f });
         btn.sprite->setPosition(c.pos);
-        btn.sprite->setScale({ 4.f, 4.f });
+        btn.sprite->setScale({ 64.f / tex.getSize().x, 64.f / tex.getSize().y });
         btn.choice_index = c.choice;
         btn.is_hovered = false;
         icon_buttons_.push_back(std::move(btn));
@@ -212,14 +212,16 @@ void PlayingState::handleEvent(const sf::Event& event)
                 if (!btn.is_hovered)
                 {
                     btn.is_hovered = true;
-                    btn.sprite->setScale({ 4.8f, 4.8f });
+                    const auto texSize = btn.sprite->getTexture().getSize();
+                    btn.sprite->setScale({ 76.8f / texSize.x, 76.8f / texSize.y });
                     Audio().playSFX(AudioSystem::SFX::Hover);
                 }
             }
             else if (btn.is_hovered)
             {
                 btn.is_hovered = false;
-                btn.sprite->setScale({ 4.f, 4.f });
+                const auto texSize = btn.sprite->getTexture().getSize();
+                btn.sprite->setScale({ 64.f / texSize.x, 64.f / texSize.y });
             }
         }
     }
